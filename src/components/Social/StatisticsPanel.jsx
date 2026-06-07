@@ -156,24 +156,36 @@ export default function StatisticsPanel() {
           Pour chaque tranche de progression après 10 Millions, vous recevrez de la <span style={{ color: 'var(--honey-light)' }}>Gelée Royale</span> permanente !
         </p>
 
-        {gameState.totalHoney >= 10000000 ? (
-          <button 
-            className="mc-button primary" 
-            style={{ width: '100%', padding: '15px', fontSize: '10px', animation: 'pulseGlow 2s infinite' }}
-            onClick={() => {
-              const jellyEarned = Math.floor(Math.sqrt(gameState.totalHoney / 10000000))
-              if (window.confirm(`Êtes-vous sûr de vouloir faire une Ascension ?\n\nVous perdrez votre miel actuel et vos bâtiments, mais vous gagnerez ${jellyEarned} Gelée(s) Royale(s) !\n\nCela augmentera votre production permanente de +${jellyEarned * 10}% !`)) {
-                gameState.dispatch({ type: 'PRESTIGE' })
-              }
-            }}
-          >
-            Faire une Ascension (+{Math.floor(Math.sqrt(gameState.totalHoney / 10000000))} 👑)
-          </button>
-        ) : (
-          <button className="mc-button" disabled style={{ width: '100%' }}>
-            Nécessite 10 000 000 Miel Total (Actuel: {formatNumber(Math.floor(gameState.totalHoney))})
-          </button>
-        )}
+        {(() => {
+          const totalJellyAllowed = Math.floor(Math.sqrt(gameState.totalHoney / 10000000))
+          const currentJelly = gameState.royalJelly || 0
+          const jellyEarned = totalJellyAllowed - currentJelly
+          
+          // Cost for the NEXT jelly: (currentJelly + 1)^2 * 10M
+          const nextJellyTarget = Math.pow(currentJelly + 1, 2) * 10000000
+
+          if (jellyEarned > 0) {
+            return (
+              <button 
+                className="mc-button primary" 
+                style={{ width: '100%', padding: '15px', fontSize: '10px', animation: 'pulseGlow 2s infinite' }}
+                onClick={() => {
+                  if (window.confirm(`Êtes-vous sûr de vouloir faire une Ascension ?\n\nVous perdrez votre miel actuel et vos bâtiments, mais vous gagnerez ${jellyEarned} Gelée(s) Royale(s) !\n\nCela augmentera votre production permanente de +${jellyEarned * 10}% !`)) {
+                    gameState.dispatch({ type: 'PRESTIGE' })
+                  }
+                }}
+              >
+                Faire une Ascension (+{jellyEarned} 👑)
+              </button>
+            )
+          } else {
+            return (
+              <button className="mc-button" disabled style={{ width: '100%' }}>
+                Nécessite {formatNumber(Math.floor(nextJellyTarget))} Miel Total (Actuel: {formatNumber(Math.floor(gameState.totalHoney))})
+              </button>
+            )
+          }
+        })()}
       </div>
     </div>
   )

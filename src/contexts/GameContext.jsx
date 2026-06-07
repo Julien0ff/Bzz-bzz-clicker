@@ -55,8 +55,10 @@ function gameReducer(state, action) {
     }
 
     case 'PRESTIGE': {
-      // Calculate jelly earned: Math.floor(Math.sqrt(totalHoney / 10M))
-      const jellyEarned = Math.floor(Math.sqrt(state.totalHoney / 10000000))
+      // Calculate total jelly allowed based on lifetime honey: Math.floor(Math.sqrt(totalHoney / 10M))
+      const totalJellyAllowed = Math.floor(Math.sqrt(state.totalHoney / 10000000))
+      const jellyEarned = totalJellyAllowed - (state.royalJelly || 0)
+      
       if (jellyEarned <= 0) return state // Cannot prestige
 
       return {
