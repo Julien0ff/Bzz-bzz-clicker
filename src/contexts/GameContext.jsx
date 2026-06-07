@@ -15,6 +15,8 @@ const initialState = {
   honeyPerSecond: 0,     // passive income
   upgrades: {},          // { upgradeId: count }
   clickUpgrades: {},     // { upgradeId: count }
+  totalClicks: 0,        // lifetime clicks
+  playTime: 0,           // total play time in seconds
   lastSaved: null,
 }
 
@@ -26,6 +28,7 @@ function gameReducer(state, action) {
         ...state,
         honey: state.honey + state.clickPower,
         totalHoney: state.totalHoney + state.clickPower,
+        totalClicks: (state.totalClicks || 0) + 1,
       }
     }
 
@@ -33,11 +36,11 @@ function gameReducer(state, action) {
       // Passive production per frame (called from game loop)
       const delta = action.delta // seconds since last tick
       const earned = state.honeyPerSecond * delta
-      if (earned === 0) return state
       return {
         ...state,
         honey: state.honey + earned,
         totalHoney: state.totalHoney + earned,
+        playTime: (state.playTime || 0) + delta,
       }
     }
 

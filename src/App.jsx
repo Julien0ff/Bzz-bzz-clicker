@@ -10,6 +10,7 @@ import LoginScreen from './components/Auth/LoginScreen'
 import GamePage from './pages/GamePage'
 import Leaderboard from './components/Social/Leaderboard'
 import FriendsList from './components/Social/FriendsList'
+import StatisticsPanel from './components/Social/StatisticsPanel'
 import AdminPanel from './components/Admin/AdminPanel'
 import { useGameLoop } from './hooks/useGameLoop'
 import { useSaveGame } from './hooks/useSaveGame'
@@ -203,6 +204,8 @@ function TopBar() {
                     honeyPerSecond: gameState.honeyPerSecond,
                     upgrades: gameState.upgrades,
                     clickUpgrades: gameState.clickUpgrades,
+                    totalClicks: gameState.totalClicks || 0,
+                    playTime: gameState.playTime || 0,
                     lastSaved: new Date().toISOString(),
                   }
                   await setDoc(doc(db, 'saves', user.uid), saveData)
@@ -224,6 +227,14 @@ function TopBar() {
           >
             <span style={{ fontSize: '11px', transform: 'translateY(-1px)' }}>👥</span>
             <span>Amis</span>
+          </button>
+          <button
+            className={`top-bar-btn ${isActive('/stats')}`}
+            onClick={() => navigate('/stats')}
+            id="nav-stats"
+          >
+            <span style={{ fontSize: '11px', transform: 'translateY(-1px)' }}>📊</span>
+            <span>Stats</span>
           </button>
           {userProfile?.isAdmin && (
             <button
@@ -280,6 +291,7 @@ function AuthenticatedApp() {
           <Route path="/" element={<GamePage />} />
           <Route path="/leaderboard" element={<Leaderboard />} />
           <Route path="/friends" element={<FriendsList />} />
+          <Route path="/stats" element={<StatisticsPanel />} />
           <Route path="/admin" element={<AdminPanel />} />
         </Routes>
       </div>

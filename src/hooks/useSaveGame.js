@@ -11,7 +11,7 @@ import { db } from '../firebase'
 const SAVE_INTERVAL = 30000 // Save every 30 seconds
 
 export function useSaveGame() {
-  const { honey, totalHoney, clickPower, honeyPerSecond, upgrades, clickUpgrades, loadSave, dispatch } = useGame()
+  const { honey, totalHoney, clickPower, honeyPerSecond, upgrades, clickUpgrades, totalClicks, playTime, loadSave, dispatch } = useGame()
   const { user } = useAuth()
   const saveTimerRef = useRef(null)
   const hasLoadedRef = useRef(false)
@@ -49,6 +49,8 @@ export function useSaveGame() {
           honeyPerSecond,
           upgrades,
           clickUpgrades,
+          totalClicks: totalClicks || 0,
+          playTime: playTime || 0,
           lastSaved: new Date().toISOString(),
         }
 
@@ -69,5 +71,5 @@ export function useSaveGame() {
       clearInterval(saveTimerRef.current)
       window.removeEventListener('beforeunload', handleUnload)
     }
-  }, [user, honey, totalHoney, clickPower, honeyPerSecond, upgrades, clickUpgrades, dispatch])
+  }, [user, honey, totalHoney, clickPower, honeyPerSecond, upgrades, clickUpgrades, totalClicks, playTime, dispatch])
 }
