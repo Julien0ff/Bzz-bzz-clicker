@@ -4,7 +4,8 @@ import { formatNumber } from '../../data/upgrades'
 import { ACHIEVEMENTS } from '../../data/achievements'
 
 export default function StatisticsPanel() {
-  const { totalHoney, honey, totalClicks, playTime, clickPower, honeyPerSecond, upgrades, clickUpgrades, achievements } = useGame()
+  const gameState = useGame()
+  const { totalHoney, honey, totalClicks, playTime, clickPower, honeyPerSecond, upgrades, clickUpgrades, achievements, royalJelly } = gameState
 
   // Helper to format play time in seconds to HH:MM:SS
   const formatTime = (seconds) => {
@@ -29,53 +30,53 @@ export default function StatisticsPanel() {
   const unlockedAchCount = achievements?.length || 0
 
   return (
-    <div className="mc-panel" style={{ margin: '20px auto', maxWidth: '600px', display: 'flex', flexDirection: 'column', gap: '20px', maxHeight: '80vh', overflowY: 'auto' }}>
+    <div className="mc-panel" style={{ margin: '20px auto', maxWidth: '650px', display: 'flex', flexDirection: 'column', gap: '20px', maxHeight: '80vh', overflowY: 'auto' }}>
       <h2 style={{ textAlign: 'center', margin: '0 0 10px 0', borderBottom: '4px solid var(--mc-border-dark)', paddingBottom: '10px' }}>
         📊 STATISTIQUES AVANCÉES
       </h2>
 
       <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
         {/* Colonne 1: Production */}
-        <div style={{ flex: 1, minWidth: '250px', background: 'var(--mc-button-bg)', padding: '15px', border: '4px solid var(--mc-border-light)', borderRadius: '2px' }}>
-          <h3 style={{ color: 'var(--text-honey)', marginBottom: '15px', fontSize: '10px' }}>🍯 Production</h3>
+        <div style={{ flex: 1, minWidth: '280px', background: 'var(--mc-button-bg)', padding: '20px', border: '4px solid var(--mc-border-light)', borderRadius: '2px' }}>
+          <h3 style={{ color: 'var(--text-honey)', marginBottom: '20px', fontSize: '11px' }}>🍯 Production</h3>
           
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px', fontSize: '9px' }}>
-            <span>Miel en banque :</span>
-            <span style={{ color: 'var(--text-light)' }}>{formatNumber(Math.floor(honey))}</span>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px', fontSize: '8px', lineHeight: '1.4' }}>
+            <span style={{ color: 'var(--text-secondary)' }}>Miel en banque :</span>
+            <span style={{ color: 'var(--honey-light)' }}>{formatNumber(Math.floor(honey))}</span>
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px', fontSize: '9px' }}>
-            <span>Miel total (à vie) :</span>
-            <span style={{ color: 'var(--text-light)' }}>{formatNumber(Math.floor(totalHoney))}</span>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px', fontSize: '8px', lineHeight: '1.4' }}>
+            <span style={{ color: 'var(--text-secondary)' }}>Miel total (à vie) :</span>
+            <span style={{ color: 'var(--honey-light)' }}>{formatNumber(Math.floor(totalHoney))}</span>
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px', fontSize: '9px' }}>
-            <span>Production par sec :</span>
-            <span style={{ color: 'var(--text-light)' }}>{formatNumber(honeyPerSecond)}/s</span>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px', fontSize: '8px', lineHeight: '1.4' }}>
+            <span style={{ color: 'var(--text-secondary)' }}>Production par sec :</span>
+            <span style={{ color: 'var(--honey-light)' }}>{formatNumber(honeyPerSecond)}/s</span>
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px', fontSize: '9px' }}>
-            <span>Puissance de clic :</span>
-            <span style={{ color: 'var(--text-light)' }}>{formatNumber(clickPower)}/clic</span>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px', fontSize: '8px', lineHeight: '1.4' }}>
+            <span style={{ color: 'var(--text-secondary)' }}>Puissance de clic :</span>
+            <span style={{ color: 'var(--honey-light)' }}>{formatNumber(clickPower)}/clic</span>
           </div>
         </div>
 
         {/* Colonne 2: Activité */}
-        <div style={{ flex: 1, minWidth: '250px', background: 'var(--mc-button-bg)', padding: '15px', border: '4px solid var(--mc-border-light)', borderRadius: '2px' }}>
-          <h3 style={{ color: 'var(--text-honey)', marginBottom: '15px', fontSize: '10px' }}>⏱️ Activité</h3>
+        <div style={{ flex: 1, minWidth: '280px', background: 'var(--mc-button-bg)', padding: '20px', border: '4px solid var(--mc-border-light)', borderRadius: '2px' }}>
+          <h3 style={{ color: 'var(--text-honey)', marginBottom: '20px', fontSize: '11px' }}>⏱️ Activité</h3>
           
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px', fontSize: '9px' }}>
-            <span>Temps de jeu total :</span>
-            <span style={{ color: 'var(--text-light)' }}>{formatTime(playTime)}</span>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px', fontSize: '8px', lineHeight: '1.4' }}>
+            <span style={{ color: 'var(--text-secondary)' }}>Temps de jeu total :</span>
+            <span style={{ color: 'var(--honey-light)' }}>{formatTime(playTime)}</span>
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px', fontSize: '9px' }}>
-            <span>Clics effectués :</span>
-            <span style={{ color: 'var(--text-light)' }}>{totalClicks?.toLocaleString('fr-FR') || 0}</span>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px', fontSize: '8px', lineHeight: '1.4' }}>
+            <span style={{ color: 'var(--text-secondary)' }}>Clics effectués :</span>
+            <span style={{ color: 'var(--honey-light)' }}>{totalClicks?.toLocaleString('fr-FR') || 0}</span>
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px', fontSize: '9px' }}>
-            <span>Bâtiments possédés :</span>
-            <span style={{ color: 'var(--text-light)' }}>{totalBuildings}</span>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px', fontSize: '8px', lineHeight: '1.4' }}>
+            <span style={{ color: 'var(--text-secondary)' }}>Bâtiments possédés :</span>
+            <span style={{ color: 'var(--honey-light)' }}>{totalBuildings}</span>
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px', fontSize: '9px' }}>
-            <span>Amél. de clics achetées :</span>
-            <span style={{ color: 'var(--text-light)' }}>{totalClickUpgrades}</span>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px', fontSize: '8px', lineHeight: '1.4' }}>
+            <span style={{ color: 'var(--text-secondary)' }}>Amél. de clics achetées :</span>
+            <span style={{ color: 'var(--honey-light)' }}>{totalClickUpgrades}</span>
           </div>
         </div>
       </div>
