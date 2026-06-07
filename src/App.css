@@ -1128,3 +1128,14 @@ body {
   from { opacity: 1; }
   to { opacity: 0; }
 }
+
+/* ===================================================
+   GOLDEN BEE ANIMATION
+   =================================================== */
+@keyframes goldenBeeFly {
+  0% { transform: translateX(0vw) translateY(0) scale(1); }
+  25% { transform: translateX(30vw) translateY(-50px) scale(1.1); }
+  50% { transform: translateX(60vw) translateY(30px) scale(1); }
+  75% { transform: translateX(90vw) translateY(-20px) scale(0.9); }
+  100% { transform: translateX(120vw) translateY(0) scale(1); }
+}

@@ -7,12 +7,13 @@ import BeeButton from '../components/Game/BeeButton'
 import HoneyCounter from '../components/Game/HoneyCounter'
 import UpgradeShop from '../components/Game/UpgradeShop'
 import FloatingBees from '../components/Game/FloatingBees'
+import GoldenBee from '../components/Game/GoldenBee'
 import { useGame } from '../contexts/GameContext'
 import { formatNumber } from '../data/upgrades'
 
 export default function GamePage() {
   const [shopOpen, setShopOpen] = useState(false)
-  const { totalHoney, honeyPerSecond, clickPower } = useGame()
+  const { totalHoney, honeyPerSecond, clickPower, frenzyTimeLeft } = useGame()
 
   // Removed useGameLoop and useSaveGame from here.
   // They are now handled globally in App.jsx (GameEngine) so that progress
@@ -25,9 +26,17 @@ export default function GamePage() {
 
       {/* Floating bees in background */}
       <FloatingBees />
+      
+      {/* Golden bee spawn system */}
+      <GoldenBee />
 
       {/* Main game area */}
       <div className="game-area">
+        {frenzyTimeLeft > 0 && (
+          <div style={{ color: '#ffaa00', fontSize: '14px', animation: 'pulseGlow 1s infinite', textShadow: '2px 2px 0 #000', marginBottom: '10px' }}>
+            ⚡ FRENZY x7 ({Math.ceil(frenzyTimeLeft)}s) ⚡
+          </div>
+        )}
         <HoneyCounter />
         <BeeButton />
 

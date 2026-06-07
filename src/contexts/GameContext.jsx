@@ -19,6 +19,7 @@ const initialState = {
   playTime: 0,           // total play time in seconds
   achievements: [],      // array of unlocked achievement ids
   royalJelly: 0,         // prestige currency (+10% multiplier each)
+  frenzyTimeLeft: 0,     // seconds left for x7 frenzy
   lastSaved: null,
 }
 
@@ -29,7 +30,8 @@ function gameReducer(state, action) {
       // Apply achievement multiplier (1% per achievement) and royal jelly (10% per jelly)
       const achievementMulti = 1 + (state.achievements?.length || 0) * 0.01
       const jellyMulti = 1 + (state.royalJelly || 0) * 0.10
-      const clickAmount = state.clickPower * achievementMulti * jellyMulti
+      const frenzyMulti = state.frenzyTimeLeft > 0 ? 7 : 1
+      const clickAmount = state.clickPower * achievementMulti * jellyMulti * frenzyMulti
       return {
         ...state,
         honey: state.honey + clickAmount,
@@ -44,14 +46,41 @@ function gameReducer(state, action) {
       // Apply multipliers
       const achievementMulti = 1 + (state.achievements?.length || 0) * 0.01
       const jellyMulti = 1 + (state.royalJelly || 0) * 0.10
-      const earned = state.honeyPerSecond * delta * achievementMulti * jellyMulti
+      const frenzyMulti = state.frenzyTimeLeft > 0 ? 7 : 1
+      const earned = state.honeyPerSecond * delta * achievementMulti * jellyMulti * frenzyMulti
       
+      const newFrenzyTimeLeft = state.frenzyTimeLeft > 0 ? Math.max(0, state.frenzyTimeLeft - delta) : 0
+
       return {
         ...state,
         honey: state.honey + earned,
         totalHoney: state.totalHoney + earned,
         playTime: (state.playTime || 0) + delta,
+        frenzyTimeLeft: newFrenzyTimeLeft,
       }
+    }
+
+    case 'GOLDEN_BEE_EFFECT': {
+      if (action.effectType === 'frenzy') {
+        return { ...state, frenzyTimeLeft: 30 } // 30 seconds of x7
+      } else if (action.effectType === 'lucky_drop') {
+        const bonus = (state.honeyPerSecond * 900) + 10000 // 15 mins of passive + 10k flat
+        return {
+          ...state,
+          honey: state.honey + bonus,
+          totalHoney: state.totalHoney + bonus,
+        }
+      } else if (action.effectType === 'malus') {
+        // Malus exponentiel basé sur le miel par seconde
+        const penalty = Math.floor(Math.pow(state.honeyPerSecond, 1.5))
+        const actualPenalty = Math.min(state.honey, penalty) // Empêche de passer en négatif
+        return {
+          ...state,
+          honey: state.honey - actualPenalty,
+          // Ne réduit pas le totalHoney à vie, seulement le miel en banque
+        }
+      }
+      return state
     }
 
     case 'PRESTIGE': {
