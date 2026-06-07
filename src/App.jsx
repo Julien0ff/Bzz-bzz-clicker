@@ -159,6 +159,10 @@ function TopBar() {
           honeyPerSecond: gameState.honeyPerSecond,
           upgrades: gameState.upgrades,
           clickUpgrades: gameState.clickUpgrades,
+          totalClicks: gameState.totalClicks || 0,
+          playTime: gameState.playTime || 0,
+          achievements: gameState.achievements || [],
+          royalJelly: gameState.royalJelly || 0,
           lastSaved: new Date().toISOString(),
         }
         await setDoc(doc(db, 'saves', user.uid), saveData)
@@ -206,6 +210,8 @@ function TopBar() {
                     clickUpgrades: gameState.clickUpgrades,
                     totalClicks: gameState.totalClicks || 0,
                     playTime: gameState.playTime || 0,
+                    achievements: gameState.achievements || [],
+                    royalJelly: gameState.royalJelly || 0,
                     lastSaved: new Date().toISOString(),
                   }
                   await setDoc(doc(db, 'saves', user.uid), saveData)
@@ -274,6 +280,32 @@ function TopBar() {
   )
 }
 
+// --- Achievement Toast System ---
+function AchievementToast() {
+  const [toast, setToast] = useState(null)
+
+  React.useEffect(() => {
+    const handleUnlock = (e) => {
+      setToast(e.detail)
+      setTimeout(() => setToast(null), 5000) // Hide after 5s
+    }
+    window.addEventListener('achievement_unlocked', handleUnlock)
+    return () => window.removeEventListener('achievement_unlocked', handleUnlock)
+  }, [])
+
+  if (!toast) return null
+
+  return (
+    <div className="achievement-toast">
+      <div className="achievement-icon">{toast.icon}</div>
+      <div className="achievement-text">
+        <h4>Succès déverrouillé !</h4>
+        <p>{toast.name}</p>
+      </div>
+    </div>
+  )
+}
+
 // --- Authenticated Layout ---
 function GameEngine() {
   useGameLoop()
@@ -285,6 +317,7 @@ function AuthenticatedApp() {
   return (
     <GameProvider>
       <GameEngine />
+      <AchievementToast />
       <TopBar />
       <div style={{ paddingTop: '48px', height: '100vh' }}>
         <Routes>

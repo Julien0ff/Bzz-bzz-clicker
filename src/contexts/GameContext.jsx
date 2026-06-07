@@ -17,6 +17,8 @@ const initialState = {
   clickUpgrades: {},     // { upgradeId: count }
   totalClicks: 0,        // lifetime clicks
   playTime: 0,           // total play time in seconds
+  achievements: [],      // array of unlocked achievement ids
+  royalJelly: 0,         // prestige currency (+10% multiplier each)
   lastSaved: null,
 }
 
@@ -24,10 +26,14 @@ const initialState = {
 function gameReducer(state, action) {
   switch (action.type) {
     case 'CLICK': {
+      // Apply achievement multiplier (1% per achievement) and royal jelly (10% per jelly)
+      const achievementMulti = 1 + (state.achievements?.length || 0) * 0.01
+      const jellyMulti = 1 + (state.royalJelly || 0) * 0.10
+      const clickAmount = state.clickPower * achievementMulti * jellyMulti
       return {
         ...state,
-        honey: state.honey + state.clickPower,
-        totalHoney: state.totalHoney + state.clickPower,
+        honey: state.honey + clickAmount,
+        totalHoney: state.totalHoney + clickAmount,
         totalClicks: (state.totalClicks || 0) + 1,
       }
     }
@@ -35,12 +41,39 @@ function gameReducer(state, action) {
     case 'TICK': {
       // Passive production per frame (called from game loop)
       const delta = action.delta // seconds since last tick
-      const earned = state.honeyPerSecond * delta
+      // Apply multipliers
+      const achievementMulti = 1 + (state.achievements?.length || 0) * 0.01
+      const jellyMulti = 1 + (state.royalJelly || 0) * 0.10
+      const earned = state.honeyPerSecond * delta * achievementMulti * jellyMulti
+      
       return {
         ...state,
         honey: state.honey + earned,
         totalHoney: state.totalHoney + earned,
         playTime: (state.playTime || 0) + delta,
+      }
+    }
+
+    case 'PRESTIGE': {
+      // Calculate jelly earned: Math.floor(Math.sqrt(totalHoney / 10M))
+      const jellyEarned = Math.floor(Math.sqrt(state.totalHoney / 10000000))
+      if (jellyEarned <= 0) return state // Cannot prestige
+
+      return {
+        ...initialState, // reset everything
+        totalHoney: state.totalHoney, // keep lifetime honey
+        totalClicks: state.totalClicks, // keep stats
+        playTime: state.playTime,
+        achievements: state.achievements, // keep achievements
+        royalJelly: (state.royalJelly || 0) + jellyEarned, // add new jelly
+      }
+    }
+
+    case 'UNLOCK_ACHIEVEMENT': {
+      if (state.achievements?.includes(action.id)) return state
+      return {
+        ...state,
+        achievements: [...(state.achievements || []), action.id]
       }
     }
 
