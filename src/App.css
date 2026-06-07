@@ -1,0 +1,1081 @@
+/* ===================================================
+   BEE CLICKER — Global Styles (Minecraft Theme)
+   =================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+/* --- Minecraft Font --- */
+@font-face {
+  font-family: 'Minecraft';
+  src: url('https://fonts.cdnfonts.com/css/minecraft-4') format('woff2');
+  font-weight: normal;
+  font-style: normal;
+}
+
+/* --- CSS Variables --- */
+:root {
+  /* Background */
+  --bg-dark: #1a1a2e;
+  --bg-darker: #0f0f1a;
+  --bg-panel: #2a1f0e;
+  --bg-panel-inner: #3d2e14;
+  --bg-panel-hover: #4a3618;
+
+  /* Honey / Gold tones */
+  --honey-light: #ffd700;
+  --honey: #f4a623;
+  --honey-dark: #e8920b;
+  --honey-darker: #c47a09;
+  --amber: #ff8c00;
+
+  /* Minecraft UI */
+  --mc-border-light: #5a5a5a;
+  --mc-border-dark: #2d2d2d;
+  --mc-stone: #8b8b8b;
+  --mc-stone-dark: #6b6b6b;
+  --mc-dirt: #8b6914;
+  --mc-grass: #5d9e3a;
+
+  /* Text */
+  --text-primary: #f5f0e1;
+  --text-secondary: #c4b998;
+  --text-honey: #ffd700;
+  --text-dim: #7a7562;
+
+  /* Status */
+  --can-afford: #5dba3b;
+  --cannot-afford: #c44040;
+
+  /* Shadows */
+  --shadow-glow: 0 0 20px rgba(244, 166, 35, 0.3);
+  --shadow-panel: 0 4px 24px rgba(0, 0, 0, 0.6);
+
+  /* Sizing */
+  --panel-radius: 4px;
+  --bee-size: 180px;
+
+  font-family: 'Press Start 2P', monospace;
+  font-size: 10px;
+  color: var(--text-primary);
+}
+
+/* --- Reset --- */
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  background: var(--bg-dark);
+  background-image:
+    radial-gradient(ellipse at 20% 50%, rgba(244, 166, 35, 0.05) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 20%, rgba(255, 140, 0, 0.04) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 80%, rgba(232, 146, 11, 0.03) 0%, transparent 50%);
+  image-rendering: pixelated;
+}
+
+/* --- Scrollbar (Minecraft style) --- */
+::-webkit-scrollbar {
+  width: 10px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-darker);
+  border-left: 2px solid var(--mc-border-dark);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--mc-stone-dark);
+  border: 2px solid var(--mc-border-dark);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--mc-stone);
+}
+
+/* ===================================================
+   LAYOUT
+   =================================================== */
+.app-container {
+  display: flex;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  position: relative;
+}
+
+/* --- Game Area (Center) --- */
+.game-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 1;
+  gap: 16px;
+  min-width: 0;
+}
+
+/* --- Shop Panel (Right) --- */
+.shop-panel {
+  width: 340px;
+  min-width: 340px;
+  height: 100vh;
+  background: var(--bg-panel);
+  border-left: 4px solid var(--mc-border-dark);
+  box-shadow: -4px 0 20px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  z-index: 2;
+}
+
+.shop-header {
+  padding: 16px;
+  text-align: center;
+  border-bottom: 3px solid var(--mc-border-dark);
+  background: var(--bg-panel-inner);
+}
+
+.shop-header h2 {
+  font-size: 14px;
+  color: var(--text-honey);
+  text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.5);
+  letter-spacing: 1px;
+}
+
+.shop-tabs {
+  display: flex;
+  border-bottom: 2px solid var(--mc-border-dark);
+}
+
+.shop-tab {
+  flex: 1;
+  padding: 10px 8px;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 8px;
+  background: var(--bg-panel);
+  color: var(--text-secondary);
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s;
+  border-bottom: 3px solid transparent;
+  text-align: center;
+}
+
+.shop-tab:hover {
+  background: var(--bg-panel-hover);
+  color: var(--text-primary);
+}
+
+.shop-tab.active {
+  background: var(--bg-panel-inner);
+  color: var(--text-honey);
+  border-bottom-color: var(--honey);
+}
+
+.shop-items {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* ===================================================
+   HONEY COUNTER
+   =================================================== */
+.honey-counter {
+  text-align: center;
+  user-select: none;
+  z-index: 5;
+}
+
+.honey-amount {
+  font-size: 36px;
+  color: var(--text-honey);
+  text-shadow:
+    2px 2px 0 rgba(0, 0, 0, 0.7),
+    0 0 30px rgba(255, 215, 0, 0.3);
+  margin-bottom: 8px;
+  transition: transform 0.1s;
+}
+
+.honey-label {
+  font-size: 12px;
+  color: var(--text-secondary);
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.5);
+  letter-spacing: 2px;
+}
+
+.honey-per-second {
+  font-size: 10px;
+  color: var(--honey-dark);
+  margin-top: 6px;
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.5);
+}
+
+/* ===================================================
+   BEE BUTTON
+   =================================================== */
+.bee-button-container {
+  position: relative;
+  z-index: 5;
+}
+
+.bee-button {
+  width: var(--bee-size);
+  height: var(--bee-size);
+  cursor: pointer;
+  background: none;
+  border: none;
+  outline: none;
+  position: relative;
+  transition: filter 0.1s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.bee-button:hover {
+  filter: brightness(1.15) drop-shadow(0 0 20px rgba(255, 215, 0, 0.5));
+}
+
+.bee-button:active {
+  filter: brightness(1.3);
+}
+
+.bee-button img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  image-rendering: pixelated;
+  pointer-events: none;
+}
+
+/* Glow ring behind the bee */
+.bee-glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: calc(var(--bee-size) + 40px);
+  height: calc(var(--bee-size) + 40px);
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(255, 215, 0, 0.15) 0%,
+    rgba(244, 166, 35, 0.05) 50%,
+    transparent 70%
+  );
+  animation: pulseGlow 3s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes pulseGlow {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.7; }
+  50% { transform: translate(-50%, -50%) scale(1.1); opacity: 1; }
+}
+
+/* ===================================================
+   CLICK PARTICLES (+X text)
+   =================================================== */
+.click-particle {
+  position: fixed;
+  pointer-events: none;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 14px;
+  color: var(--text-honey);
+  text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.8);
+  z-index: 100;
+  white-space: nowrap;
+}
+
+/* ===================================================
+   UPGRADE ITEM
+   =================================================== */
+.upgrade-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  background: var(--bg-panel-inner);
+  border: 2px solid var(--mc-border-dark);
+  border-radius: var(--panel-radius);
+  cursor: pointer;
+  transition: all 0.15s;
+  user-select: none;
+  position: relative;
+  overflow: hidden;
+}
+
+.upgrade-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.upgrade-item:hover {
+  background: var(--bg-panel-hover);
+  border-color: var(--honey-dark);
+  transform: translateX(-2px);
+}
+
+.upgrade-item.can-afford {
+  border-color: var(--can-afford);
+}
+
+.upgrade-item.can-afford:hover {
+  box-shadow: 0 0 12px rgba(93, 186, 59, 0.2);
+}
+
+.upgrade-item.cannot-afford {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.upgrade-item.cannot-afford:hover {
+  transform: none;
+  border-color: var(--mc-border-dark);
+}
+
+.upgrade-icon {
+  font-size: 24px;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.3);
+  border: 2px solid var(--mc-border-dark);
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.upgrade-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.upgrade-name {
+  font-size: 9px;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.5);
+}
+
+.upgrade-effect {
+  font-size: 7px;
+  color: var(--text-secondary);
+  margin-bottom: 3px;
+}
+
+.upgrade-cost {
+  font-size: 8px;
+  color: var(--text-honey);
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.5);
+}
+
+.upgrade-count {
+  font-size: 18px;
+  color: var(--text-dim);
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.5);
+  width: 36px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+/* ===================================================
+   FLOATING BEES (Background)
+   =================================================== */
+.floating-bees-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.floating-bee {
+  position: absolute;
+  opacity: 0.25;
+  image-rendering: pixelated;
+  animation: float linear infinite;
+}
+
+@keyframes float {
+  0% {
+    transform: translateY(0) translateX(0) rotate(0deg);
+  }
+  25% {
+    transform: translateY(-30px) translateX(20px) rotate(5deg);
+  }
+  50% {
+    transform: translateY(-10px) translateX(-15px) rotate(-3deg);
+  }
+  75% {
+    transform: translateY(-40px) translateX(10px) rotate(4deg);
+  }
+  100% {
+    transform: translateY(0) translateX(0) rotate(0deg);
+  }
+}
+
+/* ===================================================
+   MINECRAFT BUTTON (Reusable)
+   =================================================== */
+.mc-button {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 11px;
+  padding: 12px 24px;
+  color: var(--text-primary);
+  background: var(--mc-stone-dark);
+  border: 3px solid;
+  border-color: var(--mc-stone) var(--mc-border-dark) var(--mc-border-dark) var(--mc-stone);
+  cursor: pointer;
+  text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.5);
+  transition: all 0.1s;
+  image-rendering: pixelated;
+  position: relative;
+}
+
+.mc-button:hover {
+  background: var(--mc-stone);
+  border-color: #a0a0a0 var(--mc-border-dark) var(--mc-border-dark) #a0a0a0;
+}
+
+.mc-button:active {
+  background: var(--mc-stone-dark);
+  border-color: var(--mc-border-dark) var(--mc-stone) var(--mc-stone) var(--mc-border-dark);
+  transform: translateY(1px);
+}
+
+.mc-button.primary {
+  background: var(--honey-dark);
+  border-color: var(--honey) var(--honey-darker) var(--honey-darker) var(--honey);
+}
+
+.mc-button.primary:hover {
+  background: var(--honey);
+  border-color: var(--honey-light) var(--honey-dark) var(--honey-dark) var(--honey-light);
+}
+
+.mc-button.primary:active {
+  background: var(--honey-dark);
+  border-color: var(--honey-darker) var(--honey) var(--honey) var(--honey-darker);
+}
+
+.mc-button.danger {
+  background: #8b2020;
+  border-color: #c44040 #5a1010 #5a1010 #c44040;
+}
+
+.mc-button.danger:hover {
+  background: #a03030;
+}
+
+.mc-button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ===================================================
+   MINECRAFT PANEL (Container)
+   =================================================== */
+.mc-panel {
+  background: var(--bg-panel);
+  border: 3px solid;
+  border-color: var(--mc-border-light) var(--mc-border-dark) var(--mc-border-dark) var(--mc-border-light);
+  box-shadow: var(--shadow-panel);
+  padding: 20px;
+  position: relative;
+}
+
+.mc-panel::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border: 2px solid rgba(255, 255, 255, 0.03);
+  pointer-events: none;
+}
+
+.mc-panel h2 {
+  font-size: 14px;
+  color: var(--text-honey);
+  text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.5);
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+/* ===================================================
+   LOGIN SCREEN
+   =================================================== */
+.login-screen {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  background: var(--bg-dark);
+  background-image:
+    radial-gradient(ellipse at 30% 40%, rgba(244, 166, 35, 0.08) 0%, transparent 50%),
+    radial-gradient(ellipse at 70% 60%, rgba(255, 140, 0, 0.06) 0%, transparent 50%);
+  position: relative;
+  overflow: hidden;
+}
+
+.login-card {
+  width: 420px;
+  max-width: 90vw;
+  z-index: 2;
+}
+
+.login-title {
+  font-size: 28px;
+  color: var(--text-honey);
+  text-shadow:
+    3px 3px 0 rgba(0, 0, 0, 0.7),
+    0 0 40px rgba(255, 215, 0, 0.3);
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+.login-subtitle {
+  font-size: 10px;
+  color: var(--text-secondary);
+  text-align: center;
+  margin-bottom: 32px;
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.5);
+}
+
+.login-bee-icon {
+  width: 100px;
+  height: 100px;
+  margin: 0 auto 24px;
+  display: block;
+  image-rendering: pixelated;
+  filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.4));
+  animation: loginBeeBounce 2s ease-in-out infinite;
+}
+
+@keyframes loginBeeBounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+.login-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.login-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 20px 0;
+}
+
+.login-divider::before,
+.login-divider::after {
+  content: '';
+  flex: 1;
+  height: 2px;
+  background: var(--mc-border-dark);
+}
+
+.login-divider span {
+  font-size: 8px;
+  color: var(--text-dim);
+}
+
+/* --- License Key Input --- */
+.license-input-group {
+  margin-bottom: 16px;
+}
+
+.license-input-group label {
+  display: block;
+  font-size: 8px;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.5);
+}
+
+.license-input {
+  width: 100%;
+  padding: 12px 16px;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 11px;
+  color: var(--text-primary);
+  background: var(--bg-darker);
+  border: 3px solid var(--mc-border-dark);
+  border-radius: 0;
+  outline: none;
+  text-align: center;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  transition: border-color 0.2s;
+}
+
+.license-input:focus {
+  border-color: var(--honey-dark);
+  box-shadow: 0 0 12px rgba(244, 166, 35, 0.2);
+}
+
+.license-input::placeholder {
+  color: var(--text-dim);
+  letter-spacing: 1px;
+  text-transform: none;
+  font-size: 9px;
+}
+
+.license-error {
+  font-size: 8px;
+  color: var(--cannot-afford);
+  text-align: center;
+  margin-top: 8px;
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.5);
+}
+
+.license-success {
+  font-size: 8px;
+  color: var(--can-afford);
+  text-align: center;
+  margin-top: 8px;
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.5);
+}
+
+/* ===================================================
+   NAVBAR (Top Bar)
+   =================================================== */
+.top-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 48px;
+  background: var(--bg-panel);
+  border-bottom: 3px solid var(--mc-border-dark);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  z-index: 50;
+}
+
+.top-bar-title {
+  font-size: 12px;
+  color: var(--text-honey);
+  text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.top-bar-title img {
+  width: 28px;
+  height: 28px;
+  image-rendering: pixelated;
+}
+
+.top-bar-nav {
+  display: flex;
+  gap: 4px;
+}
+
+.top-bar-btn {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 8px;
+  padding: 8px 14px;
+  background: transparent;
+  color: var(--text-secondary);
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.top-bar-btn:hover {
+  color: var(--text-honey);
+  background: rgba(244, 166, 35, 0.1);
+  border-color: rgba(244, 166, 35, 0.2);
+}
+
+.top-bar-btn.active {
+  color: var(--text-honey);
+  border-color: var(--honey-dark);
+  background: rgba(244, 166, 35, 0.15);
+}
+
+.top-bar-user {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.top-bar-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 2px;
+  border: 2px solid var(--mc-border-dark);
+}
+
+.top-bar-username {
+  font-size: 8px;
+  color: var(--text-secondary);
+}
+
+/* ===================================================
+   LEADERBOARD
+   =================================================== */
+.leaderboard-container {
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 70px 20px 20px;
+  min-height: 100vh;
+}
+
+.leaderboard-entry {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  background: var(--bg-panel-inner);
+  border: 2px solid var(--mc-border-dark);
+  margin-bottom: 4px;
+  transition: all 0.15s;
+}
+
+.leaderboard-entry:hover {
+  border-color: var(--honey-dark);
+  transform: translateX(4px);
+}
+
+.leaderboard-rank {
+  font-size: 14px;
+  width: 36px;
+  text-align: center;
+  color: var(--text-dim);
+}
+
+.leaderboard-rank.gold { color: #ffd700; }
+.leaderboard-rank.silver { color: #c0c0c0; }
+.leaderboard-rank.bronze { color: #cd7f32; }
+
+.leaderboard-name {
+  flex: 1;
+  font-size: 10px;
+  color: var(--text-primary);
+}
+
+.leaderboard-score {
+  font-size: 10px;
+  color: var(--text-honey);
+}
+
+/* ===================================================
+   ADMIN PANEL
+   =================================================== */
+.admin-container {
+  width: 100%;
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 70px 20px 20px;
+  min-height: 100vh;
+}
+
+.admin-key-list {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.admin-key-entry {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: var(--bg-panel-inner);
+  border: 2px solid var(--mc-border-dark);
+  font-size: 9px;
+}
+
+.admin-key-value {
+  color: var(--text-honey);
+  letter-spacing: 2px;
+  font-size: 10px;
+}
+
+.admin-key-status {
+  font-size: 8px;
+  padding: 4px 8px;
+  border: 1px solid;
+}
+
+.admin-key-status.available {
+  color: var(--can-afford);
+  border-color: var(--can-afford);
+}
+
+.admin-key-status.used {
+  color: var(--cannot-afford);
+  border-color: var(--cannot-afford);
+}
+
+/* ===================================================
+   FRIENDS
+   =================================================== */
+.friends-container {
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 70px 20px 20px;
+  min-height: 100vh;
+}
+
+.friend-entry {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  background: var(--bg-panel-inner);
+  border: 2px solid var(--mc-border-dark);
+  margin-bottom: 4px;
+}
+
+.friend-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 2px;
+  border: 2px solid var(--mc-border-dark);
+}
+
+.friend-info {
+  flex: 1;
+}
+
+.friend-name {
+  font-size: 10px;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.friend-honey {
+  font-size: 8px;
+  color: var(--text-secondary);
+}
+
+.friend-add-input {
+  width: 100%;
+  padding: 10px 14px;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 9px;
+  color: var(--text-primary);
+  background: var(--bg-darker);
+  border: 3px solid var(--mc-border-dark);
+  outline: none;
+  margin-bottom: 12px;
+  transition: border-color 0.2s;
+}
+
+.friend-add-input:focus {
+  border-color: var(--honey-dark);
+}
+
+/* ===================================================
+   CLICK PER SECOND BADGE
+   =================================================== */
+.cps-badge {
+  font-size: 8px;
+  color: var(--text-dim);
+  text-align: center;
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.5);
+  margin-top: 4px;
+}
+
+/* ===================================================
+   STAT BAR (below bee)
+   =================================================== */
+.stat-bar {
+  display: flex;
+  gap: 24px;
+  justify-content: center;
+  z-index: 5;
+}
+
+.stat-item {
+  text-align: center;
+}
+
+.stat-value {
+  font-size: 14px;
+  color: var(--text-honey);
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.5);
+}
+
+.stat-label {
+  font-size: 7px;
+  color: var(--text-dim);
+  margin-top: 4px;
+  text-transform: uppercase;
+}
+
+/* ===================================================
+   HEXAGON BACKGROUND PATTERN
+   =================================================== */
+.hex-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.03;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='49' viewBox='0 0 28 49'%3E%3Cg fill-rule='evenodd'%3E%3Cg fill='%23ffd700' fill-opacity='1'%3E%3Cpath d='M13.99 9.25l13 7.5v15l-13 7.5L1 31.75v-15l12.99-7.5zM3 17.9v12.7l10.99 6.34 11-6.35V17.9l-11-6.34L3 17.9zM0 15l12.98-7.5V0h-2v6.35L0 12.69v2.3zm0 18.5L12.98 41v8h-2v-6.85L0 35.81v-2.3zM15 0v7.5L27.99 15H28v-2.31h-.01L17 6.35V0h-2zm0 49v-8l12.99-7.5H28v2.31h-.01L17 42.15V49h-2z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+
+/* ===================================================
+   PAGE TRANSITIONS
+   =================================================== */
+.page-enter {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.page-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: all 0.3s ease-out;
+}
+
+/* ===================================================
+   RESPONSIVE
+   =================================================== */
+@media (max-width: 768px) {
+  .shop-panel {
+    position: fixed;
+    right: -340px;
+    top: 48px;
+    height: calc(100vh - 48px);
+    transition: right 0.3s ease;
+    z-index: 40;
+  }
+
+  .shop-panel.open {
+    right: 0;
+  }
+
+  .shop-toggle-mobile {
+    display: block;
+  }
+
+  .honey-amount {
+    font-size: 24px;
+  }
+
+  :root {
+    --bee-size: 140px;
+  }
+}
+
+@media (min-width: 769px) {
+  .shop-toggle-mobile {
+    display: none;
+  }
+}
+
+/* ===================================================
+   LOADING SCREEN
+   =================================================== */
+.loading-screen {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  background: var(--bg-dark);
+}
+
+.loading-bar-container {
+  width: 300px;
+  height: 12px;
+  background: var(--bg-darker);
+  border: 2px solid var(--mc-border-dark);
+}
+
+.loading-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--honey-dark), var(--honey));
+  animation: loadingPulse 1.5s ease-in-out infinite;
+  width: 60%;
+}
+
+@keyframes loadingPulse {
+  0% { width: 20%; }
+  50% { width: 80%; }
+  100% { width: 20%; }
+}
+
+.loading-text {
+  font-size: 10px;
+  color: var(--text-secondary);
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.5);
+}
+
+/* ===================================================
+   TOOLTIP
+   =================================================== */
+.tooltip {
+  position: absolute;
+  background: var(--bg-darker);
+  border: 2px solid var(--honey-dark);
+  padding: 10px 14px;
+  z-index: 200;
+  min-width: 200px;
+  max-width: 280px;
+  pointer-events: none;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.8);
+}
+
+.tooltip-title {
+  font-size: 10px;
+  color: var(--text-honey);
+  margin-bottom: 6px;
+}
+
+.tooltip-desc {
+  font-size: 7px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.tooltip-stat {
+  font-size: 8px;
+  color: var(--can-afford);
+  margin-top: 6px;
+}
