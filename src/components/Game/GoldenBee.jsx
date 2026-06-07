@@ -93,7 +93,6 @@ export default function GoldenBee() {
         cursor: 'pointer',
         zIndex: 9999, // Très au-dessus
         animation: 'goldenBeeFly 6s linear forwards',
-        filter: 'drop-shadow(0 0 15px #ffd700)',
       }}
       onClick={handleClick}
     >
@@ -105,7 +104,8 @@ export default function GoldenBee() {
           height: '100%', 
           objectFit: 'contain', 
           imageRendering: 'pixelated',
-          filter: 'sepia(1) hue-rotate(10deg) saturate(3) brightness(1.2)' // Teinte dorée
+          filter: 'sepia(1) hue-rotate(10deg) saturate(3) brightness(1.2)', // Teinte dorée
+          animation: 'goldenGlow 1.5s ease-in-out infinite'
         }} 
       />
     </div>
