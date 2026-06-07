@@ -11,6 +11,8 @@ import GamePage from './pages/GamePage'
 import Leaderboard from './components/Social/Leaderboard'
 import FriendsList from './components/Social/FriendsList'
 import AdminPanel from './components/Admin/AdminPanel'
+import { useGameLoop } from './hooks/useGameLoop'
+import { useSaveGame } from './hooks/useSaveGame'
 import beeSrc from '/assets/Bee_(Dungeons).png'
 
 // --- Settings Modal ---
@@ -188,7 +190,28 @@ function TopBar() {
           </button>
           <button
             className={`top-bar-btn ${isActive('/leaderboard')}`}
-            onClick={() => navigate('/leaderboard')}
+            onClick={async () => {
+              // Force a save to ensure the leaderboard is up-to-date
+              if (user && gameState) {
+                try {
+                  const { doc, setDoc } = await import('firebase/firestore')
+                  const { db } = await import('./firebase')
+                  const saveData = {
+                    honey: gameState.honey,
+                    totalHoney: gameState.totalHoney,
+                    clickPower: gameState.clickPower,
+                    honeyPerSecond: gameState.honeyPerSecond,
+                    upgrades: gameState.upgrades,
+                    clickUpgrades: gameState.clickUpgrades,
+                    lastSaved: new Date().toISOString(),
+                  }
+                  await setDoc(doc(db, 'saves', user.uid), saveData)
+                } catch (err) {
+                  console.error('Error forcing save:', err)
+                }
+              }
+              navigate('/leaderboard')
+            }}
             id="nav-leaderboard"
           >
             <span style={{ fontSize: '11px', transform: 'translateY(-1px)' }}>🏆</span>
@@ -241,9 +264,16 @@ function TopBar() {
 }
 
 // --- Authenticated Layout ---
+function GameEngine() {
+  useGameLoop()
+  useSaveGame()
+  return null
+}
+
 function AuthenticatedApp() {
   return (
     <GameProvider>
+      <GameEngine />
       <TopBar />
       <div style={{ paddingTop: '48px', height: '100vh' }}>
         <Routes>

@@ -7,8 +7,6 @@ import BeeButton from '../components/Game/BeeButton'
 import HoneyCounter from '../components/Game/HoneyCounter'
 import UpgradeShop from '../components/Game/UpgradeShop'
 import FloatingBees from '../components/Game/FloatingBees'
-import { useGameLoop } from '../hooks/useGameLoop'
-import { useSaveGame } from '../hooks/useSaveGame'
 import { useGame } from '../contexts/GameContext'
 import { formatNumber } from '../data/upgrades'
 
@@ -16,11 +14,9 @@ export default function GamePage() {
   const [shopOpen, setShopOpen] = useState(false)
   const { totalHoney, honeyPerSecond, clickPower } = useGame()
 
-  // Start the game loop for passive production
-  useGameLoop()
-
-  // Start auto-save
-  useSaveGame()
+  // Removed useGameLoop and useSaveGame from here.
+  // They are now handled globally in App.jsx (GameEngine) so that progress
+  // doesn't stop and reset when viewing the leaderboard.
 
   return (
     <div className="app-container">
