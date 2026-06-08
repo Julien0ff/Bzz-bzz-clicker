@@ -168,7 +168,7 @@ export default function StatisticsPanel() {
             return (
               <button 
                 className="mc-button primary" 
-                style={{ width: '100%', padding: '15px', fontSize: '10px', animation: 'pulseGlow 2s infinite' }}
+                style={{ width: '100%', padding: '15px', fontSize: '10px', animation: 'buttonPulse 2s infinite' }}
                 onClick={() => {
                   if (window.confirm(`Êtes-vous sûr de vouloir faire une Ascension ?\n\nVous perdrez votre miel actuel et vos bâtiments, mais vous gagnerez ${jellyEarned} Gelée(s) Royale(s) !\n\nCela augmentera votre production permanente de +${jellyEarned * 10}% !`)) {
                     gameState.dispatch({ type: 'PRESTIGE' })

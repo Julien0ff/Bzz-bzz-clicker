@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react'
 import { useGame } from '../../contexts/GameContext'
 
 // Constantes d'apparition (en millisecondes)
-const MIN_SPAWN_TIME = 3 * 60 * 1000 // 3 minutes
-const MAX_SPAWN_TIME = 8 * 60 * 1000 // 8 minutes
+const MIN_SPAWN_TIME = 1 * 60 * 1000 // 1 minutes
+const MAX_SPAWN_TIME = 3 * 60 * 1000 // 3 minutes
 
 export default function GoldenBee() {
   const { dispatch } = useGame()
@@ -48,33 +48,39 @@ export default function GoldenBee() {
 
     if (rand < 0.33) {
       dispatch({ type: 'GOLDEN_BEE_EFFECT', effectType: 'frenzy' })
-      
+
       // Toast natif
-      const event = new CustomEvent('achievement_unlocked', { detail: { 
-        name: "Production x7 pendant 30 secondes !", 
-        description: "Abeille Dorée", 
-        icon: '⚡' 
-      }})
+      const event = new CustomEvent('achievement_unlocked', {
+        detail: {
+          name: "Production x7 pendant 30 secondes !",
+          description: "Abeille Dorée",
+          icon: '⚡'
+        }
+      })
       window.dispatchEvent(event)
     } else if (rand < 0.66) {
       dispatch({ type: 'GOLDEN_BEE_EFFECT', effectType: 'lucky_drop' })
 
       // Toast natif
-      const event = new CustomEvent('achievement_unlocked', { detail: { 
-        name: "Miel d'un coup !", 
-        description: "Abeille Dorée (Loterie)", 
-        icon: '💰' 
-      }})
+      const event = new CustomEvent('achievement_unlocked', {
+        detail: {
+          name: "Miel d'un coup !",
+          description: "Abeille Dorée (Loterie)",
+          icon: '💰'
+        }
+      })
       window.dispatchEvent(event)
     } else {
       dispatch({ type: 'GOLDEN_BEE_EFFECT', effectType: 'malus' })
 
       // Toast natif
-      const event = new CustomEvent('achievement_unlocked', { detail: { 
-        name: "Aïe ! L'abeille vous a piqué !", 
-        description: "Perte exponentielle de miel", 
-        icon: '🩸' 
-      }})
+      const event = new CustomEvent('achievement_unlocked', {
+        detail: {
+          name: "Aïe ! L'abeille vous a piqué !",
+          description: "Perte exponentielle de miel",
+          icon: '🩸'
+        }
+      })
       window.dispatchEvent(event)
     }
   }
@@ -82,7 +88,7 @@ export default function GoldenBee() {
   if (!active) return null
 
   return (
-    <div 
+    <div
       className="golden-bee"
       style={{
         position: 'fixed',
@@ -96,17 +102,17 @@ export default function GoldenBee() {
       }}
       onClick={handleClick}
     >
-      <img 
-        src="/assets/Bee_(Dungeons).png" 
-        alt="Golden Bee" 
-        style={{ 
-          width: '100%', 
-          height: '100%', 
-          objectFit: 'contain', 
+      <img
+        src="/assets/Bee_(Dungeons).png"
+        alt="Golden Bee"
+        style={{
+          width: '100%',
+          height: '100%',
+          objectFit: 'contain',
           imageRendering: 'pixelated',
           filter: 'sepia(1) hue-rotate(10deg) saturate(3) brightness(1.2)', // Teinte dorée
           animation: 'goldenGlow 1.5s ease-in-out infinite'
-        }} 
+        }}
       />
     </div>
   )
