@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react'
 import { useGame } from '../../contexts/GameContext'
 
 // Constantes d'apparition (en millisecondes)
-const MIN_SPAWN_TIME = 1 * 60 * 1000 // 1 minutes
-const MAX_SPAWN_TIME = 3 * 60 * 1000 // 3 minutes
+const MIN_SPAWN_TIME = 25 * 1000 // 25 secondes
+const MAX_SPAWN_TIME = 2 * 60 * 1000 // 2 minutes
 
 export default function GoldenBee() {
   const { dispatch } = useGame()
