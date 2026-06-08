@@ -4,7 +4,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react'
 import { auth, googleProvider, db } from '../firebase'
-import { signInWithPopup, signOut, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth'
+import { signInWithPopup, signOut, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, linkWithPopup, updateProfile } from 'firebase/auth'
 import { doc, getDoc, setDoc, updateDoc, collection, query, where, getDocs } from 'firebase/firestore'
 
 const AuthContext = createContext(null)
@@ -255,6 +255,59 @@ export function AuthProvider({ children }) {
     }
   }
 
+  // Update Profile Picture
+  const updateUserProfilePicture = async (url) => {
+    try {
+      setError(null)
+      if (!user) throw new Error("Non connecté.")
+
+      // Update Firestore
+      const profileRef = doc(db, 'users', user.uid)
+      await updateDoc(profileRef, { photoURL: url })
+
+      // Update Firebase Auth Profile
+      await updateProfile(user, { photoURL: url })
+
+      setUserProfile(prev => ({ ...prev, photoURL: url }))
+      return true
+    } catch (err) {
+      console.error('PFP update error:', err)
+      setError('Erreur lors de la mise à jour de la photo.')
+      return false
+    }
+  }
+
+  // Reset Password
+  const resetPassword = async (email) => {
+    try {
+      setError(null)
+      await sendPasswordResetEmail(auth, email)
+      return true
+    } catch (err) {
+      console.error('Reset password error:', err)
+      setError('Erreur lors de l\'envoi de l\'email de réinitialisation.')
+      return false
+    }
+  }
+
+  // Link Google Account
+  const linkGoogleAccount = async () => {
+    try {
+      setError(null)
+      if (!user) throw new Error("Non connecté.")
+      await linkWithPopup(user, googleProvider)
+      return true
+    } catch (err) {
+      console.error('Link Google error:', err)
+      if (err.code === 'auth/credential-already-in-use') {
+        setError('Ce compte Google est déjà lié à un autre compte.')
+      } else {
+        setError('Erreur lors de l\'association du compte Google.')
+      }
+      return false
+    }
+  }
+
   // Logout
   const logout = async () => {
     try {
@@ -277,6 +330,9 @@ export function AuthProvider({ children }) {
     signInExistingUser,
     signUpWithEmail,
     signInWithEmail,
+    updateUserProfilePicture,
+    resetPassword,
+    linkGoogleAccount,
     logout,
   }
 

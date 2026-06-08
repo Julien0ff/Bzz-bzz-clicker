@@ -20,8 +20,9 @@ import beeSrc from '/assets/Bee_(Dungeons).png'
 
 // --- Settings Modal ---
 function SettingsModal({ onClose }) {
-  const { user, userProfile, validateLicenseKey, logout } = useAuth()
+  const { user, userProfile, validateLicenseKey, updateUserProfilePicture, resetPassword, linkGoogleAccount, logout } = useAuth()
   const [newKey, setNewKey] = useState('')
+  const [pfpUrl, setPfpUrl] = useState(userProfile?.photoURL || '')
   const [loading, setLoading] = useState(false)
   const [msg, setMsg] = useState('')
   const [confirmConfig, setConfirmConfig] = useState(null)
@@ -54,6 +55,42 @@ function SettingsModal({ onClose }) {
       }
     } catch (err) {
       setMsg('Erreur : ' + err.message)
+    }
+    setLoading(false)
+  }
+
+  const handleUpdatePfp = async () => {
+    setLoading(true)
+    setMsg('')
+    const success = await updateUserProfilePicture(pfpUrl)
+    if (success) {
+      setMsg('Photo de profil mise à jour !')
+    } else {
+      setMsg('Erreur lors de la mise à jour de la photo.')
+    }
+    setLoading(false)
+  }
+
+  const handleResetPassword = async () => {
+    setLoading(true)
+    setMsg('')
+    const success = await resetPassword(userProfile?.email || user?.email)
+    if (success) {
+      setMsg('Email de réinitialisation envoyé !')
+    } else {
+      setMsg('Erreur lors de l\'envoi de l\'email.')
+    }
+    setLoading(false)
+  }
+
+  const handleLinkGoogle = async () => {
+    setLoading(true)
+    setMsg('')
+    const success = await linkGoogleAccount()
+    if (success) {
+      setMsg('Compte Google lié avec succès !')
+    } else {
+      setMsg('Erreur lors de la liaison du compte.')
     }
     setLoading(false)
   }
@@ -113,10 +150,30 @@ function SettingsModal({ onClose }) {
       background: 'rgba(0,0,0,0.8)', zIndex: 1000,
       display: 'flex', alignItems: 'center', justifyContent: 'center'
     }}>
-      <div className="mc-panel" style={{ width: '400px', maxWidth: '90vw' }}>
+      <div className="mc-panel" style={{ width: '450px', maxWidth: '95vw', maxHeight: '90vh', overflowY: 'auto' }}>
         <h2>⚙️ PARAMÈTRES</h2>
         
-        <div style={{ marginBottom: '20px' }}>
+        {/* Photo de profil */}
+        <div style={{ marginBottom: '15px' }}>
+          <label style={{ fontSize: '8px', color: 'var(--text-secondary)', display: 'block', marginBottom: '8px' }}>
+            URL Photo de Profil
+          </label>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <input 
+              className="license-input" 
+              value={pfpUrl} 
+              onChange={e => setPfpUrl(e.target.value)}
+              placeholder="https://exemple.com/image.png"
+              style={{ flex: 1, padding: '8px', fontSize: '9px', textTransform: 'none', letterSpacing: 'normal' }}
+            />
+            <button className="mc-button primary" onClick={handleUpdatePfp} disabled={loading}>
+              Mettre à jour
+            </button>
+          </div>
+        </div>
+
+        {/* Clé Licence */}
+        <div style={{ marginBottom: '15px' }}>
           <label style={{ fontSize: '8px', color: 'var(--text-secondary)', display: 'block', marginBottom: '8px' }}>
             Ajouter/Modifier Clé Licence
           </label>
@@ -132,13 +189,24 @@ function SettingsModal({ onClose }) {
               Valider
             </button>
           </div>
-          {msg && <div style={{ fontSize: '8px', marginTop: '8px', color: 'var(--text-honey)' }}>{msg}</div>}
         </div>
+        
+        {msg && <div style={{ fontSize: '8px', margin: '10px 0', color: 'var(--text-honey)', textAlign: 'center' }}>{msg}</div>}
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '30px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '20px' }}>
           <button className="mc-button" onClick={() => setFeedbackOpen(true)} disabled={loading}>
             💡 Faire un retour (Bug/Idée)
           </button>
+          
+          <div style={{ display: 'flex', gap: '10px' }}>
+            <button className="mc-button" onClick={handleLinkGoogle} disabled={loading} style={{ flex: 1 }}>
+              🔗 Lier Compte Google
+            </button>
+            <button className="mc-button" onClick={handleResetPassword} disabled={loading} style={{ flex: 1 }}>
+              📧 Réinit. MDP
+            </button>
+          </div>
+
           <button className="mc-button" onClick={handleResetProgressClick} disabled={loading} style={{ background: '#c47a09' }}>
             🔄 Réinitialiser la progression
           </button>

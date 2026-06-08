@@ -22,13 +22,28 @@ function generateKey() {
 }
 
 export default function AdminPanel() {
-  const { userProfile } = useAuth()
+  const { userProfile, resetPassword } = useAuth()
   const [keys, setKeys] = useState([])
   const [feedbacks, setFeedbacks] = useState([])
   const [loading, setLoading] = useState(true)
   const [generating, setGenerating] = useState(false)
   const [keysToGenerate, setKeysToGenerate] = useState(1)
   const [confirmConfig, setConfirmConfig] = useState(null)
+
+  const [resetEmail, setResetEmail] = useState('')
+  const [resetMsg, setResetMsg] = useState('')
+
+  const handleAdminResetPassword = async () => {
+    if (!resetEmail) return
+    setResetMsg('⏳ Envoi en cours...')
+    const success = await resetPassword(resetEmail)
+    if (success) {
+      setResetMsg('✅ Email envoyé à ' + resetEmail)
+      setResetEmail('')
+    } else {
+      setResetMsg('❌ Erreur. Vérifiez l\'adresse email.')
+    }
+  }
 
   // Check admin access
   const isAdmin = userProfile?.isAdmin === true
@@ -222,6 +237,29 @@ export default function AdminPanel() {
             </div>
           ))}
         </div>
+      </div>
+
+      <div className="mc-panel" style={{ marginTop: '20px' }}>
+        <h3 style={{ color: 'var(--honey-light)', fontSize: '10px', marginBottom: '10px' }}>👥 Gestion des Comptes</h3>
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+          <label style={{ fontSize: '9px', color: 'var(--text-secondary)' }}>Réinitialiser MDP :</label>
+          <input
+            type="email"
+            value={resetEmail}
+            onChange={e => setResetEmail(e.target.value)}
+            placeholder="Email du joueur"
+            className="license-input"
+            style={{ flex: 1, minWidth: '150px', padding: '8px', textTransform: 'none', letterSpacing: 'normal', fontSize: '9px' }}
+          />
+          <button
+            className="mc-button primary"
+            onClick={handleAdminResetPassword}
+            disabled={!resetEmail}
+          >
+            📧 Envoyer Lien
+          </button>
+        </div>
+        {resetMsg && <div style={{ fontSize: '8px', marginTop: '8px', color: 'var(--text-honey)' }}>{resetMsg}</div>}
       </div>
 
       <div className="mc-panel" style={{ marginTop: '20px' }}>
