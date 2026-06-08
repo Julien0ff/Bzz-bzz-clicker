@@ -53,7 +53,7 @@ export default function GoldenBee() {
       // Toast natif
       const event = new CustomEvent('achievement_unlocked', {
         detail: {
-          name: "Production x7 pendant 30 secondes !",
+          name: "Production x7 pendant 5 secondes !",
           description: "Abeille Dorée",
           icon: '⚡'
         }
