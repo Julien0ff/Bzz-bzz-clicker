@@ -13,6 +13,7 @@ import FriendsList from './components/Social/FriendsList'
 import StatisticsPanel from './components/Social/StatisticsPanel'
 import AdminPanel from './components/Admin/AdminPanel'
 import ConfirmModal from './components/UI/ConfirmModal'
+import FeedbackModal from './components/UI/FeedbackModal'
 import { useGameLoop } from './hooks/useGameLoop'
 import { useSaveGame } from './hooks/useSaveGame'
 import beeSrc from '/assets/Bee_(Dungeons).png'
@@ -24,6 +25,7 @@ function SettingsModal({ onClose }) {
   const [loading, setLoading] = useState(false)
   const [msg, setMsg] = useState('')
   const [confirmConfig, setConfirmConfig] = useState(null)
+  const [feedbackOpen, setFeedbackOpen] = useState(false)
 
   const handleUpdateKey = async () => {
     if (!newKey) return
@@ -132,6 +134,9 @@ function SettingsModal({ onClose }) {
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '30px' }}>
+          <button className="mc-button" onClick={() => setFeedbackOpen(true)} disabled={loading}>
+            💡 Faire un retour (Bug/Idée)
+          </button>
           <button className="mc-button" onClick={handleResetProgressClick} disabled={loading} style={{ background: '#c47a09' }}>
             🔄 Réinitialiser la progression
           </button>
@@ -143,6 +148,8 @@ function SettingsModal({ onClose }) {
           </button>
         </div>
       </div>
+
+      <FeedbackModal isOpen={feedbackOpen} onClose={() => setFeedbackOpen(false)} />
 
       <ConfirmModal 
         isOpen={!!confirmConfig}

@@ -5,7 +5,7 @@
 import React, { useState, useEffect } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { db } from '../../firebase'
-import { collection, addDoc, getDocs, query, orderBy, deleteDoc, doc } from 'firebase/firestore'
+import { collection, addDoc, getDocs, query, orderBy, deleteDoc, doc, updateDoc, where } from 'firebase/firestore'
 import ConfirmModal from '../UI/ConfirmModal'
 
 function generateKey() {
@@ -24,6 +24,7 @@ function generateKey() {
 export default function AdminPanel() {
   const { userProfile } = useAuth()
   const [keys, setKeys] = useState([])
+  const [feedbacks, setFeedbacks] = useState([])
   const [loading, setLoading] = useState(true)
   const [generating, setGenerating] = useState(false)
   const [keysToGenerate, setKeysToGenerate] = useState(1)
@@ -36,24 +37,37 @@ export default function AdminPanel() {
   useEffect(() => {
     if (!isAdmin) return
 
-    const loadKeys = async () => {
+    const loadData = async () => {
       try {
+        // Load Keys
         const keysRef = collection(db, 'licenseKeys')
-        const q = query(keysRef, orderBy('createdAt', 'desc'))
-        const snapshot = await getDocs(q)
+        const qKeys = query(keysRef, orderBy('createdAt', 'desc'))
+        const snapshotKeys = await getDocs(qKeys)
 
         const keysData = []
-        snapshot.forEach(doc => {
+        snapshotKeys.forEach(doc => {
           keysData.push({ id: doc.id, ...doc.data() })
         })
         setKeys(keysData)
+
+        // Load Feedbacks
+        const feedbacksRef = collection(db, 'feedbacks')
+        const qFeedbacks = query(feedbacksRef, where('status', '==', 'pending'), orderBy('createdAt', 'desc'))
+        const snapshotFeedbacks = await getDocs(qFeedbacks)
+
+        const feedbacksData = []
+        snapshotFeedbacks.forEach(doc => {
+          feedbacksData.push({ id: doc.id, ...doc.data() })
+        })
+        setFeedbacks(feedbacksData)
+
       } catch (err) {
-        console.error('Error loading keys:', err)
+        console.error('Error loading admin data:', err)
       }
       setLoading(false)
     }
 
-    loadKeys()
+    loadData()
   }, [isAdmin])
 
   const handleGenerateKeys = async () => {
@@ -91,6 +105,15 @@ export default function AdminPanel() {
         }
       }
     })
+  }
+
+  const handleUpdateFeedbackStatus = async (id, newStatus) => {
+    try {
+      await updateDoc(doc(db, 'feedbacks', id), { status: newStatus })
+      setFeedbacks(prev => prev.filter(f => f.id !== id))
+    } catch (err) {
+      console.error('Error updating feedback:', err)
+    }
   }
 
   const copyKey = (key) => {
@@ -199,6 +222,38 @@ export default function AdminPanel() {
             </div>
           ))}
         </div>
+      </div>
+
+      <div className="mc-panel" style={{ marginTop: '20px' }}>
+        <h3 style={{ color: 'var(--honey-light)', fontSize: '10px', marginBottom: '10px' }}>💡 Retours & Bugs</h3>
+        {feedbacks.length === 0 ? (
+          <div className="loading-text" style={{ textAlign: 'center', opacity: 0.5 }}>Aucun retour en attente.</div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            {feedbacks.map(fb => (
+              <div key={fb.id} style={{
+                background: 'rgba(0,0,0,0.3)', padding: '10px', borderRadius: '4px',
+                borderLeft: `3px solid ${fb.type === 'bug' ? '#ff4444' : '#ffaa00'}`
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
+                  <span style={{ fontSize: '9px', fontWeight: 'bold' }}>{fb.userName} <span style={{ opacity: 0.5 }}>({fb.type})</span></span>
+                  <span style={{ fontSize: '7px', opacity: 0.5 }}>{new Date(fb.createdAt).toLocaleDateString()}</span>
+                </div>
+                <div style={{ fontSize: '9px', color: 'var(--text-secondary)', marginBottom: '10px', whiteSpace: 'pre-line' }}>
+                  {fb.content}
+                </div>
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  <button className="mc-button" style={{ flex: 1, padding: '5px', fontSize: '8px' }} onClick={() => handleUpdateFeedbackStatus(fb.id, 'refused')}>
+                    ❌ Refuser
+                  </button>
+                  <button className="mc-button primary" style={{ flex: 1, padding: '5px', fontSize: '8px' }} onClick={() => handleUpdateFeedbackStatus(fb.id, 'accepted')}>
+                    ✅ Accepter
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       <ConfirmModal 
