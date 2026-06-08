@@ -22,7 +22,7 @@ import beeSrc from '/assets/Bee_(Dungeons).png'
 function SettingsModal({ onClose }) {
   const { user, userProfile, validateLicenseKey, updateUserProfilePicture, resetPassword, linkGoogleAccount, logout } = useAuth()
   const [newKey, setNewKey] = useState('')
-  const [pfpUrl, setPfpUrl] = useState(userProfile?.photoURL || '')
+  const [pfpFile, setPfpFile] = useState(null)
   const [loading, setLoading] = useState(false)
   const [msg, setMsg] = useState('')
   const [confirmConfig, setConfirmConfig] = useState(null)
@@ -60,16 +60,20 @@ function SettingsModal({ onClose }) {
   }
 
   const handleUpdatePfp = async () => {
+    if (!pfpFile) return
     setLoading(true)
     setMsg('')
-    const success = await updateUserProfilePicture(pfpUrl)
+    const success = await updateUserProfilePicture(pfpFile)
     if (success) {
       setMsg('Photo de profil mise à jour !')
+      setPfpFile(null)
     } else {
       setMsg('Erreur lors de la mise à jour de la photo.')
     }
     setLoading(false)
   }
+
+  const isGoogleLinked = user?.providerData?.some(p => p.providerId === 'google.com')
 
   const handleResetPassword = async () => {
     setLoading(true)
@@ -156,17 +160,17 @@ function SettingsModal({ onClose }) {
         {/* Photo de profil */}
         <div style={{ marginBottom: '15px' }}>
           <label style={{ fontSize: '8px', color: 'var(--text-secondary)', display: 'block', marginBottom: '8px' }}>
-            URL Photo de Profil
+            Photo de Profil
           </label>
-          <div style={{ display: 'flex', gap: '8px' }}>
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
             <input 
+              type="file"
+              accept="image/*"
               className="license-input" 
-              value={pfpUrl} 
-              onChange={e => setPfpUrl(e.target.value)}
-              placeholder="https://exemple.com/image.png"
-              style={{ flex: 1, padding: '8px', fontSize: '9px', textTransform: 'none', letterSpacing: 'normal' }}
+              onChange={e => setPfpFile(e.target.files[0])}
+              style={{ flex: 1, padding: '4px', fontSize: '9px' }}
             />
-            <button className="mc-button primary" onClick={handleUpdatePfp} disabled={loading}>
+            <button className="mc-button primary" onClick={handleUpdatePfp} disabled={loading || !pfpFile}>
               Mettre à jour
             </button>
           </div>
@@ -199,9 +203,11 @@ function SettingsModal({ onClose }) {
           </button>
           
           <div style={{ display: 'flex', gap: '10px' }}>
-            <button className="mc-button" onClick={handleLinkGoogle} disabled={loading} style={{ flex: 1 }}>
-              🔗 Lier Compte Google
-            </button>
+            {!isGoogleLinked && (
+              <button className="mc-button" onClick={handleLinkGoogle} disabled={loading} style={{ flex: 1 }}>
+                🔗 Lier Compte Google
+              </button>
+            )}
             <button className="mc-button" onClick={handleResetPassword} disabled={loading} style={{ flex: 1 }}>
               📧 Réinit. MDP
             </button>

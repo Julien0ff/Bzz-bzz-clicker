@@ -256,19 +256,61 @@ export function AuthProvider({ children }) {
   }
 
   // Update Profile Picture
-  const updateUserProfilePicture = async (url) => {
+  const updateUserProfilePicture = async (fileOrUrl) => {
     try {
       setError(null)
       if (!user) throw new Error("Non connecté.")
 
+      let finalUrl = fileOrUrl
+      
+      // If it's a File object, compress and convert to Base64
+      if (fileOrUrl instanceof File) {
+        finalUrl = await new Promise((resolve, reject) => {
+          const reader = new FileReader()
+          reader.onload = (e) => {
+            const img = new Image()
+            img.onload = () => {
+              const canvas = document.createElement('canvas')
+              const MAX_SIZE = 128 // Small PFP to save DB space
+              let width = img.width
+              let height = img.height
+
+              if (width > height) {
+                if (width > MAX_SIZE) {
+                  height *= MAX_SIZE / width
+                  width = MAX_SIZE
+                }
+              } else {
+                if (height > MAX_SIZE) {
+                  width *= MAX_SIZE / height
+                  height = MAX_SIZE
+                }
+              }
+
+              canvas.width = width
+              canvas.height = height
+              const ctx = canvas.getContext('2d')
+              ctx.drawImage(img, 0, 0, width, height)
+              
+              // Compress to Base64 (WebP, 80% quality)
+              resolve(canvas.toDataURL('image/webp', 0.8))
+            }
+            img.onerror = () => reject(new Error("Fichier image invalide."))
+            img.src = e.target.result
+          }
+          reader.onerror = () => reject(new Error("Erreur de lecture du fichier."))
+          reader.readAsDataURL(fileOrUrl)
+        })
+      }
+
       // Update Firestore
       const profileRef = doc(db, 'users', user.uid)
-      await updateDoc(profileRef, { photoURL: url })
+      await updateDoc(profileRef, { photoURL: finalUrl })
 
       // Update Firebase Auth Profile
-      await updateProfile(user, { photoURL: url })
+      await updateProfile(user, { photoURL: finalUrl })
 
-      setUserProfile(prev => ({ ...prev, photoURL: url }))
+      setUserProfile(prev => ({ ...prev, photoURL: finalUrl }))
       return true
     } catch (err) {
       console.error('PFP update error:', err)
