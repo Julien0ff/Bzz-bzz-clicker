@@ -4,7 +4,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react'
 import { auth, googleProvider, db } from '../firebase'
-import { signInWithPopup, signOut, onAuthStateChanged } from 'firebase/auth'
+import { signInWithPopup, signOut, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth'
 import { doc, getDoc, setDoc, updateDoc, collection, query, where, getDocs } from 'firebase/firestore'
 
 const AuthContext = createContext(null)
@@ -165,6 +165,96 @@ export function AuthProvider({ children }) {
     }
   }
 
+  // Sign up with Email/Password
+  const signUpWithEmail = async (email, password, pseudo, keyDocId) => {
+    try {
+      setError(null)
+      if (!keyDocId) {
+        setError("Vous avez besoin d'une clé de licence pour créer un compte.")
+        return false
+      }
+
+      const result = await createUserWithEmailAndPassword(auth, email, password)
+      const firebaseUser = result.user
+
+      // Create user profile
+      const profile = {
+        uid: firebaseUser.uid,
+        displayName: pseudo || 'Joueur',
+        email: firebaseUser.email,
+        photoURL: null,
+        createdAt: new Date().toISOString(),
+        licenseKey: keyDocId,
+        isAdmin: firebaseUser.email === ADMIN_EMAIL,
+      }
+
+      const profileRef = doc(db, 'users', firebaseUser.uid)
+      await setDoc(profileRef, profile)
+      setUserProfile(profile)
+
+      // Mark key as used
+      await updateDoc(doc(db, 'licenseKeys', keyDocId), {
+        used: true,
+        usedBy: firebaseUser.uid,
+        usedAt: new Date().toISOString(),
+      })
+
+      return true
+    } catch (err) {
+      console.error('Email sign up error:', err)
+      if (err.code === 'auth/email-already-in-use') {
+        setError('Cet email est déjà utilisé.')
+      } else if (err.code === 'auth/weak-password') {
+        setError('Le mot de passe doit faire au moins 6 caractères.')
+      } else {
+        setError('Erreur d\'inscription. Vérifiez vos informations.')
+      }
+      return false
+    }
+  }
+
+  // Sign in with Email/Password
+  const signInWithEmail = async (email, password) => {
+    try {
+      setError(null)
+      const result = await signInWithEmailAndPassword(auth, email, password)
+      const firebaseUser = result.user
+
+      // Check if user has a profile
+      const profileRef = doc(db, 'users', firebaseUser.uid)
+      const profileDoc = await getDoc(profileRef)
+
+      if (!profileDoc.exists()) {
+        // Auto-create admin profile if it's the admin email
+        if (firebaseUser.email === ADMIN_EMAIL) {
+          const profile = {
+            uid: firebaseUser.uid,
+            displayName: 'Admin',
+            email: firebaseUser.email,
+            photoURL: null,
+            createdAt: new Date().toISOString(),
+            licenseKey: null,
+            isAdmin: true,
+          }
+          await setDoc(profileRef, profile)
+          setUserProfile(profile)
+          return true
+        }
+
+        await signOut(auth)
+        setError("Aucun profil trouvé.")
+        return false
+      }
+
+      setUserProfile(profileDoc.data())
+      return true
+    } catch (err) {
+      console.error('Email sign in error:', err)
+      setError('Email ou mot de passe incorrect.')
+      return false
+    }
+  }
+
   // Logout
   const logout = async () => {
     try {
@@ -185,6 +275,8 @@ export function AuthProvider({ children }) {
     validateLicenseKey,
     signInWithGoogle,
     signInExistingUser,
+    signUpWithEmail,
+    signInWithEmail,
     logout,
   }
 
