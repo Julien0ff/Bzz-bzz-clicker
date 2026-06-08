@@ -8,7 +8,7 @@ import { ACHIEVEMENTS } from '../data/achievements'
 
 export function useGameLoop() {
   const gameState = useGame()
-  const { tick, honeyPerSecond, achievements, dispatch } = gameState
+  const { tick, click, honeyPerSecond, achievements, clickUpgrades, dispatch } = gameState
   const lastTimeRef = useRef(null)
   const animFrameRef = useRef(null)
 
@@ -42,6 +42,19 @@ export function useGameLoop() {
       }
     }
   }, [tick, honeyPerSecond])
+
+  // Auto-Clicker Loop (runs every 1 second if upgrade is owned)
+  useEffect(() => {
+    if (!clickUpgrades || !clickUpgrades['autoClicker']) return
+
+    const autoClick = setInterval(() => {
+      click()
+      // Dispatch an event to show click particles (optional, but good for feedback)
+      window.dispatchEvent(new CustomEvent('auto_click_particle'))
+    }, 1000)
+
+    return () => clearInterval(autoClick)
+  }, [clickUpgrades, click])
 
   // Achievement Check Loop (runs every 1 second)
   useEffect(() => {

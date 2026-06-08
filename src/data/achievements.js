@@ -25,6 +25,13 @@ export const ACHIEVEMENTS = [
     icon: '🔥',
     condition: (state) => state.totalClicks >= 10000
   },
+  {
+    id: 'clicks_50000',
+    name: "Machine à Cliquer",
+    description: "Effectuez 50 000 clics manuels.",
+    icon: '🦾',
+    condition: (state) => state.totalClicks >= 50000
+  },
 
   // Total Honey
   {
@@ -47,6 +54,20 @@ export const ACHIEVEMENTS = [
     description: "Atteindre 1 000 000 000 de miel récolté au total.",
     icon: '👑',
     condition: (state) => state.totalHoney >= 1000000000
+  },
+  {
+    id: 'honey_1t',
+    name: "Trillionnaire",
+    description: "Atteindre 1 000 000 000 000 de miel récolté au total.",
+    icon: '💎',
+    condition: (state) => state.totalHoney >= 1000000000000
+  },
+  {
+    id: 'honey_1qa',
+    name: "Quadrillionnaire",
+    description: "Atteindre 1 000 000 000 000 000 de miel récolté au total.",
+    icon: '🌌',
+    condition: (state) => state.totalHoney >= 1000000000000000
   },
 
   // Upgrades
@@ -71,6 +92,20 @@ export const ACHIEVEMENTS = [
     icon: '🌟',
     condition: (state) => (state.clickUpgrades['honeyAura'] || 0) >= 1
   },
+  {
+    id: 'black_hole_owner',
+    name: "Maître des Dimensions",
+    description: "Posséder au moins un Trou Noir Mielleux.",
+    icon: '🕳️',
+    condition: (state) => (state.upgrades['blackHole'] || 0) >= 1
+  },
+  {
+    id: 'auto_clicker_owner',
+    name: "Automatisation Antique",
+    description: "Obtenir l'Auto-Clicker Magique.",
+    icon: '⚙️',
+    condition: (state) => (state.clickUpgrades['autoClicker'] || 0) >= 1
+  },
   
   // Playtime
   {
@@ -79,5 +114,12 @@ export const ACHIEVEMENTS = [
     description: "Jouer pendant 1 heure au total.",
     icon: '⏱️',
     condition: (state) => state.playTime >= 3600
+  },
+  {
+    id: 'time_10h',
+    name: "Pas de Vie, Juste du Miel",
+    description: "Jouer pendant 10 heures au total.",
+    icon: '⏳',
+    condition: (state) => state.playTime >= 36000
   }
 ]

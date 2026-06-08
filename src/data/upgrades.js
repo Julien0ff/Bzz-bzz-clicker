@@ -123,6 +123,36 @@ export const PRODUCTION_UPGRADES = [
     costMultiplier: 1.15,
     maxCount: 100,
   },
+  {
+    id: 'cyberHive',
+    name: 'Ruche Cybernétique',
+    icon: '🤖',
+    description: "Des abeilles robots optimisées par l'Intelligence Artificielle.",
+    baseCost: 250000000000000000,
+    baseProduction: 12000000000000,
+    costMultiplier: 1.15,
+    maxCount: 100,
+  },
+  {
+    id: 'honeyWell',
+    name: 'Puits de Miel',
+    icon: '🕳️',
+    description: "Un forage profond jusqu'au centre de la Terre pour du miel fossile.",
+    baseCost: 5000000000000000000,
+    baseProduction: 250000000000000,
+    costMultiplier: 1.15,
+    maxCount: 100,
+  },
+  {
+    id: 'blackHole',
+    name: 'Trou Noir Mielleux',
+    icon: '🌌',
+    description: "Aspire le miel de toutes les dimensions parallèles à la fois.",
+    baseCost: 500000000000000000000,
+    baseProduction: 25000000000000000,
+    costMultiplier: 1.15,
+    maxCount: 100,
+  },
 ]
 
 export const CLICK_UPGRADES = [
@@ -224,6 +254,17 @@ export const CLICK_UPGRADES = [
     oneTime: false,
     maxCount: 20,
     costMultiplier: 2.5,
+  },
+  {
+    id: 'autoClicker',
+    name: "Auto-Clicker Magique",
+    icon: '⚙️',
+    description: "Une machine antique qui clique automatiquement pour vous 1 fois par seconde.",
+    cost: 1000000000000000,
+    clickBonus: 0,
+    oneTime: true,
+    maxCount: 1,
+    costMultiplier: 1,
   },
 ]
 
