@@ -667,6 +667,31 @@ body {
   text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.5);
 }
 
+/* --- Generic Text Input / Textarea --- */
+.mc-input {
+  width: 100%;
+  padding: 12px 16px;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 9px;
+  color: var(--text-primary);
+  background: var(--bg-darker);
+  border: 3px solid var(--mc-border-dark);
+  border-radius: 0;
+  outline: none;
+  transition: border-color 0.2s;
+  resize: vertical;
+}
+
+.mc-input:focus {
+  border-color: var(--honey-dark);
+  box-shadow: 0 0 12px rgba(244, 166, 35, 0.2);
+}
+
+.mc-input::placeholder {
+  color: var(--text-dim);
+  font-size: 8px;
+}
+
 /* ===================================================
    NAVBAR (Top Bar)
    =================================================== */
