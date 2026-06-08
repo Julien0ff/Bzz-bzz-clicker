@@ -3,7 +3,7 @@ import { useGame } from '../../contexts/GameContext'
 
 // Constantes d'apparition (en millisecondes)
 const MIN_SPAWN_TIME = 25 * 1000 // 25 secondes
-const MAX_SPAWN_TIME = 2 * 60 * 1000 // 2 minutes
+const MAX_SPAWN_TIME = 40 * 1000 // 2 minutes
 
 export default function GoldenBee() {
   const { dispatch } = useGame()
