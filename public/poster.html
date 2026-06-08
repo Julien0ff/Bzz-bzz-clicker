@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Affiche - Bzz Bzz Clicker</title>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #1a1a2e;
+      --honey: #f4a623;
+      --honey-light: #ffc107;
+      --honey-glow: rgba(244, 166, 35, 0.5);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      background-image: 
+        radial-gradient(circle at 50% 50%, #2a1f0e 0%, var(--bg-dark) 80%),
+        repeating-linear-gradient(45deg, rgba(0,0,0,0.1) 0px, rgba(0,0,0,0.1) 2px, transparent 2px, transparent 8px);
+      color: white;
+      font-family: 'Press Start 2P', monospace;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      overflow: hidden;
+      text-align: center;
+    }
+
+    .poster-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 50px 40px;
+      border: 4px solid var(--honey);
+      box-shadow: 0 0 50px var(--honey-glow), inset 0 0 30px rgba(0,0,0,0.8);
+      background: rgba(0, 0, 0, 0.4);
+      border-radius: 16px;
+      position: relative;
+    }
+
+    .logo-container {
+      width: 250px;
+      height: 250px;
+      margin-bottom: 20px;
+      filter: drop-shadow(0 0 20px var(--honey-glow));
+    }
+
+    .logo-container img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      image-rendering: pixelated;
+    }
+
+    h1 {
+      font-size: 3.5rem;
+      color: var(--honey-light);
+      text-shadow: 4px 4px 0 #000, 0 0 20px var(--honey);
+      margin-bottom: 25px;
+      letter-spacing: 2px;
+    }
+
+    .subtitle {
+      font-size: 1.5rem;
+      color: var(--honey-light);
+      text-transform: uppercase;
+      margin-bottom: 45px;
+      text-shadow: 2px 2px 0 #000;
+    }
+
+    .mc-button {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 1.2rem;
+      padding: 15px 30px;
+      color: #f5f0e1;
+      border: 6px solid;
+      text-shadow: 4px 4px 0 rgba(0, 0, 0, 0.5);
+      image-rendering: pixelated;
+      position: relative;
+      z-index: 1;
+      text-transform: uppercase;
+      text-decoration: none;
+      display: inline-block;
+      margin-top: 20px;
+    }
+
+    .mc-button.primary {
+      background: var(--honey-dark, #e8920b);
+      border-color: var(--honey, #f4a623) var(--honey-darker, #c47a09) var(--honey-darker, #c47a09) var(--honey, #f4a623);
+    }
+
+    .hex-bg {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      pointer-events: none;
+      opacity: 0.05;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='49' viewBox='0 0 28 49'%3E%3Cg fill-rule='evenodd'%3E%3Cg fill='%23ffd700' fill-opacity='1'%3E%3Cpath d='M13.99 9.25l13 7.5v15l-13 7.5L1 31.75v-15l12.99-7.5zM3 17.9v12.7l10.99 6.34 11-6.35V17.9l-11-6.34L3 17.9zM0 15l12.98-7.5V0h-2v6.35L0 12.69v2.3zm0 18.5L12.98 41v8h-2v-6.85L0 35.81v-2.3zM15 0v7.5L27.99 15H28v-2.31h-.01L17 6.35V0h-2zm0 49v-8l12.99-7.5H28v2.31h-.01L17 42.15V49h-2z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    }
+  </style>
+</head>
+<body>
+
+  <div class="hex-bg"></div>
+
+  <div class="poster-container">
+    <div class="logo-container">
+      <img src="./assets/Bee_(Dungeons).png" alt="Abeille Dorée">
+    </div>
+    
+    <h1>BEE CLICKER</h1>
+    
+    <div class="subtitle">
+      DISPONIBLE DÈS MAINTENANT !
+    </div>
+    
+    <div class="mc-button primary">
+      bee-clicker.thefoxy.me
+    </div>
+  </div>
+
+</body>
+</html>

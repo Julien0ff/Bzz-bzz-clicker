@@ -349,7 +349,7 @@ function AuthenticatedApp() {
       <GameEngine />
       <AchievementToast />
       <TopBar />
-      <div style={{ paddingTop: '48px', height: '100vh', boxSizing: 'border-box' }}>
+      <div style={{ paddingTop: '48px', height: '100vh', boxSizing: 'border-box', overflowY: 'auto' }}>
         <Routes>
           <Route path="/" element={<GamePage />} />
           <Route path="/leaderboard" element={<Leaderboard />} />
