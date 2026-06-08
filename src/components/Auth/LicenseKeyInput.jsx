@@ -6,7 +6,7 @@ import React, { useState } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 
 export default function LicenseKeyInput({ onBack }) {
-  const { validateLicenseKey, signInWithGoogle, error, setError } = useAuth()
+  const { validateLicenseKey, signInWithGoogle, signUpWithEmail, error, setError } = useAuth()
   const [key, setKey] = useState('')
   const [step, setStep] = useState('enter') // 'enter' | 'validated'
   const [loading, setLoading] = useState(false)
@@ -38,7 +38,7 @@ export default function LicenseKeyInput({ onBack }) {
     e.preventDefault()
     if (!email || !password || !pseudo) return
     setLoading(true)
-    const success = await useAuth().signUpWithEmail(email, password, pseudo, keyDocId)
+    const success = await signUpWithEmail(email, password, pseudo, keyDocId)
     if (!success) setLoading(false)
   }
 

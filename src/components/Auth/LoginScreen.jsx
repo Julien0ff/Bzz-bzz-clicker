@@ -8,7 +8,7 @@ import LicenseKeyInput from './LicenseKeyInput'
 import beeSrc from '/assets/Bee_(Dungeons).png'
 
 export default function LoginScreen() {
-  const { signInExistingUser, error, setError } = useAuth()
+  const { signInExistingUser, signInWithEmail, error, setError } = useAuth()
   const [mode, setMode] = useState('choose') // 'choose' | 'license' | 'login'
   const [loading, setLoading] = useState(false)
 
@@ -25,7 +25,7 @@ export default function LoginScreen() {
     e.preventDefault()
     if (!email || !password) return
     setLoading(true)
-    const success = await useAuth().signInWithEmail(email, password)
+    const success = await signInWithEmail(email, password)
     if (!success) setLoading(false)
   }
 
