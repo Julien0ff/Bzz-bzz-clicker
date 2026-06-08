@@ -3,7 +3,7 @@
 // ===================================================
 
 import React, { useEffect, useState } from 'react'
-import { collection, query, orderBy, limit, getDocs } from 'firebase/firestore'
+import { collection, query, orderBy, limit, getDocs, onSnapshot } from 'firebase/firestore'
 import { db } from '../../firebase'
 import { formatNumber } from '../../data/upgrades'
 
@@ -12,13 +12,12 @@ export default function Leaderboard() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const fetchLeaderboard = async () => {
-      try {
-        const savesRef = collection(db, 'saves')
-        const q = query(savesRef, orderBy('totalHoney', 'desc'), limit(50))
-        const snapshot = await getDocs(q)
+    const savesRef = collection(db, 'saves')
+    const q = query(savesRef, orderBy('totalHoney', 'desc'), limit(50))
 
-        // We need user names too, fetch from users collection
+    const unsubscribe = onSnapshot(q, async (snapshot) => {
+      try {
+        // Fetch users to get display names and PFPs
         const usersRef = collection(db, 'users')
         const usersSnapshot = await getDocs(usersRef)
         const usersMap = {}
@@ -40,13 +39,14 @@ export default function Leaderboard() {
         })
 
         setEntries(results)
+        setLoading(false)
       } catch (err) {
         console.error('Error fetching leaderboard:', err)
+        setLoading(false)
       }
-      setLoading(false)
-    }
+    })
 
-    fetchLeaderboard()
+    return () => unsubscribe()
   }, [])
 
   const getRankClass = (index) => {
