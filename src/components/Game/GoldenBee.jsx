@@ -103,14 +103,13 @@ export default function GoldenBee() {
       onClick={handleClick}
     >
       <img
-        src="/assets/Bee_(Dungeons).png"
-        alt="Golden Bee"
+        src="/assets/no texture.png"
+        alt="Golden Bee (Placeholder)"
         style={{
           width: '100%',
           height: '100%',
           objectFit: 'contain',
           imageRendering: 'pixelated',
-          filter: 'sepia(1) hue-rotate(10deg) saturate(3) brightness(1.2)', // Teinte dorée
           animation: 'goldenGlow 1.5s ease-in-out infinite'
         }}
       />
