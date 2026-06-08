@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useGame } from '../../contexts/GameContext'
+import placeholderImg from '../../../assets/no texture.png'
 
 // Constantes d'apparition (en millisecondes)
 const MIN_SPAWN_TIME = 25 * 1000 // 25 secondes
@@ -103,7 +104,7 @@ export default function GoldenBee() {
       onClick={handleClick}
     >
       <img
-        src="/assets/no texture.png"
+        src={placeholderImg}
         alt="Golden Bee (Placeholder)"
         style={{
           width: '100%',
