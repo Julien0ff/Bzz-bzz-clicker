@@ -62,21 +62,21 @@ function gameReducer(state, action) {
 
     case 'GOLDEN_BEE_EFFECT': {
       if (action.effectType === 'frenzy') {
-        return { ...state, frenzyTimeLeft: 30 } // 30 seconds of x7
+        return { ...state, frenzyTimeLeft: 5 } // 5 seconds of x7 (as requested)
       } else if (action.effectType === 'lucky_drop') {
-        const bonus = (state.honeyPerSecond * 900) + 10000 // 15 mins of passive + 10k flat
+        const bonus = (state.honeyPerSecond * 300) + 5000 // 5 mins of passive + 5k flat
         return {
           ...state,
           honey: state.honey + bonus,
           totalHoney: state.totalHoney + bonus,
         }
       } else if (action.effectType === 'malus') {
-        // Malus exponentiel basé sur le miel par seconde
-        const penalty = Math.floor(Math.pow(state.honeyPerSecond, 1.5))
-        const actualPenalty = Math.min(state.honey, penalty) // Empêche de passer en négatif
+        // Malus exponentiel plus violent basé sur le miel par seconde
+        // Formule augmentée à ^1.8 et on permet de tomber dans le négatif !
+        const penalty = Math.floor(Math.pow(state.honeyPerSecond, 1.8)) + 1000
         return {
           ...state,
-          honey: state.honey - actualPenalty,
+          honey: state.honey - penalty,
           // Ne réduit pas le totalHoney à vie, seulement le miel en banque
         }
       }
