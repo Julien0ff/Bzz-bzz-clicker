@@ -165,11 +165,14 @@ function SettingsModal({ onClose }) {
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
             <input 
               type="file"
+              id="pfp-upload"
               accept="image/*"
-              className="license-input" 
               onChange={e => setPfpFile(e.target.files[0])}
-              style={{ flex: 1, padding: '4px', fontSize: '9px' }}
+              style={{ display: 'none' }}
             />
+            <label htmlFor="pfp-upload" className="mc-button" style={{ flex: 1, textAlign: 'center', cursor: 'pointer', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={pfpFile ? pfpFile.name : 'Choisir un fichier'}>
+              {pfpFile ? pfpFile.name : '📁 Parcourir...'}
+            </label>
             <button className="mc-button primary" onClick={handleUpdatePfp} disabled={loading || !pfpFile}>
               Mettre à jour
             </button>
