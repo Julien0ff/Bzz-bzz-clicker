@@ -67,9 +67,11 @@ function SettingsModal({ onClose }) {
         try {
           const { doc, deleteDoc } = await import('firebase/firestore')
           const { db } = await import('./firebase')
+          window.isResetting = true // Empêche la sauvegarde automatique lors du rechargement
           await deleteDoc(doc(db, 'saves', user.uid))
           window.location.reload()
         } catch (err) {
+          window.isResetting = false
           setMsg('Erreur : ' + err.message)
           setLoading(false)
         }

@@ -910,6 +910,17 @@ body {
 }
 
 /* ===================================================
+   STATS PANEL
+   =================================================== */
+.stats-container {
+  margin: 20px auto;
+  max-width: 650px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ===================================================
    CLICK PER SECOND BADGE
    =================================================== */
 .cps-badge {
@@ -980,6 +991,7 @@ body {
    RESPONSIVE
    =================================================== */
 @media (max-width: 768px) {
+  /* --- Shop Panel Mobile --- */
   .shop-panel {
     position: fixed;
     right: -340px;
@@ -997,12 +1009,112 @@ body {
     display: block;
   }
 
+  /* --- Game Area Mobile --- */
   .honey-amount {
     font-size: 24px;
   }
 
   :root {
     --bee-size: 140px;
+  }
+  
+  .stat-bar {
+    gap: 12px;
+  }
+  
+  .stat-value {
+    font-size: 10px;
+  }
+  
+  .stat-label {
+    font-size: 6px;
+  }
+
+  /* --- Top Bar Mobile --- */
+  .top-bar {
+    padding: 0 8px;
+  }
+  
+  .top-bar-nav {
+    flex: 1;
+    overflow-x: auto;
+    scrollbar-width: none; /* Firefox */
+    margin: 0 8px;
+  }
+  
+  .top-bar-nav::-webkit-scrollbar {
+    display: none; /* Chrome/Safari */
+  }
+  
+  .top-bar-btn span:not(:first-child) {
+    display: none; /* Hide text, keep emoji */
+  }
+  
+  .top-bar-btn {
+    padding: 8px 10px;
+  }
+  
+  .top-bar-title span {
+    display: none; /* Hide "Bee Clicker" */
+  }
+  
+  .top-bar-user {
+    gap: 4px;
+  }
+  
+  .top-bar-username {
+    max-width: 50px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* --- Containers Mobile --- */
+  .leaderboard-container, 
+  .friends-container, 
+  .admin-container,
+  .stats-container {
+    padding: 60px 10px 10px;
+    margin: 10px auto;
+  }
+  
+  .leaderboard-entry,
+  .friend-entry,
+  .admin-key-entry {
+    padding: 8px 10px;
+  }
+
+  /* --- Login Screen --- */
+  .login-card {
+    width: 95vw;
+    padding: 16px;
+  }
+  
+  .login-title {
+    font-size: 22px;
+  }
+  
+  .login-subtitle {
+    font-size: 8px;
+  }
+
+  /* --- Modals Mobile --- */
+  .modal-content {
+    width: 95%;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+}
+
+@media (max-width: 400px) {
+  :root {
+    --bee-size: 110px;
+  }
+  
+  .shop-panel {
+    width: 100vw;
+    min-width: 100vw;
+    right: -100vw;
   }
 }
 

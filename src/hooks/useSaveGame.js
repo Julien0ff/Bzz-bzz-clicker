@@ -66,7 +66,9 @@ export function useSaveGame() {
     saveTimerRef.current = setInterval(saveGame, SAVE_INTERVAL)
 
     // Also save on unload
-    const handleUnload = () => saveGame()
+    const handleUnload = () => {
+      if (!window.isResetting) saveGame()
+    }
     window.addEventListener('beforeunload', handleUnload)
 
     return () => {

@@ -33,7 +33,7 @@ export default function StatisticsPanel() {
   const unlockedAchCount = achievements?.length || 0
 
   return (
-    <div className="mc-panel" style={{ margin: '20px auto', maxWidth: '650px', display: 'flex', flexDirection: 'column', gap: '20px', maxHeight: '80vh', overflowY: 'auto' }}>
+    <div className="mc-panel stats-container">
       <h2 style={{ textAlign: 'center', margin: '0 0 10px 0', borderBottom: '4px solid var(--mc-border-dark)', paddingBottom: '10px' }}>
         📊 STATISTIQUES AVANCÉES
       </h2>
