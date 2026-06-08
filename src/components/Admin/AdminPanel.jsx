@@ -26,6 +26,7 @@ export default function AdminPanel() {
   const [loading, setLoading] = useState(true)
   const [generating, setGenerating] = useState(false)
   const [keysToGenerate, setKeysToGenerate] = useState(1)
+  const [confirmConfig, setConfirmConfig] = useState(null)
 
   // Check admin access
   const isAdmin = userProfile?.isAdmin === true
@@ -76,14 +77,19 @@ export default function AdminPanel() {
     setGenerating(false)
   }
 
-  const handleDeleteKey = async (id) => {
-    if (!window.confirm("Êtes-vous sûr de vouloir supprimer cette clé ?")) return
-    try {
-      await deleteDoc(doc(db, 'licenseKeys', id))
-      setKeys(prev => prev.filter(k => k.id !== id))
-    } catch (err) {
-      console.error('Error deleting key:', err)
-    }
+  const handleDeleteKey = (id) => {
+    setConfirmConfig({
+      title: 'Supprimer la clé',
+      message: 'Êtes-vous sûr de vouloir supprimer cette clé de licence ?',
+      action: async () => {
+        try {
+          await deleteDoc(doc(db, 'licenseKeys', id))
+          setKeys(prev => prev.filter(k => k.id !== id))
+        } catch (err) {
+          console.error('Error deleting key:', err)
+        }
+      }
+    })
   }
 
   const copyKey = (key) => {
@@ -173,7 +179,18 @@ export default function AdminPanel() {
               <button 
                 className="mc-button danger" 
                 style={{ padding: '6px 10px', fontSize: '7px' }}
-                onClick={() => handleDeleteKey(k.id)}
+                onClick={() => setConfirmConfig({
+                  title: 'Supprimer la clé',
+                  message: 'Êtes-vous sûr de vouloir supprimer cette clé de licence ?',
+                  action: async () => {
+                    try {
+                      await deleteDoc(doc(db, 'licenseKeys', k.id))
+                      setKeys(prev => prev.filter(keyItem => keyItem.id !== k.id))
+                    } catch (err) {
+                      console.error('Error deleting key:', err)
+                    }
+                  }
+                })}
                 title="Supprimer la clé"
               >
                 🗑️
@@ -182,6 +199,17 @@ export default function AdminPanel() {
           ))}
         </div>
       </div>
+
+      <ConfirmModal 
+        isOpen={!!confirmConfig}
+        title={confirmConfig?.title}
+        message={confirmConfig?.message}
+        onConfirm={() => {
+          confirmConfig.action()
+          setConfirmConfig(null)
+        }}
+        onCancel={() => setConfirmConfig(null)}
+      />
     </div>
   )
 }

@@ -84,9 +84,8 @@ function gameReducer(state, action) {
     }
 
     case 'PRESTIGE': {
-      // Calculate total jelly allowed based on lifetime honey: Math.floor(Math.sqrt(totalHoney / 10M))
-      const totalJellyAllowed = Math.floor(Math.sqrt(state.totalHoney / 10000000))
-      const jellyEarned = totalJellyAllowed - (state.royalJelly || 0)
+      // Nouveau système : Gain de Gelée basé sur le Miel en Banque sacrifié
+      const jellyEarned = Math.floor(Math.cbrt(state.honey / 100000000))
       
       if (jellyEarned <= 0) return state // Cannot prestige
 
@@ -113,8 +112,9 @@ function gameReducer(state, action) {
       if (!upgrade) return state
 
       const currentCount = state.upgrades[upgrade.id] || 0
-      const cost = getUpgradeCost(upgrade, currentCount)
+      if (upgrade.maxCount && currentCount >= upgrade.maxCount) return state
 
+      const cost = getUpgradeCost(upgrade, currentCount)
       if (state.honey < cost) return state
 
       const newCount = currentCount + 1

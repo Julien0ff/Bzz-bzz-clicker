@@ -1,11 +1,14 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { useGame } from '../../contexts/GameContext'
 import { formatNumber } from '../../data/upgrades'
 import { ACHIEVEMENTS } from '../../data/achievements'
+import ConfirmModal from '../UI/ConfirmModal'
 
 export default function StatisticsPanel() {
   const gameState = useGame()
   const { totalHoney, honey, totalClicks, playTime, clickPower, honeyPerSecond, upgrades, clickUpgrades, achievements, royalJelly } = gameState
+
+  const [modalOpen, setModalOpen] = useState(false)
 
   // Helper to format play time in seconds to HH:MM:SS
   const formatTime = (seconds) => {
@@ -153,27 +156,21 @@ export default function StatisticsPanel() {
 
         <p style={{ fontSize: '8px', color: 'var(--text-dim)', marginBottom: '15px', lineHeight: '1.4' }}>
           L'Ascension réinitialise votre miel, vos bâtiments et améliorations, mais vous conservez vos statistiques, succès et votre Miel Total à vie. <br/>
-          Pour chaque tranche de progression après 10 Millions, vous recevrez de la <span style={{ color: 'var(--honey-light)' }}>Gelée Royale</span> permanente !
+          Vous obtiendrez de la <span style={{ color: 'var(--honey-light)' }}>Gelée Royale</span> permanente en sacrifiant votre <b>Miel en Banque actuel</b> !
         </p>
 
         {(() => {
-          const totalJellyAllowed = Math.floor(Math.sqrt(gameState.totalHoney / 10000000))
-          const currentJelly = gameState.royalJelly || 0
-          const jellyEarned = totalJellyAllowed - currentJelly
+          const jellyEarned = Math.floor(Math.cbrt(gameState.honey / 100000000))
           
-          // Cost for the NEXT jelly: (currentJelly + 1)^2 * 10M
-          const nextJellyTarget = Math.pow(currentJelly + 1, 2) * 10000000
+          // Cost for the NEXT jelly: (jellyEarned + 1)^3 * 100M
+          const nextJellyTarget = Math.pow(jellyEarned + 1, 3) * 100000000
 
           if (jellyEarned > 0) {
             return (
               <button 
                 className="mc-button primary" 
                 style={{ width: '100%', padding: '15px', fontSize: '10px', animation: 'buttonPulse 2s infinite' }}
-                onClick={() => {
-                  if (window.confirm(`Êtes-vous sûr de vouloir faire une Ascension ?\n\nVous perdrez votre miel actuel et vos bâtiments, mais vous gagnerez ${jellyEarned} Gelée(s) Royale(s) !\n\nCela augmentera votre production permanente de +${jellyEarned * 10}% !`)) {
-                    gameState.dispatch({ type: 'PRESTIGE' })
-                  }
-                }}
+                onClick={() => setModalOpen(true)}
               >
                 Faire une Ascension (+{jellyEarned} 👑)
               </button>
@@ -181,12 +178,26 @@ export default function StatisticsPanel() {
           } else {
             return (
               <button className="mc-button" disabled style={{ width: '100%' }}>
-                Nécessite {formatNumber(Math.floor(nextJellyTarget))} Miel Total (Actuel: {formatNumber(Math.floor(gameState.totalHoney))})
+                Nécessite {formatNumber(nextJellyTarget)} Miel en Banque<br/>
+                <span style={{ fontSize: '8px', opacity: 0.8 }}>
+                  (Actuel: {formatNumber(Math.floor(gameState.honey))})
+                </span>
               </button>
             )
           }
         })()}
       </div>
+
+      <ConfirmModal
+        isOpen={modalOpen}
+        title="Confirmation d'Ascension"
+        message={`Êtes-vous sûr de vouloir faire une Ascension ?\n\nVous perdrez votre miel actuel et vos bâtiments, mais vous gagnerez ${Math.floor(Math.cbrt(gameState.honey / 100000000))} Gelée(s) Royale(s) !\n\nCela augmentera votre production permanente !`}
+        onConfirm={() => {
+          gameState.dispatch({ type: 'PRESTIGE' })
+          setModalOpen(false)
+        }}
+        onCancel={() => setModalOpen(false)}
+      />
     </div>
   )
 }

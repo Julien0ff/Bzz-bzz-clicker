@@ -11,6 +11,7 @@ export const PRODUCTION_UPGRADES = [
     baseCost: 15,
     baseProduction: 0.1,
     costMultiplier: 1.15,
+    maxCount: 100,
   },
   {
     id: 'babyBee',
@@ -20,6 +21,7 @@ export const PRODUCTION_UPGRADES = [
     baseCost: 100,
     baseProduction: 1,
     costMultiplier: 1.15,
+    maxCount: 100,
   },
   {
     id: 'beehive',
@@ -29,6 +31,7 @@ export const PRODUCTION_UPGRADES = [
     baseCost: 1100,
     baseProduction: 8,
     costMultiplier: 1.15,
+    maxCount: 100,
   },
   {
     id: 'extractor',
@@ -38,6 +41,7 @@ export const PRODUCTION_UPGRADES = [
     baseCost: 12000,
     baseProduction: 47,
     costMultiplier: 1.15,
+    maxCount: 100,
   },
   {
     id: 'queenBee',
@@ -47,6 +51,7 @@ export const PRODUCTION_UPGRADES = [
     baseCost: 130000,
     baseProduction: 260,
     costMultiplier: 1.15,
+    maxCount: 100,
   },
   {
     id: 'honeyFactory',
@@ -56,6 +61,7 @@ export const PRODUCTION_UPGRADES = [
     baseCost: 1400000,
     baseProduction: 1400,
     costMultiplier: 1.15,
+    maxCount: 100,
   },
   {
     id: 'alchemyLab',
@@ -65,6 +71,7 @@ export const PRODUCTION_UPGRADES = [
     baseCost: 20000000,
     baseProduction: 7800,
     costMultiplier: 1.15,
+    maxCount: 100,
   },
   {
     id: 'netherPortal',
@@ -74,6 +81,7 @@ export const PRODUCTION_UPGRADES = [
     baseCost: 330000000,
     baseProduction: 44000,
     costMultiplier: 1.15,
+    maxCount: 100,
   },
   {
     id: 'worldTree',
@@ -83,6 +91,37 @@ export const PRODUCTION_UPGRADES = [
     baseCost: 5000000000,
     baseProduction: 260000,
     costMultiplier: 1.15,
+    maxCount: 100,
+  },
+  {
+    id: 'starHive',
+    name: 'Ruche Stellaire',
+    icon: '🌠',
+    description: "Des abeilles astronautes récoltant du nectar céleste.",
+    baseCost: 150000000000,
+    baseProduction: 15000000,
+    costMultiplier: 1.15,
+    maxCount: 100,
+  },
+  {
+    id: 'honeyDimension',
+    name: 'Dimension de Miel',
+    icon: '🌌',
+    description: "Un portail vers une dimension faite de pur miel pur.",
+    baseCost: 20000000000000,
+    baseProduction: 1500000000,
+    costMultiplier: 1.15,
+    maxCount: 100,
+  },
+  {
+    id: 'galacticSwarm',
+    name: "L'Essaim Galactique",
+    icon: '💫',
+    description: "Un essaim d'abeilles de la taille d'une galaxie.",
+    baseCost: 5000000000000000,
+    baseProduction: 250000000000,
+    costMultiplier: 1.15,
+    maxCount: 100,
   },
 ]
 
@@ -95,7 +134,7 @@ export const CLICK_UPGRADES = [
     cost: 100,
     clickBonus: 1,
     oneTime: false,
-    maxCount: 10,
+    maxCount: 20,
     costMultiplier: 2.5,
   },
   {
@@ -106,7 +145,7 @@ export const CLICK_UPGRADES = [
     cost: 500,
     clickBonus: 5,
     oneTime: false,
-    maxCount: 10,
+    maxCount: 20,
     costMultiplier: 2.5,
   },
   {
@@ -117,7 +156,7 @@ export const CLICK_UPGRADES = [
     cost: 10000,
     clickBonus: 50,
     oneTime: false,
-    maxCount: 10,
+    maxCount: 20,
     costMultiplier: 2.5,
   },
   {
@@ -128,7 +167,7 @@ export const CLICK_UPGRADES = [
     cost: 250000,
     clickBonus: 500,
     oneTime: false,
-    maxCount: 10,
+    maxCount: 20,
     costMultiplier: 2.5,
   },
   {
@@ -139,7 +178,7 @@ export const CLICK_UPGRADES = [
     cost: 5000000,
     clickBonus: 5000,
     oneTime: false,
-    maxCount: 10,
+    maxCount: 20,
     costMultiplier: 2.5,
   },
   {
@@ -150,7 +189,40 @@ export const CLICK_UPGRADES = [
     cost: 100000000,
     clickBonus: 50000,
     oneTime: false,
-    maxCount: 10,
+    maxCount: 20,
+    costMultiplier: 2.5,
+  },
+  {
+    id: 'hardenedGloves',
+    name: "Gants en Miel Durci",
+    icon: '🥊',
+    description: "Des poings capables de briser des montagnes de miel.",
+    cost: 5000000000,
+    clickBonus: 10000000,
+    oneTime: false,
+    maxCount: 20,
+    costMultiplier: 2.5,
+  },
+  {
+    id: 'honeyLaser',
+    name: "Rayon Laser Mielleux",
+    icon: '💥',
+    description: "Un laser qui désintègre la ruche pour en extraire le miel pur.",
+    cost: 500000000000,
+    clickBonus: 1500000000,
+    oneTime: false,
+    maxCount: 20,
+    costMultiplier: 2.5,
+  },
+  {
+    id: 'divineFinger',
+    name: "Doigt Divin",
+    icon: '☝️',
+    description: "Le toucher du créateur lui-même.",
+    cost: 50000000000000,
+    clickBonus: 250000000000,
+    oneTime: false,
+    maxCount: 20,
     costMultiplier: 2.5,
   },
 ]

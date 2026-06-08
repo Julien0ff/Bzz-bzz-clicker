@@ -12,6 +12,7 @@ import Leaderboard from './components/Social/Leaderboard'
 import FriendsList from './components/Social/FriendsList'
 import StatisticsPanel from './components/Social/StatisticsPanel'
 import AdminPanel from './components/Admin/AdminPanel'
+import ConfirmModal from './components/UI/ConfirmModal'
 import { useGameLoop } from './hooks/useGameLoop'
 import { useSaveGame } from './hooks/useSaveGame'
 import beeSrc from '/assets/Bee_(Dungeons).png'
@@ -22,6 +23,7 @@ function SettingsModal({ onClose }) {
   const [newKey, setNewKey] = useState('')
   const [loading, setLoading] = useState(false)
   const [msg, setMsg] = useState('')
+  const [confirmConfig, setConfirmConfig] = useState(null)
 
   const handleUpdateKey = async () => {
     if (!newKey) return
@@ -54,41 +56,51 @@ function SettingsModal({ onClose }) {
     setLoading(false)
   }
 
-  const handleResetProgress = async () => {
-    if (!window.confirm("Voulez-vous vraiment remettre à zéro toute votre progression ?")) return
-    setLoading(true)
-    try {
-      const { doc, deleteDoc } = await import('firebase/firestore')
-      const { db } = await import('./firebase')
-      await deleteDoc(doc(db, 'saves', user.uid))
-      window.location.reload()
-    } catch (err) {
-      setMsg('Erreur : ' + err.message)
-      setLoading(false)
-    }
+  const handleResetProgressClick = () => {
+    setConfirmConfig({
+      title: 'Réinitialiser la progression',
+      message: 'Voulez-vous vraiment remettre à zéro toute votre progression ?\n\nCette action est irréversible.',
+      action: async () => {
+        setLoading(true)
+        try {
+          const { doc, deleteDoc } = await import('firebase/firestore')
+          const { db } = await import('./firebase')
+          await deleteDoc(doc(db, 'saves', user.uid))
+          window.location.reload()
+        } catch (err) {
+          setMsg('Erreur : ' + err.message)
+          setLoading(false)
+        }
+      }
+    })
   }
 
-  const handleDeleteAccount = async () => {
-    if (!window.confirm("ATTENTION : Supprimer définitivement votre compte et votre sauvegarde ?")) return
-    setLoading(true)
-    try {
-      const { doc, deleteDoc } = await import('firebase/firestore')
-      const { db, auth } = await import('./firebase')
-      const { deleteUser } = await import('firebase/auth')
-      
-      // Delete save and profile
-      await deleteDoc(doc(db, 'saves', user.uid)).catch(console.error)
-      await deleteDoc(doc(db, 'users', user.uid)).catch(console.error)
-      
-      // Delete Auth user
-      if (auth.currentUser) {
-        await deleteUser(auth.currentUser)
+  const handleDeleteAccountClick = () => {
+    setConfirmConfig({
+      title: 'Supprimer le compte',
+      message: 'ATTENTION : Voulez-vous vraiment supprimer définitivement votre compte et votre sauvegarde ?\n\nCeci effacera toutes vos données.',
+      action: async () => {
+        setLoading(true)
+        try {
+          const { doc, deleteDoc } = await import('firebase/firestore')
+          const { db, auth } = await import('./firebase')
+          const { deleteUser } = await import('firebase/auth')
+          
+          // Delete save and profile
+          await deleteDoc(doc(db, 'saves', user.uid)).catch(console.error)
+          await deleteDoc(doc(db, 'users', user.uid)).catch(console.error)
+          
+          // Delete Auth user
+          if (auth.currentUser) {
+            await deleteUser(auth.currentUser)
+          }
+          logout()
+        } catch (err) {
+          setMsg('Erreur, vous devez peut-être vous reconnecter pour supprimer le compte.')
+          setLoading(false)
+        }
       }
-      logout()
-    } catch (err) {
-      setMsg('Erreur, vous devez peut-être vous reconnecter pour supprimer le compte.')
-      setLoading(false)
-    }
+    })
   }
 
   return (
@@ -120,10 +132,10 @@ function SettingsModal({ onClose }) {
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '30px' }}>
-          <button className="mc-button" onClick={handleResetProgress} disabled={loading} style={{ background: '#c47a09' }}>
+          <button className="mc-button" onClick={handleResetProgressClick} disabled={loading} style={{ background: '#c47a09' }}>
             🔄 Réinitialiser la progression
           </button>
-          <button className="mc-button danger" onClick={handleDeleteAccount} disabled={loading}>
+          <button className="mc-button danger" onClick={handleDeleteAccountClick} disabled={loading}>
             🗑️ Supprimer le compte
           </button>
           <button className="mc-button" onClick={onClose} disabled={loading} style={{ marginTop: '10px' }}>
@@ -131,6 +143,17 @@ function SettingsModal({ onClose }) {
           </button>
         </div>
       </div>
+
+      <ConfirmModal 
+        isOpen={!!confirmConfig}
+        title={confirmConfig?.title}
+        message={confirmConfig?.message}
+        onConfirm={() => {
+          confirmConfig.action()
+          setConfirmConfig(null)
+        }}
+        onCancel={() => setConfirmConfig(null)}
+      />
     </div>
   )
 }

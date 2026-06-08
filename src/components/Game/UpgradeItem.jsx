@@ -10,7 +10,7 @@ export default function UpgradeItem({ upgrade, cost, count, type }) {
   const { honey, buyProductionUpgrade, buyClickUpgrade } = useGame()
 
   const canAfford = honey >= cost
-  const maxedOut = type === 'click' && upgrade.maxCount && count >= upgrade.maxCount
+  const maxedOut = upgrade.maxCount && count >= upgrade.maxCount
 
   const handleClick = () => {
     if (maxedOut) return

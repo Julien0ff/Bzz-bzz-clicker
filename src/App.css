@@ -1150,3 +1150,36 @@ body {
   50% { filter: drop-shadow(0 0 25px #fff) drop-shadow(0 0 40px #ffaa00); transform: scale(1.1); }
   100% { filter: drop-shadow(0 0 10px #ffd700) drop-shadow(0 0 20px #ffaa00); transform: scale(1); }
 }
+
+/* ===================================================
+   MODAL (Confirmations)
+   =================================================== */
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  backdrop-filter: blur(4px);
+  animation: fadeIn 0.2s ease-out;
+}
+
+.modal-content {
+  width: 90%;
+  max-width: 400px;
+  text-align: center;
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.9), 0 0 10px rgba(244, 166, 35, 0.2);
+  animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes popIn {
+  from { transform: scale(0.8); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
