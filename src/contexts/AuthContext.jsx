@@ -361,6 +361,39 @@ export function AuthProvider({ children }) {
     }
   }
 
+  // --- Ban System ---
+  const banUser = async () => {
+    if (!user) return
+    try {
+      const profileRef = doc(db, 'users', user.uid)
+      await updateDoc(profileRef, { isBanned: true })
+      setUserProfile(prev => ({ ...prev, isBanned: true }))
+    } catch (err) {
+      console.error('Ban error:', err)
+    }
+  }
+
+  const unbanUserByEmail = async (targetEmail) => {
+    try {
+      setError(null)
+      const usersRef = collection(db, 'users')
+      const q = query(usersRef, where('email', '==', targetEmail))
+      const snapshot = await getDocs(q)
+      
+      if (snapshot.empty) {
+        throw new Error('Utilisateur non trouvé avec cet email.')
+      }
+
+      const userDoc = snapshot.docs[0]
+      await updateDoc(doc(db, 'users', userDoc.id), { isBanned: false })
+      return true
+    } catch (err) {
+      console.error('Unban error:', err)
+      setError(err.message || 'Erreur lors du débannissement.')
+      return false
+    }
+  }
+
   const value = {
     user,
     userProfile,
@@ -376,6 +409,8 @@ export function AuthProvider({ children }) {
     resetPassword,
     linkGoogleAccount,
     logout,
+    banUser,
+    unbanUserByEmail,
   }
 
   return (

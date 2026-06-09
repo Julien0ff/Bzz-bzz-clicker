@@ -14,6 +14,7 @@ import StatisticsPanel from './components/Social/StatisticsPanel'
 import AdminPanel from './components/Admin/AdminPanel'
 import ConfirmModal from './components/UI/ConfirmModal'
 import FeedbackModal from './components/UI/FeedbackModal'
+import BanScreen from './components/UI/BanScreen'
 import { useGameLoop } from './hooks/useGameLoop'
 import { useSaveGame } from './hooks/useSaveGame'
 import beeSrc from '/assets/Bee_(Dungeons).png'
@@ -468,6 +469,10 @@ function AuthGate() {
 
   if (!userProfile) {
     return <LoginScreen />
+  }
+
+  if (userProfile.isBanned) {
+    return <BanScreen />
   }
 
   return <AuthenticatedApp />

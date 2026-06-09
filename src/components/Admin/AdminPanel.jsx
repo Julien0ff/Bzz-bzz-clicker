@@ -22,7 +22,7 @@ function generateKey() {
 }
 
 export default function AdminPanel() {
-  const { userProfile, resetPassword } = useAuth()
+  const { userProfile, resetPassword, unbanUserByEmail } = useAuth()
   const [keys, setKeys] = useState([])
   const [feedbacks, setFeedbacks] = useState([])
   const [loading, setLoading] = useState(true)
@@ -33,6 +33,9 @@ export default function AdminPanel() {
   const [resetEmail, setResetEmail] = useState('')
   const [resetMsg, setResetMsg] = useState('')
 
+  const [unbanEmail, setUnbanEmail] = useState('')
+  const [unbanMsg, setUnbanMsg] = useState('')
+
   const handleAdminResetPassword = async () => {
     if (!resetEmail) return
     setResetMsg('⏳ Envoi en cours...')
@@ -42,6 +45,18 @@ export default function AdminPanel() {
       setResetEmail('')
     } else {
       setResetMsg('❌ Erreur. Vérifiez l\'adresse email.')
+    }
+  }
+
+  const handleAdminUnban = async () => {
+    if (!unbanEmail) return
+    setUnbanMsg('⏳ Débannissement en cours...')
+    const success = await unbanUserByEmail(unbanEmail)
+    if (success) {
+      setUnbanMsg('✅ Joueur débanni avec succès !')
+      setUnbanEmail('')
+    } else {
+      setUnbanMsg('❌ Erreur. Joueur introuvable.')
     }
   }
 
@@ -260,6 +275,26 @@ export default function AdminPanel() {
           </button>
         </div>
         {resetMsg && <div style={{ fontSize: '8px', marginTop: '8px', color: 'var(--text-honey)' }}>{resetMsg}</div>}
+        
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap', marginTop: '16px' }}>
+          <label style={{ fontSize: '9px', color: 'var(--text-secondary)' }}>Débannir Joueur :</label>
+          <input
+            type="email"
+            value={unbanEmail}
+            onChange={e => setUnbanEmail(e.target.value)}
+            placeholder="Email du joueur banni"
+            className="license-input"
+            style={{ flex: 1, minWidth: '150px', padding: '8px', textTransform: 'none', letterSpacing: 'normal', fontSize: '9px' }}
+          />
+          <button
+            className="mc-button primary"
+            onClick={handleAdminUnban}
+            disabled={!unbanEmail}
+          >
+            👼 Débannir
+          </button>
+        </div>
+        {unbanMsg && <div style={{ fontSize: '8px', marginTop: '8px', color: 'var(--text-honey)' }}>{unbanMsg}</div>}
       </div>
 
       <div className="mc-panel" style={{ marginTop: '20px' }}>

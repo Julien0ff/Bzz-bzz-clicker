@@ -4,16 +4,36 @@
 
 import React, { useRef, useCallback } from 'react'
 import { useGame } from '../../contexts/GameContext'
+import { useAuth } from '../../contexts/AuthContext'
 import ClickParticles from './ClickParticles'
 import beeSrc from '/assets/Bee_(Dungeons).png'
 
 export default function BeeButton() {
   const { click, clickPower } = useGame()
+  const { banUser } = useAuth()
   const buttonRef = useRef(null)
   const particlesRef = useRef(null)
   const clickIntervalRef = useRef(null)
+  
+  // Anti Auto-Clicker
+  const cpsCountRef = useRef(0)
+  const lastCpsTimeRef = useRef(Date.now())
 
   const triggerClick = useCallback((clientX, clientY) => {
+    // --- Anti Cheat Check ---
+    const now = Date.now()
+    if (now - lastCpsTimeRef.current > 1000) {
+      cpsCountRef.current = 0
+      lastCpsTimeRef.current = now
+    }
+    cpsCountRef.current += 1
+
+    if (cpsCountRef.current > 25) {
+      banUser()
+      return
+    }
+    // -------------------------
+
     click()
 
     // Animate bounce
@@ -36,7 +56,7 @@ export default function BeeButton() {
       }
       particlesRef.current.spawn(cx, cy, clickPower)
     }
-  }, [click, clickPower])
+  }, [click, clickPower, banUser])
 
   const startClicking = useCallback((e) => {
     // If it's a keyboard event, check if it's Space
