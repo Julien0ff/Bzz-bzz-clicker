@@ -381,10 +381,7 @@ function TopBar() {
           </span>
           <button
             className="top-bar-btn"
-            onClick={(e) => {
-              e.stopPropagation()
-              handleLogout()
-            }}
+            onClick={handleLogout}
             id="btn-logout"
             style={{ fontSize: '7px', color: 'var(--cannot-afford)', marginLeft: '8px' }}
           >
