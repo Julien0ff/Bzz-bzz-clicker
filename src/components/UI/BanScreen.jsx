@@ -18,13 +18,12 @@ export default function BanScreen() {
         position: 'fixed', inset: 0, backgroundColor: 'black',
         display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', zIndex: 9999
       }}>
-        <video 
-          src="/assets/tk78_ban.mp4" 
-          autoPlay 
-          loop 
-          controls={false}
-          style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-        />
+        <iframe 
+          src="https://player.vimeo.com/video/1199871056?autoplay=1&loop=1&title=0&byline=0&portrait=0" 
+          style={{ width: '100%', height: '100%', border: 'none' }}
+          allow="autoplay; fullscreen; picture-in-picture" 
+          allowFullScreen
+        ></iframe>
         <div style={{ position: 'absolute', top: '20px', right: '20px' }}>
           <button className="mc-button danger" onClick={logout}>Déconnexion</button>
         </div>
