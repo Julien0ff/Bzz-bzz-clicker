@@ -52,7 +52,7 @@ export default function AdminPanel() {
         // Load Feedbacks
         try {
           const feedbacksRef = collection(db, 'feedbacks')
-          const qFeedbacks = query(feedbacksRef, where('status', '==', 'pending'), orderBy('createdAt', 'desc'))
+          const qFeedbacks = query(feedbacksRef, where('status', '==', 'pending'))
           const snapshotFeedbacks = await getDocs(qFeedbacks)
           const feedbacksData = []
           snapshotFeedbacks.forEach(doc => feedbacksData.push({ id: doc.id, ...doc.data() }))
@@ -62,7 +62,7 @@ export default function AdminPanel() {
         // Load Key Requests
         try {
           const keyReqsRef = collection(db, 'keyRequests')
-          const qKeyReqs = query(keyReqsRef, where('status', '==', 'pending'), orderBy('createdAt', 'desc'))
+          const qKeyReqs = query(keyReqsRef, where('status', '==', 'pending'))
           const snapshotKeyReqs = await getDocs(qKeyReqs)
           const keyReqsData = []
           snapshotKeyReqs.forEach(doc => keyReqsData.push({ id: doc.id, ...doc.data() }))
