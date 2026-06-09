@@ -125,9 +125,9 @@ export default function AdminPanel() {
     if (!email) return
     const success = await resetPassword(email)
     if (success) {
-      alert('✅ Email envoyé à ' + email)
+      window.dispatchEvent(new CustomEvent('system_toast', { detail: { type: 'success', message: '✅ Email envoyé à ' + email } }))
     } else {
-      alert('❌ Erreur. Vérifiez l\'adresse email.')
+      window.dispatchEvent(new CustomEvent('system_toast', { detail: { type: 'error', message: '❌ Erreur. Vérifiez l\'adresse email.' } }))
     }
   }
 
@@ -135,9 +135,10 @@ export default function AdminPanel() {
     try {
       await updateDoc(doc(db, 'users', uid), { isBanned: !currentBanned })
       setAllUsers(prev => prev.map(u => u.id === uid ? { ...u, isBanned: !currentBanned } : u))
+      window.dispatchEvent(new CustomEvent('system_toast', { detail: { type: 'success', message: `Utilisateur ${!currentBanned ? 'banni' : 'débanni'} avec succès.` } }))
     } catch (err) {
       console.error('Error toggling ban:', err)
-      alert('Erreur lors de la modification du ban.')
+      window.dispatchEvent(new CustomEvent('system_toast', { detail: { type: 'error', message: 'Erreur lors de la modification du ban.' } }))
     }
   }
 
@@ -179,10 +180,10 @@ export default function AdminPanel() {
           },
           'kd0xQRVDvlo20ozPW'
         )
-        alert(`Clé générée et envoyée automatiquement à ${reqEmail} !`)
+        window.dispatchEvent(new CustomEvent('system_toast', { detail: { type: 'success', message: `Clé générée et envoyée automatiquement à ${reqEmail} !` } }))
       } catch (emailErr) {
         console.error('Erreur lors de l\'envoi EmailJS:', emailErr)
-        alert(`Clé générée, mais l'envoi automatique a échoué.\nClé : ${key}`)
+        window.dispatchEvent(new CustomEvent('system_toast', { detail: { type: 'error', message: `Clé générée, mais l'envoi automatique a échoué.\nClé : ${key}` } }))
       }
     } catch (err) {
       console.error('Error accepting key request:', err)

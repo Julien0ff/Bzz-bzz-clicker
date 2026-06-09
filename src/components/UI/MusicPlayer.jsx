@@ -22,7 +22,7 @@ export default function MusicPlayer() {
 
   const toggleMute = () => {
     if (playlist.length === 0) {
-      alert("Tu n'as pas encore ajouté de musiques !\nMets tes fichiers .mp3 dans le dossier assets/music/")
+      window.dispatchEvent(new CustomEvent('system_toast', { detail: { type: 'error', message: "Tu n'as pas encore ajouté de musiques !\nMets tes fichiers .mp3 dans le dossier assets/music/" } }))
       return
     }
     setIsMuted(!isMuted)

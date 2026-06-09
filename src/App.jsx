@@ -420,6 +420,39 @@ function AchievementToast() {
   )
 }
 
+// --- System Toast System ---
+function SystemToast() {
+  const [toast, setToast] = useState(null)
+
+  React.useEffect(() => {
+    const handleToast = (e) => {
+      setToast(e.detail)
+      setTimeout(() => setToast(null), 5000) // Hide after 5s
+    }
+    window.addEventListener('system_toast', handleToast)
+    return () => window.removeEventListener('system_toast', handleToast)
+  }, [])
+
+  if (!toast) return null
+
+  const isError = toast.type === 'error'
+
+  return (
+    <div className="achievement-toast" style={{ 
+      borderColor: isError ? 'var(--cannot-afford)' : 'var(--can-afford)', 
+      boxShadow: isError ? '0 0 20px rgba(255, 85, 85, 0.5)' : '0 0 20px rgba(85, 255, 85, 0.5)' 
+    }}>
+      <div className="achievement-icon">{isError ? '❌' : '✅'}</div>
+      <div className="achievement-text">
+        <h4 style={{ color: isError ? 'var(--cannot-afford)' : 'var(--can-afford)' }}>
+          {toast.title || (isError ? 'Erreur' : 'Succès')}
+        </h4>
+        <p style={{ whiteSpace: 'pre-line', fontSize: '9px', lineHeight: '1.4' }}>{toast.message}</p>
+      </div>
+    </div>
+  )
+}
+
 // --- Authenticated Layout ---
 function GameEngine() {
   useGameLoop()
@@ -432,6 +465,7 @@ function AuthenticatedApp() {
     <GameProvider>
       <GameEngine />
       <AchievementToast />
+      <SystemToast />
       <TopBar />
       <div style={{ paddingTop: '48px', height: '100vh', boxSizing: 'border-box', overflowY: 'auto' }}>
         <Routes>
