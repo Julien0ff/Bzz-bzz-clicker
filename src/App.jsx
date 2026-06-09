@@ -273,6 +273,7 @@ function TopBar() {
           totalClicks: gameState.totalClicks || 0,
           playTime: gameState.playTime || 0,
           achievements: gameState.achievements || [],
+          royalJelly: gameState.royalJelly || 0,
           lastSaved: new Date().toISOString(),
         }
         await setDoc(doc(db, 'saves', user.uid), saveData)
@@ -321,6 +322,7 @@ function TopBar() {
                     totalClicks: gameState.totalClicks || 0,
                     playTime: gameState.playTime || 0,
                     achievements: gameState.achievements || [],
+                    royalJelly: gameState.royalJelly || 0,
                     lastSaved: new Date().toISOString(),
                   }
                   await setDoc(doc(db, 'saves', user.uid), saveData)
@@ -363,27 +365,32 @@ function TopBar() {
           )}
         </div>
 
-        <div 
-          className="top-bar-user" 
-          onClick={() => setShowSettings(true)}
-          style={{ cursor: 'pointer' }}
-          title="Paramètres du compte"
-        >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+          <MusicPlayer />
+          <div 
+            className="top-bar-user" 
+            onClick={() => setShowSettings(true)}
+            style={{ cursor: 'pointer' }}
+            title="Paramètres du compte"
+          >
           {user?.photoURL && (
             <img src={user.photoURL} alt="" className="top-bar-avatar" />
           )}
           <span className="top-bar-username" style={{ textDecoration: 'underline dotted' }}>
             {userProfile?.displayName || user?.displayName || ''}
           </span>
-          <MusicPlayer />
           <button
             className="top-bar-btn"
-            onClick={handleLogout}
+            onClick={(e) => {
+              e.stopPropagation()
+              handleLogout()
+            }}
             id="btn-logout"
             style={{ fontSize: '7px', color: 'var(--cannot-afford)', marginLeft: '8px' }}
           >
             Déco
           </button>
+          </div>
         </div>
       </div>
     </>

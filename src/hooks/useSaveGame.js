@@ -59,6 +59,7 @@ export function useSaveGame() {
           totalClicks: state.totalClicks || 0,
           playTime: state.playTime || 0,
           achievements: state.achievements || [],
+          royalJelly: state.royalJelly || 0,
           lastSaved: new Date().toISOString(),
         }
 

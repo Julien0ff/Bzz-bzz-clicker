@@ -182,6 +182,7 @@ body {
 .shop-items {
   flex: 1;
   overflow-y: auto;
+  overflow-x: auto;
   padding: 8px;
   display: flex;
   flex-direction: column;
@@ -316,6 +317,7 @@ body {
   user-select: none;
   position: relative;
   overflow: hidden;
+  min-width: 310px;
 }
 
 .upgrade-item::before {

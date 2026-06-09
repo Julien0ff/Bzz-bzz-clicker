@@ -6,7 +6,7 @@ import ConfirmModal from '../UI/ConfirmModal'
 
 export default function StatisticsPanel() {
   const gameState = useGame()
-  const { totalHoney, honey, totalClicks, playTime, clickPower, honeyPerSecond, upgrades, clickUpgrades, achievements } = gameState
+  const { totalHoney, honey, totalClicks, playTime, clickPower, honeyPerSecond, upgrades, clickUpgrades, achievements, royalJelly } = gameState
 
   const [modalOpen, setModalOpen] = useState(false)
 
@@ -147,6 +147,11 @@ export default function StatisticsPanel() {
         <h3 style={{ color: 'var(--honey-light)', fontSize: '12px', marginBottom: '10px' }}>🌌 ASCENSION (PRESTIGE)</h3>
         
         <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', marginBottom: '15px' }}>
+          <div style={{ background: 'rgba(0,0,0,0.5)', padding: '10px', borderRadius: '4px', border: '2px solid var(--mc-border-dark)' }}>
+            <span style={{ fontSize: '10px', color: 'var(--text-secondary)' }}>Gelée Royale Possédée</span>
+            <div style={{ fontSize: '16px', color: 'var(--text-primary)', marginTop: '5px' }}>{gameState.royalJelly || 0} 👑</div>
+            <span style={{ fontSize: '8px', color: 'var(--can-afford)' }}>+{((gameState.royalJelly || 0) * 10)}% Prod Globale</span>
+          </div>
         </div>
 
         <p style={{ fontSize: '8px', color: 'var(--text-dim)', marginBottom: '15px', lineHeight: '1.4' }}>

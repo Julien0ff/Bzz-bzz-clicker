@@ -22,44 +22,15 @@ function generateKey() {
 }
 
 export default function AdminPanel() {
-  const { userProfile, resetPassword, unbanUserByEmail } = useAuth()
+  const { userProfile, resetPassword } = useAuth()
   const [keys, setKeys] = useState([])
   const [feedbacks, setFeedbacks] = useState([])
   const [keyRequests, setKeyRequests] = useState([])
+  const [allUsers, setAllUsers] = useState([])
   const [loading, setLoading] = useState(true)
   const [generating, setGenerating] = useState(false)
   const [keysToGenerate, setKeysToGenerate] = useState(1)
   const [confirmConfig, setConfirmConfig] = useState(null)
-
-  const [resetEmail, setResetEmail] = useState('')
-  const [resetMsg, setResetMsg] = useState('')
-
-  const [unbanEmail, setUnbanEmail] = useState('')
-  const [unbanMsg, setUnbanMsg] = useState('')
-
-  const handleAdminResetPassword = async () => {
-    if (!resetEmail) return
-    setResetMsg('⏳ Envoi en cours...')
-    const success = await resetPassword(resetEmail)
-    if (success) {
-      setResetMsg('✅ Email envoyé à ' + resetEmail)
-      setResetEmail('')
-    } else {
-      setResetMsg('❌ Erreur. Vérifiez l\'adresse email.')
-    }
-  }
-
-  const handleAdminUnban = async () => {
-    if (!unbanEmail) return
-    setUnbanMsg('⏳ Débannissement en cours...')
-    const success = await unbanUserByEmail(unbanEmail)
-    if (success) {
-      setUnbanMsg('✅ Joueur débanni avec succès !')
-      setUnbanEmail('')
-    } else {
-      setUnbanMsg('❌ Erreur. Joueur introuvable.')
-    }
-  }
 
   // Check admin access
   const isAdmin = userProfile?.isAdmin === true
@@ -102,6 +73,15 @@ export default function AdminPanel() {
           keyReqsData.push({ id: doc.id, ...doc.data() })
         })
         setKeyRequests(keyReqsData)
+
+        // Load All Users
+        const usersRef = collection(db, 'users')
+        const snapshotUsers = await getDocs(usersRef)
+        const usersData = []
+        snapshotUsers.forEach(doc => {
+          usersData.push({ id: doc.id, ...doc.data() })
+        })
+        setAllUsers(usersData)
 
       } catch (err) {
         console.error('Error loading admin data:', err)
@@ -147,6 +127,26 @@ export default function AdminPanel() {
         }
       }
     })
+  }
+
+  const handleAdminResetPassword = async (email) => {
+    if (!email) return
+    const success = await resetPassword(email)
+    if (success) {
+      alert('✅ Email envoyé à ' + email)
+    } else {
+      alert('❌ Erreur. Vérifiez l\'adresse email.')
+    }
+  }
+
+  const handleAdminToggleBan = async (uid, currentBanned) => {
+    try {
+      await updateDoc(doc(db, 'users', uid), { isBanned: !currentBanned })
+      setAllUsers(prev => prev.map(u => u.id === uid ? { ...u, isBanned: !currentBanned } : u))
+    } catch (err) {
+      console.error('Error toggling ban:', err)
+      alert('Erreur lors de la modification du ban.')
+    }
   }
 
   const handleUpdateFeedbackStatus = async (id, newStatus) => {
@@ -260,7 +260,10 @@ export default function AdminPanel() {
         {loading && <div className="loading-text">Chargement des clés...</div>}
 
         <div className="admin-key-list">
-          {keys.map(k => (
+          {keys.map(k => {
+            const usedByUser = k.used && k.usedBy ? allUsers.find(u => u.id === k.usedBy) : null
+
+            return (
             <div className="admin-key-entry" key={k.id}>
               <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '12px' }}>
                 <span
@@ -274,6 +277,18 @@ export default function AdminPanel() {
                 <span className={`admin-key-status ${k.used ? 'used' : 'available'}`}>
                   {k.used ? '✗ Utilisée' : '✓ Dispo'}
                 </span>
+                {usedByUser && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginLeft: '10px' }}>
+                    {usedByUser.photoURL ? (
+                      <img src={usedByUser.photoURL} alt="" style={{ width: '16px', height: '16px', borderRadius: '50%' }} />
+                    ) : (
+                      <div style={{ width: '16px', height: '16px', borderRadius: '50%', background: '#444', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '8px' }}>
+                        {usedByUser.displayName ? usedByUser.displayName.charAt(0).toUpperCase() : '?'}
+                      </div>
+                    )}
+                    <span style={{ fontSize: '9px', color: 'var(--text-secondary)' }}>{usedByUser.displayName}</span>
+                  </div>
+                )}
               </div>
               <button 
                 className="mc-button danger" 
@@ -295,51 +310,50 @@ export default function AdminPanel() {
                 🗑️
               </button>
             </div>
-          ))}
+            )
+          })}
         </div>
       </div>
 
       <div className="mc-panel" style={{ marginTop: '20px' }}>
-        <h3 style={{ color: 'var(--honey-light)', fontSize: '10px', marginBottom: '10px' }}>👥 Gestion des Comptes</h3>
-        <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
-          <label style={{ fontSize: '9px', color: 'var(--text-secondary)' }}>Réinitialiser MDP :</label>
-          <input
-            type="email"
-            value={resetEmail}
-            onChange={e => setResetEmail(e.target.value)}
-            placeholder="Email du joueur"
-            className="license-input"
-            style={{ flex: 1, minWidth: '150px', padding: '8px', textTransform: 'none', letterSpacing: 'normal', fontSize: '9px' }}
-          />
-          <button
-            className="mc-button primary"
-            onClick={handleAdminResetPassword}
-            disabled={!resetEmail}
-          >
-            📧 Envoyer Lien
-          </button>
+        <h3 style={{ color: 'var(--honey-light)', fontSize: '10px', marginBottom: '10px' }}>👥 Gestion des Joueurs</h3>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '300px', overflowY: 'auto' }}>
+          {allUsers.map(u => (
+            <div key={u.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px', background: 'rgba(0,0,0,0.4)', borderRadius: '4px', borderLeft: u.isBanned ? '3px solid #ff4444' : '3px solid #2ecc71' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                {u.photoURL ? (
+                  <img src={u.photoURL} alt="" style={{ width: '24px', height: '24px', borderRadius: '50%' }} />
+                ) : (
+                  <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: '#444', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px' }}>
+                    {u.displayName ? u.displayName.charAt(0).toUpperCase() : '?'}
+                  </div>
+                )}
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  <span style={{ fontSize: '10px', fontWeight: 'bold' }}>{u.displayName || 'Sans nom'} {u.isBanned && <span style={{ color: '#ff4444' }}>(Banni)</span>}</span>
+                  <span style={{ fontSize: '8px', color: 'var(--text-secondary)' }}>{u.email}</span>
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: '5px' }}>
+                <button
+                  className="mc-button"
+                  style={{ padding: '5px 8px', fontSize: '8px' }}
+                  onClick={() => handleAdminResetPassword(u.email)}
+                  title="Envoyer email de réinitialisation"
+                >
+                  📧 MDP
+                </button>
+                <button
+                  className={`mc-button ${u.isBanned ? 'primary' : 'danger'}`}
+                  style={{ padding: '5px 8px', fontSize: '8px' }}
+                  onClick={() => handleAdminToggleBan(u.id, u.isBanned)}
+                  title={u.isBanned ? 'Débannir' : 'Bannir'}
+                >
+                  {u.isBanned ? '👼 Débannir' : '🔨 Bannir'}
+                </button>
+              </div>
+            </div>
+          ))}
         </div>
-        {resetMsg && <div style={{ fontSize: '8px', marginTop: '8px', color: 'var(--text-honey)' }}>{resetMsg}</div>}
-        
-        <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap', marginTop: '16px' }}>
-          <label style={{ fontSize: '9px', color: 'var(--text-secondary)' }}>Débannir Joueur :</label>
-          <input
-            type="email"
-            value={unbanEmail}
-            onChange={e => setUnbanEmail(e.target.value)}
-            placeholder="Email du joueur banni"
-            className="license-input"
-            style={{ flex: 1, minWidth: '150px', padding: '8px', textTransform: 'none', letterSpacing: 'normal', fontSize: '9px' }}
-          />
-          <button
-            className="mc-button primary"
-            onClick={handleAdminUnban}
-            disabled={!unbanEmail}
-          >
-            👼 Débannir
-          </button>
-        </div>
-        {unbanMsg && <div style={{ fontSize: '8px', marginTop: '8px', color: 'var(--text-honey)' }}>{unbanMsg}</div>}
       </div>
 
       <div className="mc-panel" style={{ marginTop: '20px' }}>
