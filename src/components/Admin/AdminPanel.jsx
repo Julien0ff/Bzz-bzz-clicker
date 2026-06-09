@@ -39,47 +39,47 @@ export default function AdminPanel() {
   useEffect(() => {
     if (!isAdmin) return
     const loadData = async () => {
-        // Load Keys
-        try {
-          const keysRef = collection(db, 'licenseKeys')
-          const qKeys = query(keysRef, orderBy('createdAt', 'desc'))
-          const snapshotKeys = await getDocs(qKeys)
-          const keysData = []
-          snapshotKeys.forEach(doc => keysData.push({ id: doc.id, ...doc.data() }))
-          setKeys(keysData)
-        } catch (err) { console.error('Error loading keys:', err) }
+      // Load Keys
+      try {
+        const keysRef = collection(db, 'licenseKeys')
+        const qKeys = query(keysRef, orderBy('createdAt', 'desc'))
+        const snapshotKeys = await getDocs(qKeys)
+        const keysData = []
+        snapshotKeys.forEach(doc => keysData.push({ id: doc.id, ...doc.data() }))
+        setKeys(keysData)
+      } catch (err) { console.error('Error loading keys:', err) }
 
-        // Load Feedbacks
-        try {
-          const feedbacksRef = collection(db, 'feedbacks')
-          const qFeedbacks = query(feedbacksRef, where('status', '==', 'pending'))
-          const snapshotFeedbacks = await getDocs(qFeedbacks)
-          const feedbacksData = []
-          snapshotFeedbacks.forEach(doc => feedbacksData.push({ id: doc.id, ...doc.data() }))
-          setFeedbacks(feedbacksData)
-        } catch (err) { console.error('Error loading feedbacks:', err) }
+      // Load Feedbacks
+      try {
+        const feedbacksRef = collection(db, 'feedbacks')
+        const qFeedbacks = query(feedbacksRef, where('status', '==', 'pending'))
+        const snapshotFeedbacks = await getDocs(qFeedbacks)
+        const feedbacksData = []
+        snapshotFeedbacks.forEach(doc => feedbacksData.push({ id: doc.id, ...doc.data() }))
+        setFeedbacks(feedbacksData)
+      } catch (err) { console.error('Error loading feedbacks:', err) }
 
-        // Load Key Requests
-        try {
-          const keyReqsRef = collection(db, 'keyRequests')
-          const qKeyReqs = query(keyReqsRef, where('status', '==', 'pending'))
-          const snapshotKeyReqs = await getDocs(qKeyReqs)
-          const keyReqsData = []
-          snapshotKeyReqs.forEach(doc => keyReqsData.push({ id: doc.id, ...doc.data() }))
-          setKeyRequests(keyReqsData)
-        } catch (err) { console.error('Error loading key requests:', err) }
+      // Load Key Requests
+      try {
+        const keyReqsRef = collection(db, 'keyRequests')
+        const qKeyReqs = query(keyReqsRef, where('status', '==', 'pending'))
+        const snapshotKeyReqs = await getDocs(qKeyReqs)
+        const keyReqsData = []
+        snapshotKeyReqs.forEach(doc => keyReqsData.push({ id: doc.id, ...doc.data() }))
+        setKeyRequests(keyReqsData)
+      } catch (err) { console.error('Error loading key requests:', err) }
 
-        // Load All Users
-        try {
-          const usersRef = collection(db, 'users')
-          const snapshotUsers = await getDocs(usersRef)
-          const usersData = []
-          snapshotUsers.forEach(doc => usersData.push({ id: doc.id, ...doc.data() }))
-          setAllUsers(usersData)
-        } catch (err) { console.error('Error loading users:', err) }
+      // Load All Users
+      try {
+        const usersRef = collection(db, 'users')
+        const snapshotUsers = await getDocs(usersRef)
+        const usersData = []
+        snapshotUsers.forEach(doc => usersData.push({ id: doc.id, ...doc.data() }))
+        setAllUsers(usersData)
+      } catch (err) { console.error('Error loading users:', err) }
 
-        setLoading(false)
-      }
+      setLoading(false)
+    }
     loadData()
   }, [isAdmin])
 
@@ -166,8 +166,11 @@ export default function AdminPanel() {
       // Mark request as accepted
       await updateDoc(doc(db, 'keyRequests', reqId), { status: 'accepted' })
       setKeyRequests(prev => prev.filter(r => r.id !== reqId))
-      
-      alert(`Clé générée pour ${reqEmail} : ${key}\nVous pouvez lui envoyer par e-mail.`)
+
+      // Open default email client
+      const subject = encodeURIComponent("Ta clé pour Bee Clicker !")
+      const body = encodeURIComponent(`Salut !\n\nVoici ta clé d'accès pour Bzz Bzz Clicker :\n\n${key}\n\nAmuse-toi bien sur le jeu bzzz bzz !`)
+      window.location.href = `mailto:${reqEmail}?subject=${subject}&body=${body}`
     } catch (err) {
       console.error('Error accepting key request:', err)
     }
@@ -255,56 +258,56 @@ export default function AdminPanel() {
             const usedByUser = k.used && k.usedBy ? allUsers.find(u => u.id === k.usedBy) : null
 
             return (
-            <div className="admin-key-entry" key={k.id}>
-              <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <span
-                  className="admin-key-value"
-                  onClick={() => copyKey(k.key)}
-                  style={{ cursor: 'pointer' }}
-                  title="Cliquer pour copier"
-                >
-                  {k.key}
-                </span>
-                <span className={`admin-key-status ${k.used ? 'used' : 'available'}`}>
-                  {k.used ? '✗ Utilisée' : '✓ Dispo'}
-                </span>
-                {usedByUser ? (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginLeft: '10px' }}>
-                    {usedByUser.photoURL ? (
-                      <img src={usedByUser.photoURL} alt="" style={{ width: '16px', height: '16px', borderRadius: '50%' }} />
-                    ) : (
-                      <div style={{ width: '16px', height: '16px', borderRadius: '50%', background: '#444', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '8px' }}>
-                        {usedByUser.displayName ? usedByUser.displayName.charAt(0).toUpperCase() : '?'}
-                      </div>
-                    )}
-                    <span style={{ fontSize: '9px', color: 'var(--text-secondary)' }}>{usedByUser.displayName}</span>
-                  </div>
-                ) : k.assignedTo ? (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginLeft: '10px' }}>
-                    <span style={{ fontSize: '9px', color: '#3498db' }}>Générée pour: {k.assignedTo}</span>
-                  </div>
-                ) : null}
-              </div>
-              <button 
-                className="mc-button danger" 
-                style={{ padding: '6px 10px', fontSize: '7px' }}
-                onClick={() => setConfirmConfig({
-                  title: 'Supprimer la clé',
-                  message: 'Êtes-vous sûr de vouloir supprimer cette clé de licence ?',
-                  action: async () => {
-                    try {
-                      await deleteDoc(doc(db, 'licenseKeys', k.id))
-                      setKeys(prev => prev.filter(keyItem => keyItem.id !== k.id))
-                    } catch (err) {
-                      console.error('Error deleting key:', err)
+              <div className="admin-key-entry" key={k.id}>
+                <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <span
+                    className="admin-key-value"
+                    onClick={() => copyKey(k.key)}
+                    style={{ cursor: 'pointer' }}
+                    title="Cliquer pour copier"
+                  >
+                    {k.key}
+                  </span>
+                  <span className={`admin-key-status ${k.used ? 'used' : 'available'}`}>
+                    {k.used ? '✗ Utilisée' : '✓ Dispo'}
+                  </span>
+                  {usedByUser ? (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginLeft: '10px' }}>
+                      {usedByUser.photoURL ? (
+                        <img src={usedByUser.photoURL} alt="" style={{ width: '16px', height: '16px', borderRadius: '50%' }} />
+                      ) : (
+                        <div style={{ width: '16px', height: '16px', borderRadius: '50%', background: '#444', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '8px' }}>
+                          {usedByUser.displayName ? usedByUser.displayName.charAt(0).toUpperCase() : '?'}
+                        </div>
+                      )}
+                      <span style={{ fontSize: '9px', color: 'var(--text-secondary)' }}>{usedByUser.displayName}</span>
+                    </div>
+                  ) : k.assignedTo ? (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginLeft: '10px' }}>
+                      <span style={{ fontSize: '9px', color: '#3498db' }}>Générée pour: {k.assignedTo}</span>
+                    </div>
+                  ) : null}
+                </div>
+                <button
+                  className="mc-button danger"
+                  style={{ padding: '6px 10px', fontSize: '7px' }}
+                  onClick={() => setConfirmConfig({
+                    title: 'Supprimer la clé',
+                    message: 'Êtes-vous sûr de vouloir supprimer cette clé de licence ?',
+                    action: async () => {
+                      try {
+                        await deleteDoc(doc(db, 'licenseKeys', k.id))
+                        setKeys(prev => prev.filter(keyItem => keyItem.id !== k.id))
+                      } catch (err) {
+                        console.error('Error deleting key:', err)
+                      }
                     }
-                  }
-                })}
-                title="Supprimer la clé"
-              >
-                🗑️
-              </button>
-            </div>
+                  })}
+                  title="Supprimer la clé"
+                >
+                  🗑️
+                </button>
+              </div>
             )
           })}
         </div>
@@ -412,7 +415,7 @@ export default function AdminPanel() {
         )}
       </div>
 
-      <ConfirmModal 
+      <ConfirmModal
         isOpen={!!confirmConfig}
         title={confirmConfig?.title}
         message={confirmConfig?.message}
