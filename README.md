@@ -69,4 +69,4 @@ service cloud.firestore {
 
 ## 👨‍💻 Développé par
 
-Créé avec 💛 (et beaucoup de miel) par **Foxy** et l'assistant IA de Google DeepMind.
+Créé avec 💛 (et beaucoup de miel) par **Foxy**.
