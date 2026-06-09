@@ -71,12 +71,10 @@ function gameReducer(state, action) {
           totalHoney: state.totalHoney + bonus,
         }
       } else if (action.effectType === 'malus') {
-        // Malus exponentiel plus violent basé sur le miel par seconde
-        // Formule augmentée à ^1.8 et on permet de tomber dans le négatif !
-        const penalty = Math.floor(Math.pow(state.honeyPerSecond, 1.8)) + 1000
+        // Le malus vide complètement la banque de miel et met le joueur légèrement en négatif
         return {
           ...state,
-          honey: state.honey - penalty,
+          honey: -500,
           // Ne réduit pas le totalHoney à vie, seulement le miel en banque
         }
       }
