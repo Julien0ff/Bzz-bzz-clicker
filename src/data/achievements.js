@@ -32,6 +32,20 @@ export const ACHIEVEMENTS = [
     icon: '🦾',
     condition: (state) => state.totalClicks >= 50000
   },
+  {
+    id: 'clicks_250000',
+    name: "La Légende du Clic",
+    description: "Effectuez 250 000 clics manuels.",
+    icon: '🏆',
+    condition: (state) => state.totalClicks >= 250000
+  },
+  {
+    id: 'clicks_1000000',
+    name: "Destructeur de Souris",
+    description: "Effectuez 1 000 000 clics manuels.",
+    icon: '💥',
+    condition: (state) => state.totalClicks >= 1000000
+  },
 
   // Total Honey
   {
@@ -68,6 +82,27 @@ export const ACHIEVEMENTS = [
     description: "Atteindre 1 000 000 000 000 000 de miel récolté au total.",
     icon: '🌌',
     condition: (state) => state.totalHoney >= 1000000000000000
+  },
+  {
+    id: 'honey_1qi',
+    name: "Quintillionnaire",
+    description: "Atteindre 1 Quintillion de miel récolté au total.",
+    icon: '🪐',
+    condition: (state) => state.totalHoney >= 1e18
+  },
+  {
+    id: 'honey_1sx',
+    name: "Sextillionnaire",
+    description: "Atteindre 1 Sextillion de miel récolté au total.",
+    icon: '✨',
+    condition: (state) => state.totalHoney >= 1e21
+  },
+  {
+    id: 'honey_1sp',
+    name: "Septillionnaire",
+    description: "Atteindre 1 Septillion de miel récolté au total.",
+    icon: '🌠',
+    condition: (state) => state.totalHoney >= 1e24
   },
 
   // Upgrades
@@ -106,6 +141,20 @@ export const ACHIEVEMENTS = [
     icon: '⚙️',
     condition: (state) => (state.clickUpgrades['autoClicker'] || 0) >= 1
   },
+  {
+    id: 'god_owner',
+    name: "Le Créateur",
+    description: "Posséder le Dieu des Abeilles.",
+    icon: '👑',
+    condition: (state) => (state.upgrades['beeGod'] || 0) >= 1
+  },
+  {
+    id: 'big_bang_owner',
+    name: "L'Origine du Tout",
+    description: "Posséder le Clic du Big Bang.",
+    icon: '💥',
+    condition: (state) => (state.clickUpgrades['bigBangClick'] || 0) >= 1
+  },
   
   // Playtime
   {
@@ -121,5 +170,12 @@ export const ACHIEVEMENTS = [
     description: "Jouer pendant 10 heures au total.",
     icon: '⏳',
     condition: (state) => state.playTime >= 36000
+  },
+  {
+    id: 'time_100h',
+    name: "Abeille Vétérante",
+    description: "Jouer pendant 100 heures au total.",
+    icon: '🧟',
+    condition: (state) => state.playTime >= 360000
   }
 ]

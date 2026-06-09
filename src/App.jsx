@@ -18,6 +18,7 @@ import BanScreen from './components/UI/BanScreen'
 import { useGameLoop } from './hooks/useGameLoop'
 import { useSaveGame } from './hooks/useSaveGame'
 import beeSrc from '/assets/Bee_(Dungeons).png'
+import MusicPlayer from './components/UI/MusicPlayer'
 
 // --- Settings Modal ---
 function SettingsModal({ onClose }) {
@@ -272,7 +273,6 @@ function TopBar() {
           totalClicks: gameState.totalClicks || 0,
           playTime: gameState.playTime || 0,
           achievements: gameState.achievements || [],
-          royalJelly: gameState.royalJelly || 0,
           lastSaved: new Date().toISOString(),
         }
         await setDoc(doc(db, 'saves', user.uid), saveData)
@@ -321,7 +321,6 @@ function TopBar() {
                     totalClicks: gameState.totalClicks || 0,
                     playTime: gameState.playTime || 0,
                     achievements: gameState.achievements || [],
-                    royalJelly: gameState.royalJelly || 0,
                     lastSaved: new Date().toISOString(),
                   }
                   await setDoc(doc(db, 'saves', user.uid), saveData)
@@ -376,6 +375,7 @@ function TopBar() {
           <span className="top-bar-username" style={{ textDecoration: 'underline dotted' }}>
             {userProfile?.displayName || user?.displayName || ''}
           </span>
+          <MusicPlayer />
           <button
             className="top-bar-btn"
             onClick={handleLogout}

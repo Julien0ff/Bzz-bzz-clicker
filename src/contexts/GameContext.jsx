@@ -18,7 +18,6 @@ const initialState = {
   totalClicks: 0,        // lifetime clicks
   playTime: 0,           // total play time in seconds
   achievements: [],      // array of unlocked achievement ids
-  royalJelly: 0,         // prestige currency (+10% multiplier each)
   frenzyTimeLeft: 0,     // seconds left for x7 frenzy
   lastSaved: null,
 }
@@ -27,11 +26,10 @@ const initialState = {
 function gameReducer(state, action) {
   switch (action.type) {
     case 'CLICK': {
-      // Apply achievement multiplier (1% per achievement) and royal jelly (10% per jelly)
+      // Apply achievement multiplier (1% per achievement)
       const achievementMulti = 1 + (state.achievements?.length || 0) * 0.01
-      const jellyMulti = 1 + (state.royalJelly || 0) * 0.10
       const frenzyMulti = state.frenzyTimeLeft > 0 ? 7 : 1
-      const clickAmount = state.clickPower * achievementMulti * jellyMulti * frenzyMulti
+      const clickAmount = state.clickPower * achievementMulti * frenzyMulti
       return {
         ...state,
         honey: state.honey + clickAmount,
@@ -45,9 +43,8 @@ function gameReducer(state, action) {
       const delta = action.delta // seconds since last tick
       // Apply multipliers
       const achievementMulti = 1 + (state.achievements?.length || 0) * 0.01
-      const jellyMulti = 1 + (state.royalJelly || 0) * 0.10
       const frenzyMulti = state.frenzyTimeLeft > 0 ? 7 : 1
-      const earned = state.honeyPerSecond * delta * achievementMulti * jellyMulti * frenzyMulti
+      const earned = state.honeyPerSecond * delta * achievementMulti * frenzyMulti
       
       const newFrenzyTimeLeft = state.frenzyTimeLeft > 0 ? Math.max(0, state.frenzyTimeLeft - delta) : 0
 
@@ -79,22 +76,6 @@ function gameReducer(state, action) {
         }
       }
       return state
-    }
-
-    case 'PRESTIGE': {
-      // Nouveau système : Gain de Gelée basé sur le Miel en Banque sacrifié
-      const jellyEarned = Math.floor(Math.cbrt(state.honey / 100000000))
-      
-      if (jellyEarned <= 0) return state // Cannot prestige
-
-      return {
-        ...initialState, // reset everything
-        totalHoney: state.totalHoney, // keep lifetime honey
-        totalClicks: state.totalClicks, // keep stats
-        playTime: state.playTime,
-        achievements: state.achievements, // keep achievements
-        royalJelly: (state.royalJelly || 0) + jellyEarned, // add new jelly
-      }
     }
 
     case 'UNLOCK_ACHIEVEMENT': {

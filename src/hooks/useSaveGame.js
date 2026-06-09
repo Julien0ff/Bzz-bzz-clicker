@@ -11,10 +11,16 @@ import { db } from '../firebase'
 const SAVE_INTERVAL = 30000 // Save every 30 seconds
 
 export function useSaveGame() {
-  const { honey, totalHoney, clickPower, honeyPerSecond, upgrades, clickUpgrades, totalClicks, playTime, achievements, royalJelly, loadSave, dispatch } = useGame()
+  const gameState = useGame()
   const { user } = useAuth()
   const saveTimerRef = useRef(null)
   const hasLoadedRef = useRef(false)
+  const gameStateRef = useRef(gameState)
+
+  // Keep ref up to date without triggering re-renders of the effect
+  useEffect(() => {
+    gameStateRef.current = gameState
+  }, [gameState])
 
   // Load saved game on mount
   useEffect(() => {
@@ -25,7 +31,7 @@ export function useSaveGame() {
         const saveDoc = await getDoc(doc(db, 'saves', user.uid))
         if (saveDoc.exists()) {
           const savedState = saveDoc.data()
-          loadSave(savedState)
+          gameState.loadSave(savedState)
         }
         hasLoadedRef.current = true
       } catch (err) {
@@ -34,7 +40,7 @@ export function useSaveGame() {
     }
 
     loadGame()
-  }, [user, loadSave])
+  }, [user]) // intentionally not depending on loadSave to avoid re-triggering
 
   // Auto-save periodically
   useEffect(() => {
@@ -42,22 +48,22 @@ export function useSaveGame() {
 
     const saveGame = async () => {
       try {
+        const state = gameStateRef.current
         const saveData = {
-          honey,
-          totalHoney,
-          clickPower,
-          honeyPerSecond,
-          upgrades,
-          clickUpgrades,
-          totalClicks: totalClicks || 0,
-          playTime: playTime || 0,
-          achievements: achievements || [],
-          royalJelly: royalJelly || 0,
+          honey: state.honey,
+          totalHoney: state.totalHoney,
+          clickPower: state.clickPower,
+          honeyPerSecond: state.honeyPerSecond,
+          upgrades: state.upgrades,
+          clickUpgrades: state.clickUpgrades,
+          totalClicks: state.totalClicks || 0,
+          playTime: state.playTime || 0,
+          achievements: state.achievements || [],
           lastSaved: new Date().toISOString(),
         }
 
         await setDoc(doc(db, 'saves', user.uid), saveData)
-        dispatch({ type: 'SET_LAST_SAVED', time: saveData.lastSaved })
+        state.dispatch({ type: 'SET_LAST_SAVED', time: saveData.lastSaved })
       } catch (err) {
         console.error('Error saving game:', err)
       }
@@ -75,5 +81,5 @@ export function useSaveGame() {
       clearInterval(saveTimerRef.current)
       window.removeEventListener('beforeunload', handleUnload)
     }
-  }, [user, honey, totalHoney, clickPower, honeyPerSecond, upgrades, clickUpgrades, totalClicks, playTime, achievements, royalJelly, dispatch])
+  }, [user]) // only depends on user to setup the interval once
 }

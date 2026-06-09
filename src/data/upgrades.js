@@ -153,6 +153,36 @@ export const PRODUCTION_UPGRADES = [
     costMultiplier: 1.15,
     maxCount: 100,
   },
+  {
+    id: 'timeMachine',
+    name: 'Machine Temporelle',
+    icon: '⏳',
+    description: "Récolte le miel du passé et du futur simultanément.",
+    baseCost: 100000000000000000000000, // 100 Sextillion
+    baseProduction: 5000000000000000000, // 5 Quintillion
+    costMultiplier: 1.15,
+    maxCount: 100,
+  },
+  {
+    id: 'multiverseHive',
+    name: 'Ruche du Multivers',
+    icon: '🌀',
+    description: "Connecte les ruches de tous les univers connus et inconnus.",
+    baseCost: 50000000000000000000000000, // 50 Septillion
+    baseProduction: 800000000000000000000, // 800 Quintillion
+    costMultiplier: 1.15,
+    maxCount: 100,
+  },
+  {
+    id: 'beeGod',
+    name: 'Dieu des Abeilles',
+    icon: '👑',
+    description: "L'entité créatrice de tout le miel existant.",
+    baseCost: 10000000000000000000000000000, // 10 Octillion
+    baseProduction: 200000000000000000000000, // 200 Sextillion
+    costMultiplier: 1.15,
+    maxCount: 100,
+  },
 ]
 
 export const CLICK_UPGRADES = [
@@ -265,6 +295,39 @@ export const CLICK_UPGRADES = [
     oneTime: true,
     maxCount: 1,
     costMultiplier: 1,
+  },
+  {
+    id: 'infinityGauntlet',
+    name: "Gantelet de l'Infini",
+    icon: '🧤',
+    description: "D'un simple claquement de doigt, la moitié de l'univers se transforme en miel.",
+    cost: 50000000000000000, // 50 Quadrillion
+    clickBonus: 10000000000000, // 10 Trillion
+    oneTime: false,
+    maxCount: 20,
+    costMultiplier: 2.5,
+  },
+  {
+    id: 'quantumFinger',
+    name: "Doigt Quantique",
+    icon: '⚛️',
+    description: "Un clic existe et n'existe pas en même temps, générant une infinité de miel.",
+    cost: 10000000000000000000, // 10 Quintillion
+    clickBonus: 5000000000000000, // 5 Quadrillion
+    oneTime: false,
+    maxCount: 20,
+    costMultiplier: 2.5,
+  },
+  {
+    id: 'bigBangClick',
+    name: "Clic du Big Bang",
+    icon: '💥',
+    description: "L'origine de l'univers était en fait un clic géant sur une abeille.",
+    cost: 5000000000000000000000, // 5 Sextillion
+    clickBonus: 2000000000000000000, // 2 Quintillion
+    oneTime: false,
+    maxCount: 20,
+    costMultiplier: 2.5,
   },
 ]
 

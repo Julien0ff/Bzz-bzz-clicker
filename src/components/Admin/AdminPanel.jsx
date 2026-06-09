@@ -25,6 +25,7 @@ export default function AdminPanel() {
   const { userProfile, resetPassword, unbanUserByEmail } = useAuth()
   const [keys, setKeys] = useState([])
   const [feedbacks, setFeedbacks] = useState([])
+  const [keyRequests, setKeyRequests] = useState([])
   const [loading, setLoading] = useState(true)
   const [generating, setGenerating] = useState(false)
   const [keysToGenerate, setKeysToGenerate] = useState(1)
@@ -91,6 +92,17 @@ export default function AdminPanel() {
         })
         setFeedbacks(feedbacksData)
 
+        // Load Key Requests
+        const keyReqsRef = collection(db, 'keyRequests')
+        const qKeyReqs = query(keyReqsRef, where('status', '==', 'pending'), orderBy('createdAt', 'desc'))
+        const snapshotKeyReqs = await getDocs(qKeyReqs)
+
+        const keyReqsData = []
+        snapshotKeyReqs.forEach(doc => {
+          keyReqsData.push({ id: doc.id, ...doc.data() })
+        })
+        setKeyRequests(keyReqsData)
+
       } catch (err) {
         console.error('Error loading admin data:', err)
       }
@@ -143,6 +155,39 @@ export default function AdminPanel() {
       setFeedbacks(prev => prev.filter(f => f.id !== id))
     } catch (err) {
       console.error('Error updating feedback:', err)
+    }
+  }
+
+  const handleAcceptKeyRequest = async (reqId, reqEmail) => {
+    try {
+      // Generate a key
+      const key = generateKey()
+      const docRef = await addDoc(collection(db, 'licenseKeys'), {
+        key,
+        used: false,
+        usedBy: null,
+        usedAt: null,
+        assignedTo: reqEmail, // custom field
+        createdAt: new Date().toISOString(),
+      })
+      setKeys(prev => [{ id: docRef.id, key, used: false, createdAt: new Date().toISOString() }, ...prev])
+
+      // Mark request as accepted
+      await updateDoc(doc(db, 'keyRequests', reqId), { status: 'accepted' })
+      setKeyRequests(prev => prev.filter(r => r.id !== reqId))
+      
+      alert(`Clé générée pour ${reqEmail} : ${key}\nVous pouvez lui envoyer par e-mail.`)
+    } catch (err) {
+      console.error('Error accepting key request:', err)
+    }
+  }
+
+  const handleRefuseKeyRequest = async (reqId) => {
+    try {
+      await updateDoc(doc(db, 'keyRequests', reqId), { status: 'refused' })
+      setKeyRequests(prev => prev.filter(r => r.id !== reqId))
+    } catch (err) {
+      console.error('Error refusing key request:', err)
     }
   }
 
@@ -295,6 +340,35 @@ export default function AdminPanel() {
           </button>
         </div>
         {unbanMsg && <div style={{ fontSize: '8px', marginTop: '8px', color: 'var(--text-honey)' }}>{unbanMsg}</div>}
+      </div>
+
+      <div className="mc-panel" style={{ marginTop: '20px' }}>
+        <h3 style={{ color: 'var(--honey-light)', fontSize: '10px', marginBottom: '10px' }}>✉️ Demandes de Clés</h3>
+        {keyRequests.length === 0 ? (
+          <div className="loading-text" style={{ textAlign: 'center', opacity: 0.5 }}>Aucune demande en attente.</div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            {keyRequests.map(req => (
+              <div key={req.id} style={{
+                background: 'rgba(0,0,0,0.3)', padding: '10px', borderRadius: '4px',
+                borderLeft: `3px solid #3498db`, display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+              }}>
+                <div>
+                  <div style={{ fontSize: '9px', fontWeight: 'bold', marginBottom: '4px' }}>{req.email}</div>
+                  <div style={{ fontSize: '7px', opacity: 0.5 }}>{new Date(req.createdAt).toLocaleDateString()}</div>
+                </div>
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  <button className="mc-button" style={{ padding: '5px', fontSize: '8px' }} onClick={() => handleRefuseKeyRequest(req.id)}>
+                    ❌
+                  </button>
+                  <button className="mc-button primary" style={{ padding: '5px', fontSize: '8px' }} onClick={() => handleAcceptKeyRequest(req.id, req.email)}>
+                    🔑 Générer Clé
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="mc-panel" style={{ marginTop: '20px' }}>

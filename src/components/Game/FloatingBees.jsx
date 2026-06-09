@@ -50,8 +50,8 @@ export default function FloatingBees() {
         const moveRandomly = () => {
           const newX = (Math.random() - 0.5) * 80 + 'vw'
           const newY = (Math.random() - 0.5) * 80 + 'vh'
-          const duration = 5 + Math.random() * 10
-          const delay = Math.random() * 2
+          const duration = 2 + Math.random() * 5
+          const delay = Math.random() * 0.5
           
           gsap.to(el, {
             x: newX,
