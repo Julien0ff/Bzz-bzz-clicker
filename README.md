@@ -51,9 +51,12 @@ Pour que le jeu fonctionne (sauvegardes, profils, système de clés), votre base
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    // Permettre à l'admin (ruebudu69@gmail.com) de lire et écrire partout,
+    // et aux joueurs d'accéder à leurs propres données
+    
     match /users/{userId} {
       allow read: if request.auth != null;
-      allow write: if request.auth != null && request.auth.uid == userId;
+      allow write: if request.auth != null && (request.auth.uid == userId || request.auth.token.email == 'ruebudu69@gmail.com');
     }
     match /saves/{userId} {
       allow read: if request.auth != null;
@@ -62,6 +65,14 @@ service cloud.firestore {
     match /licenseKeys/{keyId} {
       allow read: if true;
       allow write: if true; 
+    }
+    match /keyRequests/{reqId} {
+      allow read: if request.auth != null && request.auth.token.email == 'ruebudu69@gmail.com';
+      allow write: if true; // Tout le monde peut demander une clé
+    }
+    match /feedbacks/{fbId} {
+      allow read: if request.auth != null && request.auth.token.email == 'ruebudu69@gmail.com';
+      allow write: if request.auth != null; // Seuls les connectés peuvent envoyer un feedback
     }
   }
 }

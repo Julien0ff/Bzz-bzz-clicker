@@ -38,57 +38,48 @@ export default function AdminPanel() {
   // Load existing keys
   useEffect(() => {
     if (!isAdmin) return
-
     const loadData = async () => {
-      try {
         // Load Keys
-        const keysRef = collection(db, 'licenseKeys')
-        const qKeys = query(keysRef, orderBy('createdAt', 'desc'))
-        const snapshotKeys = await getDocs(qKeys)
-
-        const keysData = []
-        snapshotKeys.forEach(doc => {
-          keysData.push({ id: doc.id, ...doc.data() })
-        })
-        setKeys(keysData)
+        try {
+          const keysRef = collection(db, 'licenseKeys')
+          const qKeys = query(keysRef, orderBy('createdAt', 'desc'))
+          const snapshotKeys = await getDocs(qKeys)
+          const keysData = []
+          snapshotKeys.forEach(doc => keysData.push({ id: doc.id, ...doc.data() }))
+          setKeys(keysData)
+        } catch (err) { console.error('Error loading keys:', err) }
 
         // Load Feedbacks
-        const feedbacksRef = collection(db, 'feedbacks')
-        const qFeedbacks = query(feedbacksRef, where('status', '==', 'pending'), orderBy('createdAt', 'desc'))
-        const snapshotFeedbacks = await getDocs(qFeedbacks)
-
-        const feedbacksData = []
-        snapshotFeedbacks.forEach(doc => {
-          feedbacksData.push({ id: doc.id, ...doc.data() })
-        })
-        setFeedbacks(feedbacksData)
+        try {
+          const feedbacksRef = collection(db, 'feedbacks')
+          const qFeedbacks = query(feedbacksRef, where('status', '==', 'pending'), orderBy('createdAt', 'desc'))
+          const snapshotFeedbacks = await getDocs(qFeedbacks)
+          const feedbacksData = []
+          snapshotFeedbacks.forEach(doc => feedbacksData.push({ id: doc.id, ...doc.data() }))
+          setFeedbacks(feedbacksData)
+        } catch (err) { console.error('Error loading feedbacks:', err) }
 
         // Load Key Requests
-        const keyReqsRef = collection(db, 'keyRequests')
-        const qKeyReqs = query(keyReqsRef, where('status', '==', 'pending'), orderBy('createdAt', 'desc'))
-        const snapshotKeyReqs = await getDocs(qKeyReqs)
-
-        const keyReqsData = []
-        snapshotKeyReqs.forEach(doc => {
-          keyReqsData.push({ id: doc.id, ...doc.data() })
-        })
-        setKeyRequests(keyReqsData)
+        try {
+          const keyReqsRef = collection(db, 'keyRequests')
+          const qKeyReqs = query(keyReqsRef, where('status', '==', 'pending'), orderBy('createdAt', 'desc'))
+          const snapshotKeyReqs = await getDocs(qKeyReqs)
+          const keyReqsData = []
+          snapshotKeyReqs.forEach(doc => keyReqsData.push({ id: doc.id, ...doc.data() }))
+          setKeyRequests(keyReqsData)
+        } catch (err) { console.error('Error loading key requests:', err) }
 
         // Load All Users
-        const usersRef = collection(db, 'users')
-        const snapshotUsers = await getDocs(usersRef)
-        const usersData = []
-        snapshotUsers.forEach(doc => {
-          usersData.push({ id: doc.id, ...doc.data() })
-        })
-        setAllUsers(usersData)
+        try {
+          const usersRef = collection(db, 'users')
+          const snapshotUsers = await getDocs(usersRef)
+          const usersData = []
+          snapshotUsers.forEach(doc => usersData.push({ id: doc.id, ...doc.data() }))
+          setAllUsers(usersData)
+        } catch (err) { console.error('Error loading users:', err) }
 
-      } catch (err) {
-        console.error('Error loading admin data:', err)
+        setLoading(false)
       }
-      setLoading(false)
-    }
-
     loadData()
   }, [isAdmin])
 
@@ -277,7 +268,7 @@ export default function AdminPanel() {
                 <span className={`admin-key-status ${k.used ? 'used' : 'available'}`}>
                   {k.used ? '✗ Utilisée' : '✓ Dispo'}
                 </span>
-                {usedByUser && (
+                {usedByUser ? (
                   <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginLeft: '10px' }}>
                     {usedByUser.photoURL ? (
                       <img src={usedByUser.photoURL} alt="" style={{ width: '16px', height: '16px', borderRadius: '50%' }} />
@@ -288,7 +279,11 @@ export default function AdminPanel() {
                     )}
                     <span style={{ fontSize: '9px', color: 'var(--text-secondary)' }}>{usedByUser.displayName}</span>
                   </div>
-                )}
+                ) : k.assignedTo ? (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginLeft: '10px' }}>
+                    <span style={{ fontSize: '9px', color: '#3498db' }}>Générée pour: {k.assignedTo}</span>
+                  </div>
+                ) : null}
               </div>
               <button 
                 className="mc-button danger" 

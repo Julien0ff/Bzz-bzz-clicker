@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react'
 
-// Placeholder track, tu pourras la remplacer par un fichier local comme '/assets/music.mp3'
-const MUSIC_TRACK = 'https://cdn.pixabay.com/download/audio/2022/03/15/audio_a16140d04b.mp3?filename=minecraft-bgm-113337.mp3'
+// Tu devras mettre un fichier 'music.mp3' dans le dossier 'public/assets/music/'
+const MUSIC_TRACK = '/assets/music/music.mp3'
 
 export default function MusicPlayer() {
   const [isMuted, setIsMuted] = useState(true)

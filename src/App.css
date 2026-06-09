@@ -317,7 +317,9 @@ body {
   user-select: none;
   position: relative;
   overflow: hidden;
-  min-width: 310px;
+  width: 320px;
+  min-width: max-content;
+  flex-shrink: 0;
 }
 
 .upgrade-item::before {
