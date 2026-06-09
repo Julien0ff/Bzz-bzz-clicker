@@ -7,6 +7,7 @@ import { useAuth } from '../../contexts/AuthContext'
 import { db } from '../../firebase'
 import { collection, addDoc, getDocs, query, orderBy, deleteDoc, doc, updateDoc, where } from 'firebase/firestore'
 import ConfirmModal from '../UI/ConfirmModal'
+import emailjs from '@emailjs/browser'
 
 function generateKey() {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789' // Avoid confusing chars (I/1, O/0)
@@ -167,10 +168,22 @@ export default function AdminPanel() {
       await updateDoc(doc(db, 'keyRequests', reqId), { status: 'accepted' })
       setKeyRequests(prev => prev.filter(r => r.id !== reqId))
 
-      // Open default email client
-      const subject = encodeURIComponent("Ta clé pour Bee Clicker !")
-      const body = encodeURIComponent(`Salut !\n\nVoici ta clé d'accès pour Bzz Bzz Clicker :\n\n${key}\n\nAmuse-toi bien sur le jeu bzzz bzz !`)
-      window.location.href = `mailto:${reqEmail}?subject=${subject}&body=${body}`
+      // Send automatic email via EmailJS
+      try {
+        await emailjs.send(
+          'service_1nnx9dm',
+          'template_t1wewfw',
+          {
+            to_email: reqEmail,
+            license_key: key
+          },
+          'kd0xQRVDvlo20ozPW'
+        )
+        alert(`Clé générée et envoyée automatiquement à ${reqEmail} !`)
+      } catch (emailErr) {
+        console.error('Erreur lors de l\'envoi EmailJS:', emailErr)
+        alert(`Clé générée, mais l'envoi automatique a échoué.\nClé : ${key}`)
+      }
     } catch (err) {
       console.error('Error accepting key request:', err)
     }
