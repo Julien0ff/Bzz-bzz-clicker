@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react'
 
-// Détecte automatiquement tous les fichiers .mp3 dans public/assets/music/
-const audioFiles = import.meta.glob('/public/assets/music/*.mp3', { eager: true })
-const playlist = Object.keys(audioFiles).map(path => path.replace('/public', ''))
+// Détecte automatiquement tous les fichiers .mp3 dans le dossier assets/music/
+const audioFiles = import.meta.glob('/assets/music/*.mp3', { eager: true })
+const playlist = Object.keys(audioFiles).map(path => audioFiles[path].default)
 
 export default function MusicPlayer() {
   const [isMuted, setIsMuted] = useState(true)
@@ -22,7 +22,7 @@ export default function MusicPlayer() {
 
   const toggleMute = () => {
     if (playlist.length === 0) {
-      alert("Tu n'as pas encore ajouté de musiques !\nMets tes fichiers .mp3 dans le dossier public/assets/music/")
+      alert("Tu n'as pas encore ajouté de musiques !\nMets tes fichiers .mp3 dans le dossier assets/music/")
       return
     }
     setIsMuted(!isMuted)
