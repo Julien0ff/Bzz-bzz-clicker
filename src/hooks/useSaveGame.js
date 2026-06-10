@@ -60,6 +60,7 @@ export function useSaveGame() {
           playTime: state.playTime || 0,
           achievements: state.achievements || [],
           royalJelly: state.royalJelly || 0,
+          intermissionEnabled: state.intermissionEnabled || false,
           lastSaved: new Date().toISOString(),
         }
 

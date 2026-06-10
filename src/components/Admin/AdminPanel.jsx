@@ -5,7 +5,7 @@
 import React, { useState, useEffect } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { db } from '../../firebase'
-import { collection, addDoc, getDocs, query, orderBy, deleteDoc, doc, updateDoc, where } from 'firebase/firestore'
+import { collection, addDoc, getDocs, query, orderBy, deleteDoc, doc, updateDoc, where, setDoc, serverTimestamp } from 'firebase/firestore'
 import ConfirmModal from '../UI/ConfirmModal'
 import emailjs from '@emailjs/browser'
 
@@ -203,6 +203,26 @@ export default function AdminPanel() {
     navigator.clipboard.writeText(key)
   }
 
+  const handleTriggerGlobalIntermission = async () => {
+    if (!isAdmin) return
+    setConfirmConfig({
+      title: '🔴 Lancer une Intermission Globale',
+      message: 'Attention : Cela va forcer la lecture de la vidéo d\'intermission INSTANTANÉMENT pour tous les joueurs actuellement en ligne. Confirmer ?',
+      action: async () => {
+        try {
+          await setDoc(doc(db, 'serverEvents', 'intermission'), {
+            triggeredAt: serverTimestamp(),
+            triggeredBy: userProfile.email
+          })
+          window.dispatchEvent(new CustomEvent('system_toast', { detail: { type: 'success', message: '🚀 Intermission globale lancée à tous les joueurs !' } }))
+        } catch (err) {
+          console.error('Error triggering intermission:', err)
+          window.dispatchEvent(new CustomEvent('system_toast', { detail: { type: 'error', message: 'Erreur lors du lancement de l\'intermission.' } }))
+        }
+      }
+    })
+  }
+
   if (!isAdmin) {
     return (
       <div className="admin-container">
@@ -324,6 +344,30 @@ export default function AdminPanel() {
               </div>
             )
           })}
+        </div>
+      </div>
+
+      {/* NEW: Global Event Controls Section */}
+      <div className="mc-panel" style={{ marginTop: '20px', borderLeft: '3px solid var(--cannot-afford)' }}>
+        <h3 style={{ color: 'var(--cannot-afford)', fontSize: '10px', marginBottom: '10px' }}>🌍 Évènements Globaux</h3>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '15px' }}>
+          <div style={{ background: 'rgba(0,0,0,0.3)', padding: '15px', borderRadius: '4px', flex: '1 1 300px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <div>
+                <h4 style={{ margin: 0, fontSize: '12px' }}>Intermission</h4>
+                <p style={{ margin: '5px 0 0 0', fontSize: '8px', color: 'var(--text-secondary)' }}>
+                  Déclenche instantanément l'intermission sur l'écran de TOUS les joueurs actuellement connectés au jeu.
+                </p>
+              </div>
+              <button
+                className="mc-button danger"
+                onClick={handleTriggerGlobalIntermission}
+                style={{ fontSize: '10px', padding: '10px 15px', animation: 'pulse 2s infinite', whiteSpace: 'nowrap' }}
+              >
+                🔴 LANCER POUR TOUS
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 

@@ -19,10 +19,12 @@ import { useGameLoop } from './hooks/useGameLoop'
 import { useSaveGame } from './hooks/useSaveGame'
 import beeSrc from '/assets/Bee_(Dungeons).png'
 import MusicPlayer from './components/UI/MusicPlayer'
+import Intermission from './components/UI/Intermission'
 
 // --- Settings Modal ---
 function SettingsModal({ onClose }) {
   const { user, userProfile, validateLicenseKey, updateUserProfilePicture, resetPassword, linkGoogleAccount, logout } = useAuth()
+  const gameState = useGame()
   const [newKey, setNewKey] = useState('')
   const [pfpFile, setPfpFile] = useState(null)
   const [loading, setLoading] = useState(false)
@@ -37,7 +39,7 @@ function SettingsModal({ onClose }) {
     try {
       const { doc, updateDoc } = await import('firebase/firestore')
       const { db } = await import('./firebase')
-      
+
       const validation = await validateLicenseKey(newKey)
       if (validation.valid) {
         // Mark new key as used
@@ -132,11 +134,11 @@ function SettingsModal({ onClose }) {
           const { doc, deleteDoc } = await import('firebase/firestore')
           const { db, auth } = await import('./firebase')
           const { deleteUser } = await import('firebase/auth')
-          
+
           // Delete save and profile
           await deleteDoc(doc(db, 'saves', user.uid)).catch(console.error)
           await deleteDoc(doc(db, 'users', user.uid)).catch(console.error)
-          
+
           // Delete Auth user
           if (auth.currentUser) {
             await deleteUser(auth.currentUser)
@@ -158,14 +160,14 @@ function SettingsModal({ onClose }) {
     }}>
       <div className="mc-panel" style={{ width: '450px', maxWidth: '95vw', maxHeight: '90vh', overflowY: 'auto' }}>
         <h2>⚙️ PARAMÈTRES</h2>
-        
+
         {/* Photo de profil */}
         <div style={{ marginBottom: '15px' }}>
           <label style={{ fontSize: '8px', color: 'var(--text-secondary)', display: 'block', marginBottom: '8px' }}>
             Photo de Profil
           </label>
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-            <input 
+            <input
               type="file"
               id="pfp-upload"
               accept="image/*"
@@ -187,9 +189,9 @@ function SettingsModal({ onClose }) {
             Ajouter/Modifier Clé Licence
           </label>
           <div style={{ display: 'flex', gap: '8px' }}>
-            <input 
-              className="license-input" 
-              value={newKey} 
+            <input
+              className="license-input"
+              value={newKey}
               onChange={e => setNewKey(e.target.value)}
               placeholder="XXXX-XXXX-XXXX"
               style={{ flex: 1, padding: '8px', fontSize: '9px' }}
@@ -199,14 +201,30 @@ function SettingsModal({ onClose }) {
             </button>
           </div>
         </div>
-        
+
+        {/* Intermission Settings */}
+        <div style={{ marginBottom: '15px', padding: '10px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px' }}>
+          <label style={{ fontSize: '10px', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '10px', cursor: 'not-allowed', opacity: 0.7 }}>
+            <input
+              type="checkbox"
+              checked={true}
+              disabled={true}
+              style={{ cursor: 'not-allowed' }}
+            />
+            Activer l'Intermission
+          </label>
+          <div style={{ fontSize: '8px', color: 'var(--text-secondary)', marginTop: '4px', marginLeft: '24px' }}>
+            Joue une vidéo en plein écran environ une fois par heure. (Imposé par l'Admin 😈)
+          </div>
+        </div>
+
         {msg && <div style={{ fontSize: '8px', margin: '10px 0', color: 'var(--text-honey)', textAlign: 'center' }}>{msg}</div>}
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '20px' }}>
           <button className="mc-button" onClick={() => setFeedbackOpen(true)} disabled={loading}>
             💡 Faire un retour (Bug/Idée)
           </button>
-          
+
           <div style={{ display: 'flex', gap: '10px' }}>
             {!isGoogleLinked && (
               <button className="mc-button" onClick={handleLinkGoogle} disabled={loading} style={{ flex: 1 }}>
@@ -232,7 +250,7 @@ function SettingsModal({ onClose }) {
 
       <FeedbackModal isOpen={feedbackOpen} onClose={() => setFeedbackOpen(false)} />
 
-      <ConfirmModal 
+      <ConfirmModal
         isOpen={!!confirmConfig}
         title={confirmConfig?.title}
         message={confirmConfig?.message}
@@ -274,6 +292,7 @@ function TopBar() {
           playTime: gameState.playTime || 0,
           achievements: gameState.achievements || [],
           royalJelly: gameState.royalJelly || 0,
+          intermissionEnabled: gameState.intermissionEnabled || false,
           lastSaved: new Date().toISOString(),
         }
         await setDoc(doc(db, 'saves', user.uid), saveData)
@@ -281,7 +300,7 @@ function TopBar() {
     } catch (err) {
       console.error('Error saving before logout:', err)
     }
-    
+
     // Proceed to logout
     logout()
   }
@@ -323,6 +342,7 @@ function TopBar() {
                     playTime: gameState.playTime || 0,
                     achievements: gameState.achievements || [],
                     royalJelly: gameState.royalJelly || 0,
+                    intermissionEnabled: gameState.intermissionEnabled || false,
                     lastSaved: new Date().toISOString(),
                   }
                   await setDoc(doc(db, 'saves', user.uid), saveData)
@@ -367,26 +387,26 @@ function TopBar() {
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
           <MusicPlayer />
-          <div 
-            className="top-bar-user" 
+          <div
+            className="top-bar-user"
             onClick={() => setShowSettings(true)}
             style={{ cursor: 'pointer' }}
             title="Paramètres du compte"
           >
-          {user?.photoURL && (
-            <img src={user.photoURL} alt="" className="top-bar-avatar" />
-          )}
-          <span className="top-bar-username" style={{ textDecoration: 'underline dotted' }}>
-            {userProfile?.displayName || user?.displayName || ''}
-          </span>
-          <button
-            className="top-bar-btn"
-            onClick={handleLogout}
-            id="btn-logout"
-            style={{ fontSize: '7px', color: 'var(--cannot-afford)', marginLeft: '8px' }}
-          >
-            Déco
-          </button>
+            {user?.photoURL && (
+              <img src={user.photoURL} alt="" className="top-bar-avatar" />
+            )}
+            <span className="top-bar-username" style={{ textDecoration: 'underline dotted' }}>
+              {userProfile?.displayName || user?.displayName || ''}
+            </span>
+            <button
+              className="top-bar-btn"
+              onClick={handleLogout}
+              id="btn-logout"
+              style={{ fontSize: '7px', color: 'var(--cannot-afford)', marginLeft: '8px' }}
+            >
+              Déco
+            </button>
           </div>
         </div>
       </div>
@@ -438,9 +458,9 @@ function SystemToast() {
   const isError = toast.type === 'error'
 
   return (
-    <div className="achievement-toast" style={{ 
-      borderColor: isError ? 'var(--cannot-afford)' : 'var(--can-afford)', 
-      boxShadow: isError ? '0 0 20px rgba(255, 85, 85, 0.5)' : '0 0 20px rgba(85, 255, 85, 0.5)' 
+    <div className="achievement-toast" style={{
+      borderColor: isError ? 'var(--cannot-afford)' : 'var(--can-afford)',
+      boxShadow: isError ? '0 0 20px rgba(255, 85, 85, 0.5)' : '0 0 20px rgba(85, 255, 85, 0.5)'
     }}>
       <div className="achievement-icon">{isError ? '❌' : '✅'}</div>
       <div className="achievement-text">
@@ -466,6 +486,7 @@ function AuthenticatedApp() {
       <GameEngine />
       <AchievementToast />
       <SystemToast />
+      <Intermission />
       <TopBar />
       <div style={{ paddingTop: '48px', height: '100vh', boxSizing: 'border-box', overflowY: 'auto' }}>
         <Routes>

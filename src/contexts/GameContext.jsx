@@ -20,6 +20,7 @@ const initialState = {
   achievements: [],      // array of unlocked achievement ids
   royalJelly: 0,         // prestige currency (+10% multiplier each)
   frenzyTimeLeft: 0,     // seconds left for x7 frenzy
+  intermissionEnabled: false, // random intermission video
   lastSaved: null,
 }
 
@@ -169,6 +170,10 @@ function gameReducer(state, action) {
 
     case 'SET_LAST_SAVED': {
       return { ...state, lastSaved: action.time }
+    }
+
+    case 'TOGGLE_INTERMISSION': {
+      return { ...state, intermissionEnabled: !state.intermissionEnabled }
     }
 
     default:
