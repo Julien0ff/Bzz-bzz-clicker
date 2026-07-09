@@ -352,8 +352,8 @@ export default function AdminPanel() {
         <h3 style={{ color: 'var(--cannot-afford)', fontSize: '10px', marginBottom: '10px' }}>🌍 Évènements Globaux</h3>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '15px' }}>
           <div style={{ background: 'rgba(0,0,0,0.3)', padding: '15px', borderRadius: '4px', flex: '1 1 300px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-              <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+              <div style={{ flex: '1 1 150px' }}>
                 <h4 style={{ margin: 0, fontSize: '12px' }}>Intermission</h4>
                 <p style={{ margin: '5px 0 0 0', fontSize: '8px', color: 'var(--text-secondary)' }}>
                   Déclenche instantanément l'intermission sur l'écran de TOUS les joueurs actuellement connectés au jeu.

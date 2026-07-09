@@ -3,6 +3,7 @@
 // ===================================================
 
 import React, { createContext, useContext, useReducer, useCallback } from 'react'
+import { useAuth } from './AuthContext'
 import { PRODUCTION_UPGRADES, CLICK_UPGRADES, getUpgradeCost, getClickUpgradeCost } from '../data/upgrades'
 
 const GameContext = createContext(null)
@@ -28,11 +29,12 @@ const initialState = {
 function gameReducer(state, action) {
   switch (action.type) {
     case 'CLICK': {
-      // Apply achievement multiplier (1% per achievement) and royal jelly (10% per jelly)
+      // Apply achievement multiplier (1% per achievement), royal jelly (10% per jelly) and friend bonus (1% per friend)
       const achievementMulti = 1 + (state.achievements?.length || 0) * 0.01
       const jellyMulti = 1 + (state.royalJelly || 0) * 0.10
+      const friendMulti = 1 + (action.friendsCount || 0) * 0.01
       const frenzyMulti = state.frenzyTimeLeft > 0 ? 7 : 1
-      const clickAmount = state.clickPower * achievementMulti * jellyMulti * frenzyMulti
+      const clickAmount = state.clickPower * achievementMulti * jellyMulti * friendMulti * frenzyMulti
       return {
         ...state,
         honey: state.honey + clickAmount,
@@ -47,8 +49,9 @@ function gameReducer(state, action) {
       // Apply multipliers
       const achievementMulti = 1 + (state.achievements?.length || 0) * 0.01
       const jellyMulti = 1 + (state.royalJelly || 0) * 0.10
+      const friendMulti = 1 + (action.friendsCount || 0) * 0.01
       const frenzyMulti = state.frenzyTimeLeft > 0 ? 7 : 1
-      const earned = state.honeyPerSecond * delta * achievementMulti * jellyMulti * frenzyMulti
+      const earned = state.honeyPerSecond * delta * achievementMulti * jellyMulti * friendMulti * frenzyMulti
       
       const newFrenzyTimeLeft = state.frenzyTimeLeft > 0 ? Math.max(0, state.frenzyTimeLeft - delta) : 0
 
@@ -184,14 +187,23 @@ function gameReducer(state, action) {
 // --- Provider ---
 export function GameProvider({ children }) {
   const [state, dispatch] = useReducer(gameReducer, initialState)
+  
+  // Try to get auth context, but handle case where it might not be ready
+  let friendsCount = 0
+  try {
+    const { userProfile } = useAuth()
+    friendsCount = Math.min(userProfile?.friends?.length || 0, 10) // Limit to 10 max
+  } catch (err) {
+    // Auth context not available yet
+  }
 
   const click = useCallback(() => {
-    dispatch({ type: 'CLICK' })
-  }, [])
+    dispatch({ type: 'CLICK', friendsCount })
+  }, [friendsCount])
 
   const tick = useCallback((delta) => {
-    dispatch({ type: 'TICK', delta })
-  }, [])
+    dispatch({ type: 'TICK', delta, friendsCount })
+  }, [friendsCount])
 
   const buyProductionUpgrade = useCallback((upgradeId) => {
     dispatch({ type: 'BUY_PRODUCTION_UPGRADE', upgradeId })

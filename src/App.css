@@ -1089,10 +1089,15 @@ body {
   }
   
   .top-bar-username {
-    max-width: 50px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    display: none; /* Masquer complètement le pseudo sur mobile */
+  }
+
+  .deco-text {
+    display: none;
+  }
+  
+  .deco-icon {
+    display: inline !important;
   }
 
   /* --- Containers Mobile --- */
@@ -1108,6 +1113,12 @@ body {
   .friend-entry,
   .admin-key-entry {
     padding: 8px 10px;
+    flex-wrap: wrap; /* Allow wrapping on small screens */
+  }
+
+  .admin-key-value {
+    font-size: 8px; /* Slightly smaller to fit on mobile */
+    word-break: break-all;
   }
 
   /* --- Login Screen --- */

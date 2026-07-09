@@ -13,8 +13,15 @@ export default function UpgradeShop({ isOpen, onToggle }) {
 
   return (
     <div className={`shop-panel ${isOpen ? 'open' : ''}`} id="shop-panel">
-      <div className="shop-header">
+      <div className="shop-header" style={{ position: 'relative' }}>
         <h2>⚒️ BOUTIQUE</h2>
+        <button
+          className="mc-button danger shop-toggle-mobile"
+          onClick={onToggle}
+          style={{ position: 'absolute', top: '10px', right: '10px', padding: '6px 10px' }}
+        >
+          ✕
+        </button>
       </div>
 
       <div className="shop-tabs">

@@ -124,6 +124,21 @@ function SettingsModal({ onClose }) {
     })
   }
 
+  const handleToggleIntermission = async () => {
+    // Mettre à jour le contexte
+    gameState.dispatch({ type: 'TOGGLE_INTERMISSION' })
+    // Mettre à jour Firebase
+    try {
+      const { doc, updateDoc } = await import('firebase/firestore')
+      const { db } = await import('./firebase')
+      await updateDoc(doc(db, 'saves', user.uid), {
+        intermissionEnabled: !gameState.intermissionEnabled
+      })
+    } catch (err) {
+      console.error('Erreur toggle intermission:', err)
+    }
+  }
+
   const handleDeleteAccountClick = () => {
     setConfirmConfig({
       title: 'Supprimer le compte',
@@ -204,17 +219,17 @@ function SettingsModal({ onClose }) {
 
         {/* Intermission Settings */}
         <div style={{ marginBottom: '15px', padding: '10px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px' }}>
-          <label style={{ fontSize: '10px', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '10px', cursor: 'not-allowed', opacity: 0.7 }}>
+          <label style={{ fontSize: '10px', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
             <input
               type="checkbox"
-              checked={true}
-              disabled={true}
-              style={{ cursor: 'not-allowed' }}
+              checked={gameState.intermissionEnabled || false}
+              onChange={handleToggleIntermission}
+              style={{ cursor: 'pointer' }}
             />
             Activer l'Intermission
           </label>
           <div style={{ fontSize: '8px', color: 'var(--text-secondary)', marginTop: '4px', marginLeft: '24px' }}>
-            Joue une vidéo en plein écran environ une fois par heure. (Imposé par l'Admin 😈)
+            Joue une vidéo en plein écran environ une fois par heure.
           </div>
         </div>
 
@@ -400,12 +415,13 @@ function TopBar() {
               {userProfile?.displayName || user?.displayName || ''}
             </span>
             <button
-              className="top-bar-btn"
+              className="top-bar-btn btn-logout"
               onClick={handleLogout}
               id="btn-logout"
               style={{ fontSize: '7px', color: 'var(--cannot-afford)', marginLeft: '8px' }}
             >
-              Déco
+              <span className="deco-text">Déco</span>
+              <span className="deco-icon" style={{ display: 'none', fontSize: '10px' }}>🚪</span>
             </button>
           </div>
         </div>

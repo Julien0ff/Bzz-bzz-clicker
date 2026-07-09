@@ -97,6 +97,10 @@ export default function FriendsList() {
     <div className="friends-container">
       <div className="mc-panel" style={{ marginBottom: '16px' }}>
         <h2>👥 AMIS</h2>
+        <p style={{ textAlign: 'center', fontSize: '8px', color: 'var(--text-secondary)', marginBottom: '16px' }}>
+          Chaque ami vous donne +1% de production de miel (maximum +10%). 
+          Bonus actuel : <strong style={{ color: 'var(--text-honey)' }}>+{Math.min(userProfile?.friends?.length || 0, 10)}%</strong>
+        </p>
 
         {/* Add friend */}
         <div style={{ marginBottom: '16px' }}>

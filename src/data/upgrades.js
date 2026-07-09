@@ -170,7 +170,7 @@ export const PRODUCTION_UPGRADES = [
     description: "Connecte les ruches de tous les univers connus et inconnus.",
     baseCost: 15000000000000000000, // 15 Quintillion
     baseProduction: 300000000000,
-    costMultiplier: 1.25,
+    costMultiplier: 1.20,
     maxCount: 100,
   },
   {
@@ -180,7 +180,7 @@ export const PRODUCTION_UPGRADES = [
     description: "L'entité créatrice de tout le miel existant.",
     baseCost: 250000000000000000000, // 250 Quintillion
     baseProduction: 2000000000000,
-    costMultiplier: 1.25,
+    costMultiplier: 1.20,
     maxCount: 100,
   },
 ]
@@ -195,7 +195,7 @@ export const CLICK_UPGRADES = [
     clickBonus: 1,
     oneTime: false,
     maxCount: 20,
-    costMultiplier: 3.5,
+    costMultiplier: 2.5,
   },
   {
     id: 'waxGloves',
@@ -206,7 +206,7 @@ export const CLICK_UPGRADES = [
     clickBonus: 5,
     oneTime: false,
     maxCount: 20,
-    costMultiplier: 3.5,
+    costMultiplier: 2.5,
   },
   {
     id: 'beePaw',
@@ -217,7 +217,7 @@ export const CLICK_UPGRADES = [
     clickBonus: 25,
     oneTime: false,
     maxCount: 20,
-    costMultiplier: 3.5,
+    costMultiplier: 2.5,
   },
   {
     id: 'expBottle',
@@ -228,7 +228,7 @@ export const CLICK_UPGRADES = [
     clickBonus: 100,
     oneTime: false,
     maxCount: 20,
-    costMultiplier: 3.5,
+    costMultiplier: 2.5,
   },
   {
     id: 'diamondSword',
@@ -239,7 +239,7 @@ export const CLICK_UPGRADES = [
     clickBonus: 500,
     oneTime: false,
     maxCount: 20,
-    costMultiplier: 3.5,
+    costMultiplier: 2.5,
   },
   {
     id: 'honeyAura',
@@ -250,7 +250,7 @@ export const CLICK_UPGRADES = [
     clickBonus: 2500,
     oneTime: false,
     maxCount: 20,
-    costMultiplier: 3.5,
+    costMultiplier: 2.5,
   },
   {
     id: 'hardenedGloves',
@@ -261,7 +261,7 @@ export const CLICK_UPGRADES = [
     clickBonus: 10000,
     oneTime: false,
     maxCount: 20,
-    costMultiplier: 4.0,
+    costMultiplier: 2.8,
   },
   {
     id: 'honeyLaser',
@@ -272,7 +272,7 @@ export const CLICK_UPGRADES = [
     clickBonus: 50000,
     oneTime: false,
     maxCount: 20,
-    costMultiplier: 4.0,
+    costMultiplier: 2.8,
   },
   {
     id: 'divineFinger',
@@ -283,7 +283,7 @@ export const CLICK_UPGRADES = [
     clickBonus: 250000,
     oneTime: false,
     maxCount: 20,
-    costMultiplier: 4.0,
+    costMultiplier: 2.8,
   },
   {
     id: 'autoClicker',
@@ -305,7 +305,7 @@ export const CLICK_UPGRADES = [
     clickBonus: 1000000,
     oneTime: false,
     maxCount: 20,
-    costMultiplier: 4.0,
+    costMultiplier: 2.8,
   },
   {
     id: 'quantumFinger',
@@ -316,7 +316,7 @@ export const CLICK_UPGRADES = [
     clickBonus: 50000000,
     oneTime: false,
     maxCount: 20,
-    costMultiplier: 4.0,
+    costMultiplier: 2.8,
   },
   {
     id: 'bigBangClick',
@@ -327,7 +327,7 @@ export const CLICK_UPGRADES = [
     clickBonus: 2500000000,
     oneTime: false,
     maxCount: 20,
-    costMultiplier: 4.5,
+    costMultiplier: 3.0,
   },
 ]
 
