@@ -5,6 +5,7 @@
 import React, { useState, useEffect } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useGame } from '../../contexts/GameContext'
+import { useLanguage } from '../../contexts/LanguageContext'
 import { db } from '../../firebase'
 import {
   doc,
@@ -22,7 +23,9 @@ import { ACHIEVEMENTS } from '../../data/achievements'
 export default function FriendsList() {
   const { user, userProfile } = useAuth()
   const gameState = useGame()
+  const { t, getLocalized } = useLanguage()
   const [friends, setFriends] = useState([])
+
   const [pendingReceived, setPendingReceived] = useState([])
   const [pendingSent, setPendingSent] = useState([])
   const [searchName, setSearchName] = useState('')

@@ -8,34 +8,35 @@ import HoneyCounter from '../components/Game/HoneyCounter'
 import UpgradeShop from '../components/Game/UpgradeShop'
 import FloatingBees from '../components/Game/FloatingBees'
 import GoldenBee from '../components/Game/GoldenBee'
-import { useGame } from '../contexts/GameContext'
+import { useGame, getTalentLevel } from '../contexts/GameContext'
+import { useLanguage } from '../contexts/LanguageContext'
 import { formatNumber } from '../data/upgrades'
-
-// Combo tier config
-const COMBO_TIERS = [
-  { threshold: 0,   multiplier: 1,   name: '', color: '#555' },
-  { threshold: 10,  multiplier: 1.5, name: 'COMBO x1.5', color: '#5dba3b' },
-  { threshold: 25,  multiplier: 2,   name: 'COMBO x2', color: '#ffaa00' },
-  { threshold: 50,  multiplier: 3,   name: 'COMBO x3', color: '#ff6600' },
-  { threshold: 100, multiplier: 5,   name: '🔥 FIÈVRE x5 🔥', color: '#ff0040' },
-]
 
 export default function GamePage() {
   const [shopOpen, setShopOpen] = useState(false)
   const {
     totalHoney, honeyPerSecond, clickPower,
     frenzyTimeLeft, clickStormTimeLeft, blessingTimeLeft,
-    comboCount, comboTier
+    comboCount, comboTier, prestigeTalents
   } = useGame()
+  const { t, language } = useLanguage()
+
+  const hyperFrenzyLevel = getTalentLevel(prestigeTalents, 'hyperFrenzy')
+  const frenzyMulti = 7 + (hyperFrenzyLevel * 5)
+
+  const COMBO_TIERS = [
+    { threshold: 0,   multiplier: 1,   name: '', color: '#555' },
+    { threshold: 10,  multiplier: 1.5, name: 'COMBO x1.5', color: '#5dba3b' },
+    { threshold: 25,  multiplier: 2,   name: 'COMBO x2', color: '#ffaa00' },
+    { threshold: 50,  multiplier: 3,   name: 'COMBO x3', color: '#ff6600' },
+    { threshold: 100, multiplier: 5,   name: language === 'fr' ? '🔥 FIÈVRE x5 🔥' : '🔥 FEVER x5 🔥', color: '#ff0040' },
+  ]
 
   const tierInfo = COMBO_TIERS[comboTier] || COMBO_TIERS[0]
   const nextTier = COMBO_TIERS[comboTier + 1]
   const comboPercent = nextTier
     ? Math.min(100, ((comboCount - tierInfo.threshold) / (nextTier.threshold - tierInfo.threshold)) * 100)
     : 100
-
-  // Check if any buff is active
-  const hasActiveBuff = frenzyTimeLeft > 0 || clickStormTimeLeft > 0 || blessingTimeLeft > 0
 
   return (
     <div className="app-container">
@@ -54,17 +55,17 @@ export default function GamePage() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'center', minHeight: '40px' }}>
           {frenzyTimeLeft > 0 && (
             <div className="buff-indicator buff-frenzy">
-              ⚡ FRENZY x7 ({Math.ceil(frenzyTimeLeft)}s) ⚡
+              {t('frenzy_active', { multi: frenzyMulti })} ({Math.ceil(frenzyTimeLeft)}s) ⚡
             </div>
           )}
           {clickStormTimeLeft > 0 && (
             <div className="buff-indicator buff-storm">
-              💥 CLIC TEMPÊTE x77 ({Math.ceil(clickStormTimeLeft)}s) 💥
+              {t('click_storm_active')} ({Math.ceil(clickStormTimeLeft)}s) 💥
             </div>
           )}
           {blessingTimeLeft > 0 && (
             <div className="buff-indicator buff-blessing">
-              👑 BÉNÉDICTION x10 ({Math.ceil(blessingTimeLeft)}s) 👑
+              {t('blessing_active')} ({Math.ceil(blessingTimeLeft)}s) 👑
             </div>
           )}
         </div>
@@ -104,11 +105,11 @@ export default function GamePage() {
           </div>
           <div className="stat-item">
             <div className="stat-value">+{formatNumber(honeyPerSecond)}</div>
-            <div className="stat-label">Par sec</div>
+            <div className="stat-label">{t('honey_per_sec')}</div>
           </div>
           <div className="stat-item">
             <div className="stat-value">+{formatNumber(clickPower)}</div>
-            <div className="stat-label">Par clic</div>
+            <div className="stat-label">{t('click_power')}</div>
           </div>
         </div>
 
@@ -119,7 +120,7 @@ export default function GamePage() {
           id="btn-shop-toggle"
           style={{ marginTop: '8px' }}
         >
-          {shopOpen ? '✕ Fermer' : '⚒️ Boutique'}
+          {shopOpen ? '✕ ' + t('settings_close') : t('shop_title')}
         </button>
       </div>
 

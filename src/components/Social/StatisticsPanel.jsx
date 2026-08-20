@@ -1,17 +1,31 @@
 import React, { useState } from 'react'
 import { useGame } from '../../contexts/GameContext'
-import { formatNumber, PRESTIGE_TALENTS } from '../../data/upgrades'
+import { useLanguage } from '../../contexts/LanguageContext'
+import { formatNumber, PRESTIGE_TALENTS, getPrestigeTalentCost } from '../../data/upgrades'
 import { ACHIEVEMENTS } from '../../data/achievements'
 import ConfirmModal from '../UI/ConfirmModal'
 
 export default function StatisticsPanel() {
   const gameState = useGame()
-  const { totalHoney, honey, totalClicks, playTime, clickPower, honeyPerSecond, upgrades, clickUpgrades, synergyUpgrades, achievements, royalJelly, prestigeTalents } = gameState
+  const { t, getLocalized } = useLanguage()
+  const {
+    totalHoney,
+    honey,
+    totalClicks,
+    playTime,
+    clickPower,
+    honeyPerSecond,
+    upgrades,
+    clickUpgrades,
+    synergyUpgrades,
+    achievements,
+    royalJelly,
+    prestigeTalents,
+  } = gameState
 
   const [modalOpen, setModalOpen] = useState(false)
   const [activeSection, setActiveSection] = useState('stats') // 'stats' or 'prestige'
 
-  // Helper to format play time in seconds to HH:MM:SS
   const formatTime = (seconds) => {
     if (!seconds) return '00:00:00'
     const h = Math.floor(seconds / 3600)
@@ -20,23 +34,16 @@ export default function StatisticsPanel() {
     return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`
   }
 
-  // Calculate total buildings owned
   const totalBuildings = Object.values(upgrades).reduce((sum, val) => sum + val, 0)
-  
-  // Calculate total click upgrades owned
   const totalClickUpgrades = Object.values(clickUpgrades).reduce((sum, val) => sum + val, 0)
-
-  // Calculate total synergy upgrades
   const totalSynergies = Object.values(synergyUpgrades || {}).reduce((sum, val) => sum + val, 0)
 
-  // Calculate percentage of honey produced passively vs manually
   const estimatedManual = totalClicks * (clickPower > 1 ? clickPower / 2 : 1)
   const manualPercent = totalHoney > 0 ? Math.min(100, (estimatedManual / totalHoney) * 100).toFixed(1) : 0
   const passivePercent = (100 - manualPercent).toFixed(1)
 
   const unlockedAchCount = achievements?.length || 0
 
-  // Prestige calculation (lifetime totalHoney minus already claimed jelly)
   const jellyBonusLevel = prestigeTalents?.['jellyHarvest'] || 0
   const jellyBonusMulti = 1 + (jellyBonusLevel * 0.10)
   const lifetimePotentialJelly = Math.floor(Math.cbrt((totalHoney || 0) / 100000000) * jellyBonusMulti)
@@ -51,7 +58,7 @@ export default function StatisticsPanel() {
           onClick={() => setActiveSection('stats')}
           style={{ flex: 1 }}
         >
-          📊 Stats
+          📊 {t('nav_stats')}
         </button>
         <button
           className={`shop-tab ${activeSection === 'prestige' ? 'active' : ''}`}
@@ -65,61 +72,61 @@ export default function StatisticsPanel() {
       {activeSection === 'stats' && (
         <>
           <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
-            {/* Colonne 1: Production */}
+            {/* Column 1: Production */}
             <div style={{ flex: 1, minWidth: '280px', background: 'var(--mc-button-bg)', padding: '20px', border: '4px solid var(--mc-border-light)', borderRadius: '2px' }}>
-              <h3 style={{ color: 'var(--text-honey)', marginBottom: '20px', fontSize: '11px' }}>🍯 Production</h3>
+              <h3 style={{ color: 'var(--text-honey)', marginBottom: '20px', fontSize: '11px' }}>🍯 {t('passive_prod')}</h3>
               
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px', fontSize: '8px', lineHeight: '1.4' }}>
-                <span style={{ color: 'var(--text-secondary)' }}>Miel en banque :</span>
+                <span style={{ color: 'var(--text-secondary)' }}>{t('stat_current_honey')} :</span>
                 <span style={{ color: 'var(--honey-light)' }}>{formatNumber(Math.floor(honey))}</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px', fontSize: '8px', lineHeight: '1.4' }}>
-                <span style={{ color: 'var(--text-secondary)' }}>Miel total (à vie) :</span>
+                <span style={{ color: 'var(--text-secondary)' }}>{t('stat_total_honey')} :</span>
                 <span style={{ color: 'var(--honey-light)' }}>{formatNumber(Math.floor(totalHoney))}</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px', fontSize: '8px', lineHeight: '1.4' }}>
-                <span style={{ color: 'var(--text-secondary)' }}>Production par sec :</span>
+                <span style={{ color: 'var(--text-secondary)' }}>{t('stat_hps')} :</span>
                 <span style={{ color: 'var(--honey-light)' }}>{formatNumber(honeyPerSecond)}/s</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px', fontSize: '8px', lineHeight: '1.4' }}>
-                <span style={{ color: 'var(--text-secondary)' }}>Puissance de clic :</span>
+                <span style={{ color: 'var(--text-secondary)' }}>{t('stat_click_power')} :</span>
                 <span style={{ color: 'var(--honey-light)' }}>{formatNumber(clickPower)}/clic</span>
               </div>
             </div>
 
-            {/* Colonne 2: Activité */}
+            {/* Column 2: Activity */}
             <div style={{ flex: 1, minWidth: '280px', background: 'var(--mc-button-bg)', padding: '20px', border: '4px solid var(--mc-border-light)', borderRadius: '2px' }}>
-              <h3 style={{ color: 'var(--text-honey)', marginBottom: '20px', fontSize: '11px' }}>⏱️ Activité</h3>
+              <h3 style={{ color: 'var(--text-honey)', marginBottom: '20px', fontSize: '11px' }}>⏱️ {t('stat_playtime')}</h3>
               
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px', fontSize: '8px', lineHeight: '1.4' }}>
-                <span style={{ color: 'var(--text-secondary)' }}>Temps de jeu total :</span>
+                <span style={{ color: 'var(--text-secondary)' }}>{t('stat_playtime')} :</span>
                 <span style={{ color: 'var(--honey-light)' }}>{formatTime(playTime)}</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px', fontSize: '8px', lineHeight: '1.4' }}>
-                <span style={{ color: 'var(--text-secondary)' }}>Clics effectués :</span>
-                <span style={{ color: 'var(--honey-light)' }}>{totalClicks?.toLocaleString('fr-FR') || 0}</span>
+                <span style={{ color: 'var(--text-secondary)' }}>{t('stat_total_clicks')} :</span>
+                <span style={{ color: 'var(--honey-light)' }}>{totalClicks?.toLocaleString() || 0}</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px', fontSize: '8px', lineHeight: '1.4' }}>
-                <span style={{ color: 'var(--text-secondary)' }}>Abeilles Dorées :</span>
+                <span style={{ color: 'var(--text-secondary)' }}>{t('stat_golden_bees')} :</span>
                 <span style={{ color: 'var(--honey-light)' }}>{gameState.goldenBeesClicked || 0}</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px', fontSize: '8px', lineHeight: '1.4' }}>
-                <span style={{ color: 'var(--text-secondary)' }}>Bâtiments possédés :</span>
+                <span style={{ color: 'var(--text-secondary)' }}>{t('tab_production')} :</span>
                 <span style={{ color: 'var(--honey-light)' }}>{totalBuildings}</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px', fontSize: '8px', lineHeight: '1.4' }}>
-                <span style={{ color: 'var(--text-secondary)' }}>Amél. de clics :</span>
+                <span style={{ color: 'var(--text-secondary)' }}>{t('tab_click')} :</span>
                 <span style={{ color: 'var(--honey-light)' }}>{totalClickUpgrades}</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px', fontSize: '8px', lineHeight: '1.4' }}>
-                <span style={{ color: 'var(--text-secondary)' }}>Synergies actives :</span>
+                <span style={{ color: 'var(--text-secondary)' }}>{t('tab_synergy')} :</span>
                 <span style={{ color: 'var(--honey-light)' }}>{totalSynergies}</span>
               </div>
             </div>
           </div>
 
           <div style={{ background: 'var(--mc-button-bg)', padding: '15px', border: '4px solid var(--mc-border-light)', borderRadius: '2px' }}>
-            <h3 style={{ color: 'var(--text-honey)', marginBottom: '15px', fontSize: '10px' }}>🐝 Miel Manuel vs Passif</h3>
+            <h3 style={{ color: 'var(--text-honey)', marginBottom: '15px', fontSize: '10px' }}>🐝 Manuel vs Passif</h3>
             <div style={{ display: 'flex', height: '24px', background: '#333', border: '2px solid #000', borderRadius: '2px', overflow: 'hidden' }}>
               <div style={{ width: `${manualPercent}%`, background: '#ffaa00', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '8px', overflow: 'hidden', whiteSpace: 'nowrap' }}>
                 {manualPercent > 10 ? 'Manuel' : ''}
@@ -134,20 +141,24 @@ export default function StatisticsPanel() {
             </div>
           </div>
 
-          {/* --- Section Succès --- */}
+          {/* --- Achievements Section --- */}
           <div style={{ background: 'var(--mc-button-bg)', padding: '15px', border: '4px solid var(--mc-border-light)', borderRadius: '2px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-              <h3 style={{ color: 'var(--text-honey)', fontSize: '10px' }}>🏆 SUCCÈS ({unlockedAchCount}/{ACHIEVEMENTS.length})</h3>
-              <span style={{ fontSize: '8px', color: 'var(--can-afford)' }}>+{unlockedAchCount}% Prod Globale</span>
+              <h3 style={{ color: 'var(--text-honey)', fontSize: '10px' }}>
+                {t('achievements_title', { unlocked: unlockedAchCount, total: ACHIEVEMENTS.length })}
+              </h3>
+              <span style={{ fontSize: '8px', color: 'var(--can-afford)' }}>+{unlockedAchCount}% Prod</span>
             </div>
             
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
               {ACHIEVEMENTS.map(ach => {
                 const isUnlocked = achievements?.includes(ach.id)
+                const achName = getLocalized(ach, 'name')
+                const achDesc = getLocalized(ach, 'description')
                 return (
                   <div 
                     key={ach.id} 
-                    title={isUnlocked ? ach.description : 'Succès mystère'}
+                    title={isUnlocked ? achDesc : '???'}
                     style={{ 
                       display: 'flex', 
                       alignItems: 'center', 
@@ -164,12 +175,12 @@ export default function StatisticsPanel() {
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', flex: 1, minWidth: 0 }}>
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                         <span style={{ fontSize: '8px', color: isUnlocked ? 'var(--text-primary)' : 'var(--text-dim)', fontWeight: 'bold' }}>
-                          {isUnlocked ? ach.name : '???'}
+                          {isUnlocked ? achName : '???'}
                         </span>
                         {isUnlocked && <span style={{ fontSize: '8px', color: 'var(--can-afford)' }}>✅</span>}
                       </div>
                       <span className="changelog-desc" style={{ fontSize: '10px', color: isUnlocked ? 'var(--text-secondary)' : 'var(--text-dim)', lineHeight: '1.3' }}>
-                        {isUnlocked ? ach.description : 'Succès secret verrouillé'}
+                        {isUnlocked ? achDesc : 'Secret'}
                       </span>
                     </div>
                   </div>
@@ -184,19 +195,20 @@ export default function StatisticsPanel() {
         <>
           {/* --- Section Prestige Ascension --- */}
           <div style={{ background: 'var(--bg-panel-hover)', padding: '15px', border: '4px solid var(--honey-dark)', borderRadius: '2px', textAlign: 'center' }}>
-            <h3 style={{ color: 'var(--honey-light)', fontSize: '12px', marginBottom: '10px' }}>🌌 ASCENSION (PRESTIGE)</h3>
+            <h3 style={{ color: 'var(--honey-light)', fontSize: '12px', marginBottom: '10px' }}>
+              {t('prestige_title')}
+            </h3>
             
             <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', marginBottom: '15px' }}>
               <div style={{ background: 'rgba(0,0,0,0.5)', padding: '10px', borderRadius: '4px', border: '2px solid var(--mc-border-dark)' }}>
-                <span style={{ fontSize: '10px', color: 'var(--text-secondary)' }}>Gelée Royale</span>
+                <span style={{ fontSize: '10px', color: 'var(--text-secondary)' }}>{t('stat_royal_jelly')}</span>
                 <div style={{ fontSize: '16px', color: 'var(--text-primary)', marginTop: '5px' }}>{royalJelly || 0} 👑</div>
                 <span style={{ fontSize: '8px', color: 'var(--can-afford)' }}>+{((royalJelly || 0) * 10)}% Prod</span>
               </div>
             </div>
 
             <p style={{ fontSize: '8px', color: 'var(--text-dim)', marginBottom: '15px', lineHeight: '1.4' }}>
-              L'Ascension réinitialise votre miel et bâtiments, mais vous conservez vos stats, succès, talents de prestige et Miel Total à vie. <br/>
-              Gain basé sur votre <span style={{ color: 'var(--honey-light)' }}>Miel Total à Vie</span>.
+              {t('prestige_desc')}
             </p>
 
             {(() => {
@@ -212,19 +224,19 @@ export default function StatisticsPanel() {
                       style={{ width: '100%', padding: '15px', fontSize: '10px', animation: 'buttonPulse 2s infinite' }}
                       onClick={() => setModalOpen(true)}
                     >
-                      Faire une Ascension (+{jellyEarned} 👑)
+                      {t('prestige_jelly_ready', { amount: jellyEarned })}
                     </button>
                     <div style={{ fontSize: '7px', color: 'var(--text-dim)', marginTop: '8px' }}>
-                      Prochaine Gelée à : {formatNumber(honeyForNextJelly)} Miel Total
+                      {t('prestige_next_at', { cost: formatNumber(honeyForNextJelly) })}
                     </div>
                   </div>
                 )
               } else {
                 return (
                   <button className="mc-button" disabled style={{ width: '100%', padding: '12px' }}>
-                    Nécessite plus de Miel Total<br/>
+                    {t('prestige_need_more')}<br/>
                     <span style={{ fontSize: '7px', opacity: 0.85, marginTop: '4px', display: 'block' }}>
-                      Prochaine Gelée Royale à : {formatNumber(honeyForNextJelly)} Miel Total (Actuel : {formatNumber(Math.floor(totalHoney))})
+                      {t('prestige_next_at', { cost: formatNumber(honeyForNextJelly) })} (Actuel : {formatNumber(Math.floor(totalHoney))})
                     </span>
                   </button>
                 )
@@ -232,23 +244,26 @@ export default function StatisticsPanel() {
             })()}
           </div>
 
-          {/* --- Boutique de Gelée Royale (Prestige Shop) --- */}
+          {/* --- Celestial Shop (Prestige) --- */}
           <div style={{ background: 'var(--mc-button-bg)', padding: '15px', border: '4px solid var(--mc-border-light)', borderRadius: '2px' }}>
             <h3 style={{ color: 'var(--honey-light)', fontSize: '11px', marginBottom: '6px', textAlign: 'center' }}>
-              👑 BOUTIQUE CÉLESTE
+              {t('celestial_shop_title')}
             </h3>
             <p style={{ fontSize: '7px', color: 'var(--text-dim)', textAlign: 'center', marginBottom: '15px' }}>
-              Dépensez votre Gelée Royale en talents permanents.
+              {t('celestial_shop_desc')}
             </p>
             <div style={{ fontSize: '10px', color: 'var(--text-honey)', textAlign: 'center', marginBottom: '15px' }}>
-              {royalJelly || 0} 👑 disponible(s)
+              {t('celestial_available', { amount: royalJelly || 0 })}
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {PRESTIGE_TALENTS.map(talent => {
                 const currentLevel = prestigeTalents?.[talent.id] || 0
                 const isMaxed = talent.maxCount && currentLevel >= talent.maxCount
-                const canAfford = (royalJelly || 0) >= talent.cost
+                const cost = getPrestigeTalentCost(talent, currentLevel)
+                const canAfford = (royalJelly || 0) >= cost
+                const name = getLocalized(talent, 'name')
+                const desc = getLocalized(talent, 'description')
 
                 return (
                   <div
@@ -268,11 +283,11 @@ export default function StatisticsPanel() {
                       {talent.icon}
                     </div>
                     <div className="upgrade-info">
-                      <div className="upgrade-name">{talent.name}</div>
-                      <div className="upgrade-effect">{talent.description}</div>
+                      <div className="upgrade-name">{name}</div>
+                      <div className="upgrade-effect">{desc}</div>
                       {!isMaxed && (
                         <div className="upgrade-cost" style={{ color: canAfford ? 'var(--honey-light)' : 'var(--cannot-afford)' }}>
-                          {talent.cost} 👑
+                          {cost} 👑
                         </div>
                       )}
                     </div>
@@ -289,8 +304,8 @@ export default function StatisticsPanel() {
 
       <ConfirmModal
         isOpen={modalOpen}
-        title="Confirmation d'Ascension"
-        message={`Êtes-vous sûr de vouloir faire une Ascension ?\n\nVous perdrez votre miel actuel et vos bâtiments, mais vous gagnerez ${jellyEarned} Gelée(s) Royale(s) !\n\nVos talents de prestige sont conservés !`}
+        title={t('confirm_ascension_title')}
+        message={t('confirm_ascension_msg', { amount: jellyEarned })}
         onConfirm={() => {
           gameState.dispatch({ type: 'PRESTIGE' })
           setModalOpen(false)

@@ -4,11 +4,13 @@
 
 import React from 'react'
 import { CHANGELOGS, APP_VERSION } from '../../data/changelog'
+import { useLanguage } from '../../contexts/LanguageContext'
 
 // Configuration des badges & couleurs selon le type
 const TYPE_CONFIGS = {
   new: {
-    label: 'NOUVEAU',
+    label_fr: 'NOUVEAU',
+    label_en: 'NEW',
     color: '#5dba3b',
     bg: 'rgba(93, 186, 59, 0.12)',
     border: 'rgba(93, 186, 59, 0.5)',
@@ -16,7 +18,8 @@ const TYPE_CONFIGS = {
     badgeColor: '#0f2409',
   },
   fix: {
-    label: 'CORRECTIF',
+    label_fr: 'CORRECTIF',
+    label_en: 'FIX',
     color: '#4da6ff',
     bg: 'rgba(77, 166, 255, 0.12)',
     border: 'rgba(77, 166, 255, 0.5)',
@@ -24,7 +27,8 @@ const TYPE_CONFIGS = {
     badgeColor: '#05182e',
   },
   balance: {
-    label: 'ÉQUILIBRAGE',
+    label_fr: 'ÉQUILIBRAGE',
+    label_en: 'BALANCE',
     color: '#ffaa00',
     bg: 'rgba(255, 170, 0, 0.12)',
     border: 'rgba(255, 170, 0, 0.5)',
@@ -32,7 +36,8 @@ const TYPE_CONFIGS = {
     badgeColor: '#2b1b00',
   },
   ui: {
-    label: 'INTERFACE',
+    label_fr: 'INTERFACE',
+    label_en: 'UI',
     color: '#ff77c6',
     bg: 'rgba(255, 119, 198, 0.12)',
     border: 'rgba(255, 119, 198, 0.5)',
@@ -40,7 +45,8 @@ const TYPE_CONFIGS = {
     badgeColor: '#2e071e',
   },
   social: {
-    label: 'SOCIAL',
+    label_fr: 'SOCIAL',
+    label_en: 'SOCIAL',
     color: '#b377ff',
     bg: 'rgba(179, 119, 255, 0.12)',
     border: 'rgba(179, 119, 255, 0.5)',
@@ -52,6 +58,7 @@ const TYPE_CONFIGS = {
 export default function ChangelogModal({ isOpen, onClose }) {
   if (!isOpen) return null
 
+  const { language, getLocalized } = useLanguage()
   const latestChangelog = CHANGELOGS[0]
 
   return (
@@ -91,7 +98,7 @@ export default function ChangelogModal({ isOpen, onClose }) {
             BEE CLICKER v{APP_VERSION}
           </div>
           <h2 style={{ margin: 0, fontSize: '13px', color: 'var(--text-primary)' }}>
-            📜 NOUVEAUTÉS DE LA VERSION
+            📜 {language === 'fr' ? 'NOUVEAUTÉS DE LA VERSION 4.7.0' : 'WHAT\'S NEW IN VERSION 4.7.0'}
           </h2>
           <div style={{ fontSize: '8px', color: 'var(--text-dim)', marginTop: '4px' }}>
             {latestChangelog?.date}
@@ -102,6 +109,9 @@ export default function ChangelogModal({ isOpen, onClose }) {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           {latestChangelog?.highlights?.map((item, index) => {
             const typeConfig = TYPE_CONFIGS[item.type] || TYPE_CONFIGS.new
+            const badgeLabel = language === 'en' ? typeConfig.label_en : typeConfig.label_fr
+            const itemLabel = getLocalized(item, 'label')
+            const itemDesc = getLocalized(item, 'desc')
 
             return (
               <div
@@ -133,14 +143,14 @@ export default function ChangelogModal({ isOpen, onClose }) {
                         textTransform: 'uppercase',
                       }}
                     >
-                      {typeConfig.label}
+                      {badgeLabel}
                     </span>
                     <span style={{ fontSize: '10px', color: 'var(--text-primary)', fontWeight: 'bold' }}>
-                      {item.label}
+                      {itemLabel}
                     </span>
                   </div>
                   <div className="changelog-desc" style={{ fontSize: '11px', color: '#ccc', lineHeight: '1.4' }}>
-                    {item.desc}
+                    {itemDesc}
                   </div>
                 </div>
               </div>
@@ -160,11 +170,16 @@ export default function ChangelogModal({ isOpen, onClose }) {
             }}
           >
             <summary style={{ fontSize: '8px', color: 'var(--text-secondary)' }}>
-              Voir l'historique précédent (v{CHANGELOGS[1].version})
+              {language === 'fr' 
+                ? `Voir l'historique précédent (v${CHANGELOGS[1].version})` 
+                : `View previous history (v${CHANGELOGS[1].version})`}
             </summary>
             <div style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {CHANGELOGS[1].highlights.map((item, index) => {
                 const prevType = TYPE_CONFIGS[item.type] || TYPE_CONFIGS.new
+                const badgeLabel = language === 'en' ? prevType.label_en : prevType.label_fr
+                const itemLabel = getLocalized(item, 'label')
+                const itemDesc = getLocalized(item, 'desc')
                 return (
                   <div
                     key={index}
@@ -188,10 +203,10 @@ export default function ChangelogModal({ isOpen, onClose }) {
                         fontWeight: 'bold',
                       }}
                     >
-                      {prevType.label}
+                      {badgeLabel}
                     </span>
                     <span>
-                      <strong style={{ color: 'var(--text-primary)' }}>{item.label}</strong> : {item.desc}
+                      <strong style={{ color: 'var(--text-primary)' }}>{itemLabel}</strong> : {itemDesc}
                     </span>
                   </div>
                 )
@@ -205,7 +220,7 @@ export default function ChangelogModal({ isOpen, onClose }) {
           onClick={onClose}
           style={{ width: '100%', padding: '14px', fontSize: '10px', marginTop: '6px' }}
         >
-          ✨ C'est parti !
+          {language === 'fr' ? '✨ C\'est parti !' : '✨ Let\'s Play!'}
         </button>
       </div>
     </div>

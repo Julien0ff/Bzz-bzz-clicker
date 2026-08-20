@@ -1,13 +1,20 @@
 // ===================================================
-// Game Context — State Management (v2 — De-nerfed)
+// Game Context — State Management & Balance Calculations
 // ===================================================
 
 import React, { createContext, useContext, useReducer, useCallback } from 'react'
 import { useAuth } from './AuthContext'
 import {
-  PRODUCTION_UPGRADES, CLICK_UPGRADES, SYNERGY_UPGRADES, PRESTIGE_TALENTS,
-  getUpgradeCost, getClickUpgradeCost, getSynergyCost,
-  getMilestoneMultiplier, BUILDING_MILESTONES
+  PRODUCTION_UPGRADES,
+  CLICK_UPGRADES,
+  SYNERGY_UPGRADES,
+  PRESTIGE_TALENTS,
+  getUpgradeCost,
+  getClickUpgradeCost,
+  getSynergyCost,
+  getPrestigeTalentCost,
+  getMilestoneMultiplier,
+  BUILDING_MILESTONES,
 } from '../data/upgrades'
 
 const GameContext = createContext(null)
@@ -29,7 +36,7 @@ const initialState = {
   totalJellyClaimed: 0,  // lifetime royal jelly claimed through ascensions
   prestigeTalents: {},   // { talentId: count }
   prestigeCount: 0,      // total ascensions performed
-  frenzyTimeLeft: 0,     // seconds left for x7 frenzy
+  frenzyTimeLeft: 0,     // seconds left for frenzy
   clickStormTimeLeft: 0, // seconds left for x77 click storm
   blessingTimeLeft: 0,   // seconds left for x10 blessing
   comboCount: 0,         // current combo hits
@@ -41,14 +48,30 @@ const initialState = {
   pendingGifts: [],      // array of { fromUid, fromName, type, amount, sentAt }
 }
 
+// --- Helper: Get prestige talent level ---
+export function getTalentLevel(prestigeTalents, talentId) {
+  return prestigeTalents?.[talentId] || 0
+}
+
 // --- Effective HPS helper ---
 export function getEffectiveHPS(state) {
   if (!state) return 0
+  const talents = state.prestigeTalents || {}
   const achievementMulti = 1 + (state.achievements?.length || 0) * 0.01
-  const jellyMulti = 1 + (state.royalJelly || 0) * 0.10
-  const frenzyMulti = state.frenzyTimeLeft > 0 ? 7 : 1
+  
+  // Royal Jelly multiplier with Royal Synergy bonus
+  const royalSynergyLevel = getTalentLevel(talents, 'royalSynergy')
+  const baseJellyBonus = 0.10 + (royalSynergyLevel * 0.0005)
+  const jellyMulti = 1 + (state.royalJelly || 0) * baseJellyBonus
+
+  // Frenzy multiplier with Hyper Frenzy talent
+  const hyperFrenzyLevel = getTalentLevel(talents, 'hyperFrenzy')
+  const frenzyBase = 7 + (hyperFrenzyLevel * 5)
+  const frenzyMulti = state.frenzyTimeLeft > 0 ? frenzyBase : 1
+
   const blessingMulti = state.blessingTimeLeft > 0 ? 10 : 1
-  const prestigeProdMulti = getPrestigeProductionMultiplier(state.prestigeTalents)
+  const prestigeProdMulti = getPrestigeProductionMultiplier(talents)
+
   return (state.honeyPerSecond || 0) * achievementMulti * jellyMulti * frenzyMulti * blessingMulti * prestigeProdMulti
 }
 
@@ -73,27 +96,28 @@ function getComboTier(comboCount) {
 }
 
 // --- Helper: Calculate total HPS with all multipliers ---
-function calculateHPS(upgrades, synergyUpgrades) {
+function calculateHPS(upgrades, synergyUpgrades, prestigeTalents) {
   let totalHPS = 0
   const buildingHPS = {} // store per-building HPS for synergy calc
+  const milestoneBoost = getTalentLevel(prestigeTalents, 'milestonePower') > 0 ? 2.5 : 2
 
-  PRODUCTION_UPGRADES.forEach(u => {
+  PRODUCTION_UPGRADES.forEach((u) => {
     const count = upgrades[u.id] || 0
     if (count <= 0) return
-    
-    const milestoneMulti = getMilestoneMultiplier(count)
+
+    const milestoneMulti = getMilestoneMultiplier(count, milestoneBoost)
     const baseHPS = u.baseProduction * count * milestoneMulti
     buildingHPS[u.id] = baseHPS
   })
 
   // Apply synergy bonuses
-  SYNERGY_UPGRADES.forEach(syn => {
+  SYNERGY_UPGRADES.forEach((syn) => {
     const synCount = synergyUpgrades?.[syn.id] || 0
     if (synCount <= 0 || !syn.targetBuilding || !syn.bonusPerSource) return
-    
+
     const sourceCount = upgrades[syn.sourceBuilding] || 0
     if (sourceCount <= 0) return
-    
+
     const bonusMultiplier = 1 + (syn.bonusPerSource * sourceCount)
     if (buildingHPS[syn.targetBuilding]) {
       buildingHPS[syn.targetBuilding] *= bonusMultiplier
@@ -101,19 +125,19 @@ function calculateHPS(upgrades, synergyUpgrades) {
   })
 
   // Sum all
-  Object.values(buildingHPS).forEach(hps => {
+  Object.values(buildingHPS).forEach((hps) => {
     totalHPS += hps
   })
 
   return totalHPS
 }
 
-// --- Helper: Calculate click power with HPS synergy ---
-function calculateClickPower(clickUpgrades, honeyPerSecond) {
+// --- Helper: Calculate click power with HPS synergy & Celestial boosts ---
+function calculateClickPower(clickUpgrades, honeyPerSecond, prestigeTalents) {
   let baseClickPower = 1
   let totalHpsPercent = 0
 
-  CLICK_UPGRADES.forEach(u => {
+  CLICK_UPGRADES.forEach((u) => {
     const count = clickUpgrades[u.id] || 0
     baseClickPower += u.clickBonus * count
     totalHpsPercent += (u.hpsPercent || 0) * count
@@ -121,64 +145,121 @@ function calculateClickPower(clickUpgrades, honeyPerSecond) {
 
   // Add percentage of HPS to click power
   const hpsBonus = honeyPerSecond * (totalHpsPercent / 100)
-  return baseClickPower + hpsBonus
-}
+  const rawClickPower = baseClickPower + hpsBonus
 
-// --- Helper: Get prestige talent level ---
-function getTalentLevel(prestigeTalents, talentId) {
-  return prestigeTalents?.[talentId] || 0
+  // Cosmic Touch multiplier (+100% per level)
+  const cosmicTouchLevel = getTalentLevel(prestigeTalents, 'cosmicTouch')
+  const cosmicTouchMulti = 1 + (cosmicTouchLevel * 1.0)
+
+  return rawClickPower * cosmicTouchMulti
 }
 
 // --- Helper: Get prestige multipliers ---
-function getPrestigeClickMultiplier(prestigeTalents) {
+export function getPrestigeClickMultiplier(prestigeTalents) {
   const level = getTalentLevel(prestigeTalents, 'clickForce')
-  return Math.pow(1.5, level)
+  const baseForce = Math.pow(1.5, level)
+  const infiniteAsc = Math.pow(2.0, getTalentLevel(prestigeTalents, 'infiniteAscension'))
+  const godhoodMulti = getTalentLevel(prestigeTalents, 'godhood') > 0 ? 6.0 : 1.0
+  return baseForce * infiniteAsc * godhoodMulti
 }
 
-function getPrestigeProductionMultiplier(prestigeTalents) {
-  const level = getTalentLevel(prestigeTalents, 'productionBoost')
-  return Math.pow(1.25, level)
+export function getPrestigeProductionMultiplier(prestigeTalents) {
+  const boostLevel = getTalentLevel(prestigeTalents, 'productionBoost')
+  const astralLevel = getTalentLevel(prestigeTalents, 'astralSwarm')
+  const infiniteAsc = Math.pow(2.0, getTalentLevel(prestigeTalents, 'infiniteAscension'))
+  const godhoodMulti = getTalentLevel(prestigeTalents, 'godhood') > 0 ? 6.0 : 1.0
+
+  const prodBoost = Math.pow(1.25, boostLevel)
+  const astralBoost = 1 + (astralLevel * 0.50)
+
+  return prodBoost * astralBoost * infiniteAsc * godhoodMulti
 }
 
-function getFrenzyBaseDuration(prestigeTalents) {
+export function getFrenzyBaseDuration(prestigeTalents) {
   const level = getTalentLevel(prestigeTalents, 'frenzyDuration')
   return 25 + (level * 10) // base 25s + 10s per level
 }
 
-function getComboSpeedBonus(prestigeTalents) {
+export function getComboSpeedBonus(prestigeTalents) {
   const level = getTalentLevel(prestigeTalents, 'comboSpeed')
   return 1 + (level * 0.20) // +20% combo build speed per level
 }
 
-function getMilestoneMultiplierOverride(prestigeTalents) {
-  const level = getTalentLevel(prestigeTalents, 'milestonePower')
-  return level > 0 ? 2.5 : 2 // x2.5 instead of x2 if talent is bought
+export function getBossDamageMultiplier(prestigeTalents) {
+  const slayerLevel = getTalentLevel(prestigeTalents, 'bossSlayer')
+  const godhoodBoost = getTalentLevel(prestigeTalents, 'godhood') > 0 ? 1.5 : 1.0
+  return (1 + slayerLevel * 0.25) * godhoodBoost
+}
+
+export function getGlobalDiscount(prestigeTalents, synergyUpgrades, upgrades) {
+  const discountTalentLevel = getTalentLevel(prestigeTalents, 'celestialDiscount')
+  let discount = Math.min(0.40, discountTalentLevel * 0.05)
+
+  // Cyber Overclock synergy
+  const cyberOverclockCount = synergyUpgrades?.['cyberOverclock'] || 0
+  if (cyberOverclockCount > 0) {
+    const cyberHiveCount = upgrades?.['cyberHive'] || 0
+    discount += Math.min(0.30, cyberHiveCount * 0.02)
+  }
+
+  return Math.min(0.70, discount)
 }
 
 // --- Reducer ---
 function gameReducer(state, action) {
   switch (action.type) {
     case 'CLICK': {
-      // Apply all multipliers
+      const talents = state.prestigeTalents || {}
       const achievementMulti = 1 + (state.achievements?.length || 0) * 0.01
-      const jellyMulti = 1 + (state.royalJelly || 0) * 0.10
+      
+      const royalSynergyLevel = getTalentLevel(talents, 'royalSynergy')
+      const baseJellyBonus = 0.10 + (royalSynergyLevel * 0.0005)
+      const jellyMulti = 1 + (state.royalJelly || 0) * baseJellyBonus
+
       const friendMulti = 1 + (action.friendsCount || 0) * 0.01
-      const frenzyMulti = state.frenzyTimeLeft > 0 ? 7 : 1
+
+      const hyperFrenzyLevel = getTalentLevel(talents, 'hyperFrenzy')
+      const frenzyBase = 7 + (hyperFrenzyLevel * 5)
+      const frenzyMulti = state.frenzyTimeLeft > 0 ? frenzyBase : 1
+
       const clickStormMulti = state.clickStormTimeLeft > 0 ? 77 : 1
       const blessingMulti = state.blessingTimeLeft > 0 ? 10 : 1
-      const prestigeClickMulti = getPrestigeClickMultiplier(state.prestigeTalents)
-      
+      const prestigeClickMulti = getPrestigeClickMultiplier(talents)
+
       // Combo multiplier
       const comboMulti = COMBO_TIERS[state.comboTier]?.multiplier || 1
-      
-      // Recalculate clickPower with HPS synergy
-      const effectiveClickPower = calculateClickPower(state.clickUpgrades, state.honeyPerSecond)
 
-      const totalMulti = achievementMulti * jellyMulti * friendMulti * frenzyMulti * clickStormMulti * blessingMulti * prestigeClickMulti * comboMulti
+      // Critical Sting check
+      const critLevel = getTalentLevel(talents, 'critMaster')
+      const critChance = critLevel * 0.05
+      const isCrit = critChance > 0 && Math.random() < critChance
+      const critMulti = isCrit ? 10 : 1
+
+      // Nectar Duplicator check
+      const duplicatorLevel = getTalentLevel(talents, 'nectarDuplicator')
+      const doubleChance = duplicatorLevel * 0.10
+      const isDouble = doubleChance > 0 && Math.random() < doubleChance
+      const doubleMulti = isDouble ? 2 : 1
+
+      // Recalculate clickPower with HPS synergy
+      const effectiveClickPower = calculateClickPower(state.clickUpgrades, state.honeyPerSecond, talents)
+
+      const totalMulti =
+        achievementMulti *
+        jellyMulti *
+        friendMulti *
+        frenzyMulti *
+        clickStormMulti *
+        blessingMulti *
+        prestigeClickMulti *
+        comboMulti *
+        critMulti *
+        doubleMulti
+
       const clickAmount = effectiveClickPower * totalMulti
 
       // Increase combo
-      const comboSpeed = getComboSpeedBonus(state.prestigeTalents)
+      const comboSpeed = getComboSpeedBonus(talents)
       const newComboCount = state.comboCount + (1 * comboSpeed)
       const newComboTier = getComboTier(newComboCount)
 
@@ -190,29 +271,45 @@ function gameReducer(state, action) {
         clickPower: effectiveClickPower,
         comboCount: newComboCount,
         comboTier: newComboTier,
-        comboDecayTimer: 0, // reset decay timer on click
+        comboDecayTimer: 0,
       }
     }
 
     case 'TICK': {
       const delta = action.delta // seconds since last tick
-      // Apply multipliers
+      const talents = state.prestigeTalents || {}
       const achievementMulti = 1 + (state.achievements?.length || 0) * 0.01
-      const jellyMulti = 1 + (state.royalJelly || 0) * 0.10
+
+      const royalSynergyLevel = getTalentLevel(talents, 'royalSynergy')
+      const baseJellyBonus = 0.10 + (royalSynergyLevel * 0.0005)
+      const jellyMulti = 1 + (state.royalJelly || 0) * baseJellyBonus
+
       const friendMulti = 1 + (action.friendsCount || 0) * 0.01
-      const frenzyMulti = state.frenzyTimeLeft > 0 ? 7 : 1
+
+      const hyperFrenzyLevel = getTalentLevel(talents, 'hyperFrenzy')
+      const frenzyBase = 7 + (hyperFrenzyLevel * 5)
+      const frenzyMulti = state.frenzyTimeLeft > 0 ? frenzyBase : 1
+
       const blessingMulti = state.blessingTimeLeft > 0 ? 10 : 1
-      const prestigeProdMulti = getPrestigeProductionMultiplier(state.prestigeTalents)
-      
-      const earned = state.honeyPerSecond * delta * achievementMulti * jellyMulti * friendMulti * frenzyMulti * blessingMulti * prestigeProdMulti
-      
+      const prestigeProdMulti = getPrestigeProductionMultiplier(talents)
+
+      const earned =
+        state.honeyPerSecond *
+        delta *
+        achievementMulti *
+        jellyMulti *
+        friendMulti *
+        frenzyMulti *
+        blessingMulti *
+        prestigeProdMulti
+
       // Decay combo if not clicking
       const newDecayTimer = state.comboDecayTimer + delta
       let newComboCount = state.comboCount
       let newComboTier = state.comboTier
-      
-      if (newDecayTimer > 0.8) { // decay after 0.8s of no clicks
-        newComboCount = Math.max(0, state.comboCount - (delta * 15)) // lose 15 combo per second
+
+      if (newDecayTimer > 0.8) {
+        newComboCount = Math.max(0, state.comboCount - (delta * 15))
         newComboTier = getComboTier(Math.floor(newComboCount))
       }
 
@@ -237,7 +334,7 @@ function gameReducer(state, action) {
     case 'GOLDEN_BEE_EFFECT': {
       const frenzyDuration = getFrenzyBaseDuration(state.prestigeTalents)
       const nextBeeCount = (state.goldenBeesClicked || 0) + 1
-      
+
       if (action.effectType === 'frenzy') {
         return { ...state, frenzyTimeLeft: frenzyDuration, goldenBeesClicked: nextBeeCount }
       } else if (action.effectType === 'click_storm') {
@@ -253,15 +350,6 @@ function gameReducer(state, action) {
         }
       } else if (action.effectType === 'blessing') {
         return { ...state, blessingTimeLeft: 30, goldenBeesClicked: nextBeeCount }
-      } else if (action.effectType === 'lucky_drop') {
-        const effectiveHps = getEffectiveHPS(state)
-        const bonus = action.bonus || Math.max(25000, Math.floor(effectiveHps * 300))
-        return {
-          ...state,
-          honey: state.honey + bonus,
-          totalHoney: state.totalHoney + bonus,
-          goldenBeesClicked: nextBeeCount,
-        }
       }
       return { ...state, goldenBeesClicked: nextBeeCount }
     }
@@ -271,7 +359,7 @@ function gameReducer(state, action) {
       const jellyBonusMulti = 1 + (jellyBonusLevel * 0.10)
       const lifetimePotentialJelly = Math.floor(Math.cbrt(state.totalHoney / 100000000) * jellyBonusMulti)
       const jellyEarned = Math.max(0, lifetimePotentialJelly - (state.totalJellyClaimed || 0))
-      
+
       if (jellyEarned <= 0) return state
 
       // Starting honey from prestige talent
@@ -294,20 +382,30 @@ function gameReducer(state, action) {
     }
 
     case 'BUY_PRESTIGE_TALENT': {
-      const talent = PRESTIGE_TALENTS.find(t => t.id === action.talentId)
+      const talent = PRESTIGE_TALENTS.find((t) => t.id === action.talentId)
       if (!talent) return state
 
       const currentLevel = state.prestigeTalents?.[talent.id] || 0
       if (talent.maxCount && currentLevel >= talent.maxCount) return state
-      if ((state.royalJelly || 0) < talent.cost) return state
+
+      const cost = getPrestigeTalentCost(talent, currentLevel)
+      if ((state.royalJelly || 0) < cost) return state
+
+      const newPrestigeTalents = {
+        ...state.prestigeTalents,
+        [talent.id]: currentLevel + 1,
+      }
+
+      // Recalculate HPS and Click Power with new talent levels
+      const newHPS = calculateHPS(state.upgrades, state.synergyUpgrades, newPrestigeTalents)
+      const newClickPower = calculateClickPower(state.clickUpgrades, newHPS, newPrestigeTalents)
 
       return {
         ...state,
-        royalJelly: state.royalJelly - talent.cost,
-        prestigeTalents: {
-          ...state.prestigeTalents,
-          [talent.id]: currentLevel + 1,
-        },
+        royalJelly: state.royalJelly - cost,
+        prestigeTalents: newPrestigeTalents,
+        honeyPerSecond: newHPS,
+        clickPower: newClickPower,
       }
     }
 
@@ -315,57 +413,52 @@ function gameReducer(state, action) {
       if (state.achievements?.includes(action.id)) return state
       return {
         ...state,
-        achievements: [...(state.achievements || []), action.id]
+        achievements: [...(state.achievements || []), action.id],
       }
     }
 
     case 'BUY_PRODUCTION_UPGRADE': {
-      const upgrade = PRODUCTION_UPGRADES.find(u => u.id === action.upgradeId)
+      const upgrade = PRODUCTION_UPGRADES.find((u) => u.id === action.upgradeId)
       if (!upgrade) return state
 
       const currentCount = state.upgrades[upgrade.id] || 0
       if (upgrade.maxCount && currentCount >= upgrade.maxCount) return state
 
-      // Apply synergy cost reduction if cyberOverclock is owned
-      let costReduction = 1
-      const cyberOverclockCount = state.synergyUpgrades?.['cyberOverclock'] || 0
-      if (cyberOverclockCount > 0) {
-        const cyberHiveCount = state.upgrades['cyberHive'] || 0
-        const reduction = Math.min(0.5, cyberHiveCount * 0.02) // cap at 50%
-        costReduction = 1 - reduction
-      }
-
-      const cost = Math.floor(getUpgradeCost(upgrade, currentCount) * costReduction)
+      const discount = getGlobalDiscount(state.prestigeTalents, state.synergyUpgrades, state.upgrades)
+      const cost = getUpgradeCost(upgrade, currentCount, discount)
       if (state.honey < cost) return state
 
       const newCount = currentCount + 1
       const newUpgrades = { ...state.upgrades, [upgrade.id]: newCount }
 
-      // Recalculate total honey per second with milestones and synergies
-      const newHPS = calculateHPS(newUpgrades, state.synergyUpgrades)
+      // Recalculate total honey per second with milestones, synergies & prestige
+      const newHPS = calculateHPS(newUpgrades, state.synergyUpgrades, state.prestigeTalents)
+      const newClickPower = calculateClickPower(state.clickUpgrades, newHPS, state.prestigeTalents)
 
       return {
         ...state,
         honey: state.honey - cost,
         upgrades: newUpgrades,
         honeyPerSecond: newHPS,
+        clickPower: newClickPower,
       }
     }
 
     case 'BUY_CLICK_UPGRADE': {
-      const upgrade = CLICK_UPGRADES.find(u => u.id === action.upgradeId)
+      const upgrade = CLICK_UPGRADES.find((u) => u.id === action.upgradeId)
       if (!upgrade) return state
 
       const currentCount = state.clickUpgrades[upgrade.id] || 0
       if (upgrade.maxCount && currentCount >= upgrade.maxCount) return state
 
-      const cost = getClickUpgradeCost(upgrade, currentCount)
+      const discount = getGlobalDiscount(state.prestigeTalents, state.synergyUpgrades, state.upgrades)
+      const cost = getClickUpgradeCost(upgrade, currentCount, discount)
       if (state.honey < cost) return state
 
       const newClickUpgrades = { ...state.clickUpgrades, [upgrade.id]: currentCount + 1 }
 
-      // Recalculate click power with HPS synergy
-      const newClickPower = calculateClickPower(newClickUpgrades, state.honeyPerSecond)
+      // Recalculate click power with HPS synergy & Celestial boosts
+      const newClickPower = calculateClickPower(newClickUpgrades, state.honeyPerSecond, state.prestigeTalents)
 
       return {
         ...state,
@@ -376,7 +469,7 @@ function gameReducer(state, action) {
     }
 
     case 'BUY_SYNERGY_UPGRADE': {
-      const synergy = SYNERGY_UPGRADES.find(s => s.id === action.synergyId)
+      const synergy = SYNERGY_UPGRADES.find((s) => s.id === action.synergyId)
       if (!synergy) return state
 
       const currentCount = state.synergyUpgrades?.[synergy.id] || 0
@@ -388,13 +481,15 @@ function gameReducer(state, action) {
       const newSynergyUpgrades = { ...state.synergyUpgrades, [synergy.id]: currentCount + 1 }
 
       // Recalculate HPS with new synergies
-      const newHPS = calculateHPS(state.upgrades, newSynergyUpgrades)
+      const newHPS = calculateHPS(state.upgrades, newSynergyUpgrades, state.prestigeTalents)
+      const newClickPower = calculateClickPower(state.clickUpgrades, newHPS, state.prestigeTalents)
 
       return {
         ...state,
         honey: state.honey - cost,
         synergyUpgrades: newSynergyUpgrades,
         honeyPerSecond: newHPS,
+        clickPower: newClickPower,
       }
     }
 
@@ -404,16 +499,14 @@ function gameReducer(state, action) {
       if (!gift) return state
 
       let newState = { ...state }
-      // Apply gift effect
       if (gift.type === 'nectar') {
-        const bonus = gift.amount || (state.honeyPerSecond * 60) // 1 min of production
+        const bonus = gift.amount || (state.honeyPerSecond * 60)
         newState.honey = state.honey + bonus
         newState.totalHoney = state.totalHoney + bonus
       } else if (gift.type === 'boost') {
-        newState.blessingTimeLeft = (state.blessingTimeLeft || 0) + 30 // +30s blessing
+        newState.blessingTimeLeft = (state.blessingTimeLeft || 0) + 30
       }
 
-      // Remove claimed gift
       newState.pendingGifts = gifts.filter((_, i) => i !== action.giftIndex)
       return newState
     }
@@ -426,9 +519,20 @@ function gameReducer(state, action) {
     }
 
     case 'LOAD_SAVE': {
+      const loaded = action.savedState || {}
+      const talents = loaded.prestigeTalents || {}
+      const upgrades = loaded.upgrades || {}
+      const clickUpgrades = loaded.clickUpgrades || {}
+      const synergyUpgrades = loaded.synergyUpgrades || {}
+
+      const hps = calculateHPS(upgrades, synergyUpgrades, talents)
+      const clickP = calculateClickPower(clickUpgrades, hps, talents)
+
       return {
-        ...state,
-        ...action.savedState,
+        ...initialState,
+        ...loaded,
+        honeyPerSecond: hps,
+        clickPower: clickP,
       }
     }
 
@@ -448,8 +552,7 @@ function gameReducer(state, action) {
 // --- Provider ---
 export function GameProvider({ children }) {
   const [state, dispatch] = useReducer(gameReducer, initialState)
-  
-  // Try to get auth context, but handle case where it might not be ready
+
   let friendsCount = 0
   try {
     const { userProfile } = useAuth()

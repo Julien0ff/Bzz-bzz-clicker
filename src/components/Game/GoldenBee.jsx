@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
-import { useGame, getEffectiveHPS } from '../../contexts/GameContext'
+import { useGame, getEffectiveHPS, getFrenzyBaseDuration, getTalentLevel } from '../../contexts/GameContext'
+import { useLanguage } from '../../contexts/LanguageContext'
 import { formatNumber } from '../../data/upgrades'
 import placeholderImg from '../../../assets/no texture.png'
 
@@ -10,6 +11,7 @@ const BASE_MAX_SPAWN = 180 * 1000 // 180 seconds (3 mins)
 export default function GoldenBee() {
   const gameState = useGame()
   const { dispatch, prestigeTalents } = gameState
+  const { t } = useLanguage()
   const [active, setActive] = useState(false)
   const [position, setPosition] = useState({ top: 0, left: 0 })
   const [beeType, setBeeType] = useState('golden') // golden, diamond, storm, royal
@@ -43,7 +45,6 @@ export default function GoldenBee() {
       setPosition({ top: randomTop, left: -100 })
       setActive(true)
 
-      // Despawn after 6.5 seconds if not clicked
       despawnTimeout = setTimeout(() => {
         setActive(false)
         scheduleNextSpawn()
@@ -66,37 +67,49 @@ export default function GoldenBee() {
     const clickX = e.clientX || rect.left + rect.width / 2
     const clickY = e.clientY || rect.top + rect.height / 2
 
-    // 4 possible buffs — all positive, weighted randomly
     const rand = Math.random()
+    const hyperFrenzyLevel = getTalentLevel(prestigeTalents, 'hyperFrenzy')
+    const frenzyMulti = 7 + (hyperFrenzyLevel * 5)
+    const frenzyDuration = getFrenzyBaseDuration(prestigeTalents)
 
     if (rand < 0.35) {
-      // ⚡ Frenzy x7 pendant 25s (base)
       dispatch({ type: 'GOLDEN_BEE_EFFECT', effectType: 'frenzy' })
-      showToast('⚡ Production x7 !', 'Frenzy activée pendant 25 secondes !', 'success')
+      showToast(
+        t('golden_bee_toast_frenzy', { multi: frenzyMulti }),
+        t('golden_bee_toast_frenzy_desc', { time: frenzyDuration }),
+        'success'
+      )
     } else if (rand < 0.60) {
-      // 🌧️ Pluie de Miel (+15 min de production instantanément)
       const effectiveHps = getEffectiveHPS(gameState)
       const bonus = Math.max(50000, Math.floor(effectiveHps * 900))
       
       dispatch({ type: 'GOLDEN_BEE_EFFECT', effectType: 'honey_rain', bonus })
       
-      // Floating number effect
       setFloatingBonus({ x: clickX, y: clickY, text: `+${formatNumber(bonus)} 🍯` })
       setTimeout(() => setFloatingBonus(null), 1500)
 
-      showToast('🌧️ Pluie de Miel !', `+${formatNumber(bonus)} Miel récolté instantanément (15 min de production) !`, 'success')
+      showToast(
+        t('golden_bee_toast_rain'),
+        t('golden_bee_toast_rain_desc', { bonus: formatNumber(bonus) }),
+        'success'
+      )
     } else if (rand < 0.85) {
-      // 💥 Clic Tempête x77 pendant 12s
       dispatch({ type: 'GOLDEN_BEE_EFFECT', effectType: 'click_storm' })
-      showToast('💥 Clic Tempête x77 !', 'Vos clics sont surpuissants pendant 12 secondes !', 'success')
+      showToast(
+        t('golden_bee_toast_storm'),
+        t('golden_bee_toast_storm_desc'),
+        'success'
+      )
     } else {
-      // 👑 Bénédiction Royale x10 pendant 30s
       dispatch({ type: 'GOLDEN_BEE_EFFECT', effectType: 'blessing' })
-      showToast('👑 Bénédiction Royale !', 'Production x10 pendant 30 secondes !', 'success')
+      showToast(
+        t('golden_bee_toast_blessing'),
+        t('golden_bee_toast_blessing_desc'),
+        'success'
+      )
     }
   }
 
-  // Different glow colors per bee type
   const glowColors = {
     golden: '#ffd700',
     diamond: '#00ffff',
@@ -107,7 +120,6 @@ export default function GoldenBee() {
 
   return (
     <>
-      {/* Floating text on click */}
       {floatingBonus && (
         <div
           className="raid-damage-particle"

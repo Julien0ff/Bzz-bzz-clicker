@@ -3,7 +3,8 @@
 // ===================================================
 
 import React, { useState } from 'react'
-import { useGame } from '../../contexts/GameContext'
+import { useGame, getGlobalDiscount } from '../../contexts/GameContext'
+import { useLanguage } from '../../contexts/LanguageContext'
 import {
   PRODUCTION_UPGRADES,
   CLICK_UPGRADES,
@@ -19,12 +20,15 @@ import UpgradeItem from './UpgradeItem'
 
 export default function UpgradeShop({ isOpen, onToggle }) {
   const [activeTab, setActiveTab] = useState('production')
-  const { upgrades, clickUpgrades, synergyUpgrades, honey, buySynergyUpgrade } = useGame()
+  const { upgrades, clickUpgrades, synergyUpgrades, prestigeTalents, honey, buySynergyUpgrade } = useGame()
+  const { t, getLocalized } = useLanguage()
+
+  const discount = getGlobalDiscount(prestigeTalents, synergyUpgrades, upgrades)
 
   return (
     <div className={`shop-panel ${isOpen ? 'open' : ''}`} id="shop-panel">
       <div className="shop-header" style={{ position: 'relative' }}>
-        <h2>⚒️ BOUTIQUE</h2>
+        <h2>{t('shop_title')}</h2>
         <button
           className="mc-button danger shop-toggle-mobile"
           onClick={onToggle}
@@ -40,21 +44,21 @@ export default function UpgradeShop({ isOpen, onToggle }) {
           onClick={() => setActiveTab('production')}
           id="tab-production"
         >
-          🏠 Ruches
+          {t('tab_production')}
         </button>
         <button
           className={`shop-tab ${activeTab === 'click' ? 'active' : ''}`}
           onClick={() => setActiveTab('click')}
           id="tab-click"
         >
-          🖱️ Clics
+          {t('tab_click')}
         </button>
         <button
           className={`shop-tab ${activeTab === 'synergy' ? 'active' : ''}`}
           onClick={() => setActiveTab('synergy')}
           id="tab-synergy"
         >
-          🧬 Synergies
+          {t('tab_synergy')}
         </button>
       </div>
 
@@ -62,8 +66,9 @@ export default function UpgradeShop({ isOpen, onToggle }) {
         {activeTab === 'production' &&
           PRODUCTION_UPGRADES.map((upgrade) => {
             const count = upgrades[upgrade.id] || 0
-            const cost = getUpgradeCost(upgrade, count)
-            const milestone = getMilestoneMultiplier(count)
+            const cost = getUpgradeCost(upgrade, count, discount)
+            const milestoneBoost = (prestigeTalents?.['milestonePower'] || 0) > 0 ? 2.5 : 2
+            const milestone = getMilestoneMultiplier(count, milestoneBoost)
             const nextMilestone = BUILDING_MILESTONES.find((m) => count < m)
 
             return (
@@ -82,17 +87,11 @@ export default function UpgradeShop({ isOpen, onToggle }) {
         {activeTab === 'click' &&
           CLICK_UPGRADES.map((upgrade) => {
             const count = clickUpgrades[upgrade.id] || 0
-            const cost = getClickUpgradeCost(upgrade, count)
+            const cost = getClickUpgradeCost(upgrade, count, discount)
             return (
               <UpgradeItem
                 key={upgrade.id}
-                upgrade={{
-                  ...upgrade,
-                  description:
-                    upgrade.hpsPercent > 0
-                      ? `${upgrade.description} (+${upgrade.hpsPercent}% HPS/clic)`
-                      : upgrade.description,
-                }}
+                upgrade={upgrade}
                 cost={cost}
                 count={count}
                 type="click"
@@ -115,7 +114,7 @@ export default function UpgradeShop({ isOpen, onToggle }) {
               }}
               className="synergy-banner"
             >
-              🧬 Connectez vos bâtiments entre eux pour démultiplier votre production.
+              {t('synergy_banner')}
             </div>
             {SYNERGY_UPGRADES.map((synergy) => {
               const count = synergyUpgrades?.[synergy.id] || 0
@@ -124,9 +123,13 @@ export default function UpgradeShop({ isOpen, onToggle }) {
               const isMaxed = synergy.maxCount && count >= synergy.maxCount
 
               const sourceCount = upgrades[synergy.sourceBuilding] || 0
-              const targetName = synergy.targetBuilding
-                ? PRODUCTION_UPGRADES.find((u) => u.id === synergy.targetBuilding)?.name
+              const targetUpgrade = synergy.targetBuilding
+                ? PRODUCTION_UPGRADES.find((u) => u.id === synergy.targetBuilding)
                 : null
+              const targetName = targetUpgrade ? getLocalized(targetUpgrade, 'name') : null
+
+              const synName = getLocalized(synergy, 'name')
+              const synDesc = getLocalized(synergy, 'description')
 
               return (
                 <div
@@ -137,11 +140,11 @@ export default function UpgradeShop({ isOpen, onToggle }) {
                 >
                   <div className="upgrade-icon">{synergy.icon}</div>
                   <div className="upgrade-info">
-                    <div className="upgrade-name">{synergy.name}</div>
-                    <div className="upgrade-effect synergy-desc">{synergy.description}</div>
+                    <div className="upgrade-name">{synName}</div>
+                    <div className="upgrade-effect synergy-desc">{synDesc}</div>
                     {sourceCount > 0 && targetName && synergy.bonusPerSource && (
                       <div style={{ fontSize: '10px', color: 'var(--can-afford)', marginTop: '2px', fontWeight: 'bold' }}>
-                        Bonus actif : +{(sourceCount * synergy.bonusPerSource * 100).toFixed(0)}% sur {targetName}
+                        {t('active_bonus')} +{(sourceCount * synergy.bonusPerSource * 100).toFixed(0)}% {t('on_target')} {targetName}
                       </div>
                     )}
                     {!isMaxed && (

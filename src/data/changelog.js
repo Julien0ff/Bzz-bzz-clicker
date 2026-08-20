@@ -2,107 +2,106 @@
 // Changelog Data — What's new in each version
 // ===================================================
 
-export const APP_VERSION = '4.5.0' // Current deployed version
+export const APP_VERSION = '4.7.0' // Version 4.7.0
 
 export const CHANGELOGS = [
   {
-    version: '4.5.0',
-    title: '⚔️ Mise à Jour : Salons de Raid, Animations & Cooldowns',
+    version: '4.7.0',
+    title: '👑 Mise à Jour 4.7.0 : Extension Céleste, Multivers & Bilinguisme FR/EN',
+    title_fr: '👑 Mise à Jour 4.7.0 : Extension Céleste, Multivers & Bilinguisme FR/EN',
+    title_en: '👑 Update 4.7.0: Celestial Expansion, Multiverse & FR/EN Bilingual System',
     date: '20 Août 2026',
     badge: 'ACTUELLE',
     highlights: [
       {
         type: 'new',
+        icon: '🌐',
+        label: 'Système Bilingue Intégral (Français / English)',
+        label_fr: 'Système Bilingue Intégral (Français / English)',
+        label_en: 'Full Bilingual System (French / English)',
+        desc: 'Détection automatique de la langue du navigateur et sélecteur instantané dans les Paramètres.',
+        desc_fr: 'Détection automatique de la langue du navigateur et sélecteur instantané dans les Paramètres.',
+        desc_en: 'Automatic browser language detection and instant switcher in the Settings modal.',
+      },
+      {
+        type: 'new',
+        icon: '👑',
+        label: 'Boutique Céleste Élite & 10 Nouveaux Talents',
+        label_fr: 'Boutique Céleste Élite & 10 Nouveaux Talents',
+        label_en: 'Elite Celestial Shop & 10 New High-Tier Talents',
+        desc: 'Talents de prestige haut niveau pour dépenser des milliers de Gelées Royales (Touche Cosmique, Essaim Astral, Pique Critique, Pourfendeur de Titans, Divinité...).',
+        desc_fr: 'Talents de prestige haut niveau pour dépenser des milliers de Gelées Royales (Touche Cosmique, Essaim Astral, Pique Critique, Pourfendeur de Titans, Divinité...).',
+        desc_en: 'High-tier prestige talents designed for spending thousands of Royal Jelly (Cosmic Touch, Astral Swarm, Critical Sting, Titan Slayer, Hive Godhood...).',
+      },
+      {
+        type: 'new',
+        icon: '⚔️',
+        label: '7 Boss de Raid Coopératifs Épiques',
+        label_fr: '7 Boss de Raid Coopératifs Épiques',
+        label_en: '7 Epic Co-op Raid Bosses',
+        desc: 'Combattez le Dragon de Nébuleuse, la Guêpe Solaire, l\'Annihilateur Temporel et le Dieu-Ruche Déchu !',
+        desc_fr: 'Combattez le Dragon de Nébuleuse, la Guêpe Solaire, l\'Annihilateur Temporel et le Dieu-Ruche Déchu !',
+        desc_en: 'Battle the Cosmic Nebula Dragon, Primordial Solar Wasp, Chrono Destroyer, and Fallen Hive God!',
+      },
+      {
+        type: 'new',
+        icon: '🪐',
+        label: '7 Nouvelles Ruches & 6 Nouveaux Clics',
+        label_fr: '7 Nouvelles Ruches & 6 Nouveaux Clics',
+        label_en: '7 New Hives & 6 New Click Tiers',
+        desc: 'Ruche Cosmique, Singularité, Chronos, Nexus Primordial, Panthéon Céleste et Clics de Création Pure.',
+        desc_fr: 'Ruche Cosmique, Singularité, Chronos, Nexus Primordial, Panthéon Céleste et Clics de Création Pure.',
+        desc_en: 'Cosmic Hive, Singularity Hive, Chronos Hive, Primordial Nexus, Celestial Pantheon, and Pure Creation Touch.',
+      },
+      {
+        type: 'balance',
+        icon: '🧬',
+        label: '6 Nouvelles Synergies Stratégiques',
+        label_fr: '6 Nouvelles Synergies Stratégiques',
+        label_en: '6 New Strategic Synergies',
+        desc: 'Pollen Divin, Singularité Cosmique, Boucle d\'Infinité et Bénédiction du Panthéon.',
+        desc_fr: 'Pollen Divin, Singularité Cosmique, Boucle d\'Infinité et Bénédiction du Panthéon.',
+        desc_en: 'Godly Pollen, Cosmic Singularity, Infinity Loop, and Pantheon Blessing.',
+      },
+    ],
+  },
+  {
+    version: '4.5.0',
+    title: '⚔️ Mise à Jour : Salons de Raid, Animations & Cooldowns',
+    title_fr: '⚔️ Mise à Jour : Salons de Raid, Animations & Cooldowns',
+    title_en: '⚔️ Update: Raid Lobbies, Animations & Cooldowns',
+    date: '20 Août 2026',
+    highlights: [
+      {
+        type: 'new',
         icon: '🏰',
         label: 'Salons de Raid & Invitations d\'Amis',
-        desc: 'Créez votre propre salon de combat ou rejoignez celui d\'un ami. Invitez vos compagnons en un clic avec notification instantanée !'
+        label_fr: 'Salons de Raid & Invitations d\'Amis',
+        label_en: 'Raid Lobbies & Friend Invites',
+        desc: 'Créez votre propre salon de combat ou rejoignez celui d\'un ami avec notifications.',
+        desc_fr: 'Créez votre propre salon de combat ou rejoignez celui d\'un ami avec notifications.',
+        desc_en: 'Create your own battle lobby or join a friend with real-time notifications.',
       },
       {
         type: 'new',
         icon: '👥',
         label: 'Règle des 2 Joueurs Minimum & Statut Prêt',
-        desc: 'Le combat ne peut démarrer qu\'avec au moins 2 apiculteurs prêts dans le salon pour une vraie expérience coopérative.'
+        label_fr: 'Règle des 2 Joueurs Minimum & Statut Prêt',
+        label_en: '2 Players Minimum Rule & Ready Check',
+        desc: 'Le combat ne peut démarrer qu\'avec au moins 2 apiculteurs prêts dans le salon.',
+        desc_fr: 'Le combat ne peut démarrer qu\'avec au moins 2 apiculteurs prêts dans le salon.',
+        desc_en: 'Combats require at least 2 ready beekeepers in the lobby.',
       },
       {
         type: 'ui',
         icon: '💥',
         label: 'Animations & Effets Tranchants (Slash FX)',
-        desc: 'Animation de flottement du boss, secousses violentes à l\'impact, flashs lumineux et effets de coups d\'épée lors de chaque attaque.'
+        label_fr: 'Animations & Effets Tranchants (Slash FX)',
+        label_en: 'Animations & Slash Combat VFX',
+        desc: 'Animation de flottement du boss, secousses et flashs lumineux lors de chaque attaque.',
+        desc_fr: 'Animation de flottement du boss, secousses et flashs lumineux lors de chaque attaque.',
+        desc_en: 'Boss floating animation, shake on impact, and flash effects on attacks.',
       },
-      {
-        type: 'balance',
-        icon: '⏳',
-        label: 'Paliers de Boss & Chronomètres de Réapparition',
-        desc: '3 Boss colossaux avec temps de récupération échelonnés (30 min, 1h, 1h30) et compte à rebours en direct entre chaque victoire.'
-      },
-      {
-        type: 'fix',
-        icon: '🛡️',
-        label: 'Optimisations & Zéro Erreur Console',
-        desc: 'Correction du chargement de la police Minecraft et sécurisation de tous les écouteurs réseau Firestore.'
-      }
-    ]
+    ],
   },
-  {
-    version: '4.0.0',
-    title: '⚔️ Mise à Jour : Raid Coop & Corrections Globales',
-    date: '20 Août 2026',
-    highlights: [
-      {
-        type: 'new',
-        icon: '⚔️',
-        label: 'Raid Coopératif de Ruche',
-        desc: 'Affrontez le Frelon Colossal et remportez du miel et de la Gelée Royale !'
-      },
-      {
-        type: 'fix',
-        icon: '🌐',
-        label: 'Correction Erreur 404',
-        desc: 'Rafraîchir la page sur /friends, /stats ou /leaderboard fonctionne sans erreur 404.'
-      },
-      {
-        type: 'balance',
-        icon: '🐝',
-        label: 'Abeille Dorée Rééquilibrée',
-        desc: 'Apparition ajustée entre 1 et 3 minutes pour préserver la rareté des buffs.'
-      },
-      {
-        type: 'ui',
-        icon: '🎨',
-        label: 'Refonte de la Boutique',
-        desc: 'Paliers intégrés directement dans les cartes et typographie fluide.'
-      }
-    ]
-  },
-  {
-    version: '3.5.0',
-    title: '✨ Mise à Jour : Grand Dé-nerf & Boutique Céleste',
-    date: '20 Août 2026',
-    highlights: [
-      {
-        type: 'balance',
-        icon: '⚡',
-        label: 'Jauge de Combo & Fièvre',
-        desc: 'Enchaînez les clics pour débloquer des multiplicateurs jusqu\'à x5.'
-      },
-      {
-        type: 'balance',
-        icon: '📈',
-        label: 'Synergie Clics / HPS',
-        desc: 'Les améliorations de clic profitent directement de votre production/sec.'
-      },
-      {
-        type: 'new',
-        icon: '👑',
-        label: 'Boutique Céleste (Prestige)',
-        desc: 'Dépensez votre Gelée Royale dans un arbre de talents permanents.'
-      },
-      {
-        type: 'new',
-        icon: '🔬',
-        label: 'Recherches & Synergies',
-        desc: '8 synergies inter-bâtiments pour doper vos ruches et abeilles.'
-      }
-    ]
-  }
 ]

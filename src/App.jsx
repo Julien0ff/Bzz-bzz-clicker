@@ -6,6 +6,7 @@ import React, { useState, useEffect } from 'react'
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 import { GameProvider, useGame } from './contexts/GameContext'
+import { useLanguage } from './contexts/LanguageContext'
 import LoginScreen from './components/Auth/LoginScreen'
 import GamePage from './pages/GamePage'
 import Leaderboard from './components/Social/Leaderboard'
@@ -30,6 +31,7 @@ import { APP_VERSION } from './data/changelog'
 function SettingsModal({ onClose, onOpenChangelog }) {
   const { user, userProfile, validateLicenseKey, updateUserProfilePicture, resetPassword, linkGoogleAccount, logout } = useAuth()
   const gameState = useGame()
+  const { language, setLanguage, t } = useLanguage()
   const [newKey, setNewKey] = useState('')
   const [pfpFile, setPfpFile] = useState(null)
   const [loading, setLoading] = useState(false)
@@ -47,23 +49,21 @@ function SettingsModal({ onClose, onOpenChangelog }) {
 
       const validation = await validateLicenseKey(newKey)
       if (validation.valid) {
-        // Mark new key as used
         await updateDoc(doc(db, 'licenseKeys', validation.keyDocId), {
           used: true,
           usedBy: user.uid,
           usedAt: new Date().toISOString()
         })
-        // Update user profile
         await updateDoc(doc(db, 'users', user.uid), {
           licenseKey: validation.keyDocId
         })
-        setMsg('Clé mise à jour !')
+        setMsg(t('settings_key_success'))
         setNewKey('')
       } else {
-        setMsg(validation.error || 'Clé invalide.')
+        setMsg(validation.error || t('settings_key_invalid'))
       }
     } catch (err) {
-      setMsg('Erreur : ' + err.message)
+      setMsg(t('error') + ' : ' + err.message)
     }
     setLoading(false)
   }
@@ -74,10 +74,10 @@ function SettingsModal({ onClose, onOpenChangelog }) {
     setMsg('')
     const success = await updateUserProfilePicture(pfpFile)
     if (success) {
-      setMsg('Photo de profil mise à jour !')
+      setMsg(t('settings_pfp_success'))
       setPfpFile(null)
     } else {
-      setMsg('Erreur lors de la mise à jour de la photo.')
+      setMsg(t('settings_pfp_error'))
     }
     setLoading(false)
   }
@@ -89,9 +89,9 @@ function SettingsModal({ onClose, onOpenChangelog }) {
     setMsg('')
     const success = await resetPassword(userProfile?.email || user?.email)
     if (success) {
-      setMsg('Email de réinitialisation envoyé !')
+      setMsg(t('settings_pwd_sent'))
     } else {
-      setMsg('Erreur lors de l\'envoi de l\'email.')
+      setMsg(t('settings_pwd_error'))
     }
     setLoading(false)
   }
@@ -101,28 +101,30 @@ function SettingsModal({ onClose, onOpenChangelog }) {
     setMsg('')
     const success = await linkGoogleAccount()
     if (success) {
-      setMsg('Compte Google lié avec succès !')
+      setMsg(t('settings_google_linked'))
     } else {
-      setMsg('Erreur lors de la liaison du compte.')
+      setMsg(t('settings_google_error'))
     }
     setLoading(false)
   }
 
   const handleResetProgressClick = () => {
     setConfirmConfig({
-      title: 'Réinitialiser la progression',
-      message: 'Voulez-vous vraiment remettre à zéro toute votre progression ?\n\nCette action est irréversible.',
+      title: t('settings_reset_progress'),
+      message: language === 'fr' 
+        ? 'Voulez-vous vraiment remettre à zéro toute votre progression ?\n\nCette action est irréversible.' 
+        : 'Do you really want to reset all your progress?\n\nThis action is irreversible.',
       action: async () => {
         setLoading(true)
         try {
           const { doc, deleteDoc } = await import('firebase/firestore')
           const { db } = await import('./firebase')
-          window.isResetting = true // Empêche la sauvegarde automatique lors du rechargement
+          window.isResetting = true
           await deleteDoc(doc(db, 'saves', user.uid))
           window.location.reload()
         } catch (err) {
           window.isResetting = false
-          setMsg('Erreur : ' + err.message)
+          setMsg(t('error') + ' : ' + err.message)
           setLoading(false)
         }
       }
@@ -130,9 +132,7 @@ function SettingsModal({ onClose, onOpenChangelog }) {
   }
 
   const handleToggleIntermission = async () => {
-    // Mettre à jour le contexte
     gameState.dispatch({ type: 'TOGGLE_INTERMISSION' })
-    // Mettre à jour Firebase
     try {
       const { doc, updateDoc } = await import('firebase/firestore')
       const { db } = await import('./firebase')
@@ -146,8 +146,10 @@ function SettingsModal({ onClose, onOpenChangelog }) {
 
   const handleDeleteAccountClick = () => {
     setConfirmConfig({
-      title: 'Supprimer le compte',
-      message: 'ATTENTION : Voulez-vous vraiment supprimer définitivement votre compte et votre sauvegarde ?\n\nCeci effacera toutes vos données.',
+      title: t('settings_delete_account'),
+      message: language === 'fr'
+        ? 'ATTENTION : Voulez-vous vraiment supprimer définitivement votre compte et votre sauvegarde ?\n\nCeci effacera toutes vos données.'
+        : 'WARNING: Do you really want to permanently delete your account and save file?\n\nAll your data will be erased.',
       action: async () => {
         setLoading(true)
         try {
@@ -155,17 +157,15 @@ function SettingsModal({ onClose, onOpenChangelog }) {
           const { db, auth } = await import('./firebase')
           const { deleteUser } = await import('firebase/auth')
 
-          // Delete save and profile
           await deleteDoc(doc(db, 'saves', user.uid)).catch(console.error)
           await deleteDoc(doc(db, 'users', user.uid)).catch(console.error)
 
-          // Delete Auth user
           if (auth.currentUser) {
             await deleteUser(auth.currentUser)
           }
           logout()
         } catch (err) {
-          setMsg('Erreur, vous devez peut-être vous reconnecter pour supprimer le compte.')
+          setMsg(t('error'))
           setLoading(false)
         }
       }
@@ -178,13 +178,48 @@ function SettingsModal({ onClose, onOpenChangelog }) {
       background: 'rgba(0,0,0,0.8)', zIndex: 1000,
       display: 'flex', alignItems: 'center', justifyContent: 'center'
     }}>
-      <div className="mc-panel" style={{ width: '450px', maxWidth: '95vw', maxHeight: '90vh', overflowY: 'auto' }}>
-        <h2>⚙️ PARAMÈTRES</h2>
+      <div className="mc-panel" style={{ width: '460px', maxWidth: '95vw', maxHeight: '90vh', overflowY: 'auto' }}>
+        <h2>{t('settings_title')}</h2>
+
+        {/* --- Language Switcher --- */}
+        <div style={{ marginBottom: '15px', padding: '12px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px', border: '2px solid var(--mc-border-dark)' }}>
+          <label style={{ fontSize: '9px', color: 'var(--text-honey)', display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>
+            🌐 {t('settings_language')}
+          </label>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button
+              className={`mc-button ${language === 'fr' ? 'primary' : ''}`}
+              onClick={() => setLanguage('fr')}
+              style={{
+                flex: 1,
+                padding: '10px 8px',
+                fontSize: '9px',
+                border: language === 'fr' ? '2px solid #fff' : undefined,
+                boxShadow: language === 'fr' ? '0 0 10px rgba(244, 166, 35, 0.6)' : undefined,
+              }}
+            >
+              🇫🇷 Français
+            </button>
+            <button
+              className={`mc-button ${language === 'en' ? 'primary' : ''}`}
+              onClick={() => setLanguage('en')}
+              style={{
+                flex: 1,
+                padding: '10px 8px',
+                fontSize: '9px',
+                border: language === 'en' ? '2px solid #fff' : undefined,
+                boxShadow: language === 'en' ? '0 0 10px rgba(244, 166, 35, 0.6)' : undefined,
+              }}
+            >
+              🇬🇧 English
+            </button>
+          </div>
+        </div>
 
         {/* Photo de profil */}
         <div style={{ marginBottom: '15px' }}>
           <label style={{ fontSize: '8px', color: 'var(--text-secondary)', display: 'block', marginBottom: '8px' }}>
-            Photo de Profil
+            {t('settings_pfp')}
           </label>
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
             <input
@@ -194,11 +229,11 @@ function SettingsModal({ onClose, onOpenChangelog }) {
               onChange={e => setPfpFile(e.target.files[0])}
               style={{ display: 'none' }}
             />
-            <label htmlFor="pfp-upload" className="mc-button" style={{ flex: 1, textAlign: 'center', cursor: 'pointer', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={pfpFile ? pfpFile.name : 'Choisir un fichier'}>
-              {pfpFile ? pfpFile.name : '📁 Parcourir...'}
+            <label htmlFor="pfp-upload" className="mc-button" style={{ flex: 1, textAlign: 'center', cursor: 'pointer', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={pfpFile ? pfpFile.name : t('settings_browse')}>
+              {pfpFile ? pfpFile.name : t('settings_browse')}
             </label>
             <button className="mc-button primary" onClick={handleUpdatePfp} disabled={loading || !pfpFile}>
-              Mettre à jour
+              {t('settings_update')}
             </button>
           </div>
         </div>
@@ -206,18 +241,18 @@ function SettingsModal({ onClose, onOpenChangelog }) {
         {/* Clé Licence */}
         <div style={{ marginBottom: '15px' }}>
           <label style={{ fontSize: '8px', color: 'var(--text-secondary)', display: 'block', marginBottom: '8px' }}>
-            Ajouter/Modifier Clé Licence
+            {t('settings_license')}
           </label>
           <div style={{ display: 'flex', gap: '8px' }}>
             <input
               className="license-input"
               value={newKey}
               onChange={e => setNewKey(e.target.value)}
-              placeholder="XXXX-XXXX-XXXX"
+              placeholder={t('settings_license_placeholder')}
               style={{ flex: 1, padding: '8px', fontSize: '9px' }}
             />
             <button className="mc-button primary" onClick={handleUpdateKey} disabled={loading}>
-              Valider
+              {t('settings_validate')}
             </button>
           </div>
         </div>
@@ -231,10 +266,10 @@ function SettingsModal({ onClose, onOpenChangelog }) {
               onChange={handleToggleIntermission}
               style={{ cursor: 'pointer' }}
             />
-            Activer l'Intermission
+            {t('settings_intermission')}
           </label>
           <div style={{ fontSize: '8px', color: 'var(--text-secondary)', marginTop: '4px', marginLeft: '24px' }}>
-            Joue une vidéo en plein écran environ une fois par heure.
+            {t('settings_intermission_desc')}
           </div>
         </div>
 
@@ -248,32 +283,32 @@ function SettingsModal({ onClose, onOpenChangelog }) {
               if (onOpenChangelog) onOpenChangelog()
             }}
           >
-            📜 Journal des Mises à Jour (v{APP_VERSION})
+            {t('settings_changelog', { version: APP_VERSION })}
           </button>
 
           <button className="mc-button" onClick={() => setFeedbackOpen(true)} disabled={loading}>
-            💡 Faire un retour (Bug/Idée)
+            {t('settings_feedback')}
           </button>
 
           <div style={{ display: 'flex', gap: '10px' }}>
             {!isGoogleLinked && (
               <button className="mc-button" onClick={handleLinkGoogle} disabled={loading} style={{ flex: 1 }}>
-                🔗 Lier Google
+                {t('settings_link_google')}
               </button>
             )}
             <button className="mc-button" onClick={handleResetPassword} disabled={loading} style={{ flex: 1 }}>
-              📧 Réinit. MDP
+              {t('settings_reset_pwd')}
             </button>
           </div>
 
           <button className="mc-button" onClick={handleResetProgressClick} disabled={loading} style={{ background: '#c47a09' }}>
-            🔄 Réinitialiser la progression
+            {t('settings_reset_progress')}
           </button>
           <button className="mc-button danger" onClick={handleDeleteAccountClick} disabled={loading}>
-            🗑️ Supprimer le compte
+            {t('settings_delete_account')}
           </button>
           <button className="mc-button" onClick={onClose} disabled={loading} style={{ marginTop: '10px' }}>
-            Fermer
+            {t('settings_close')}
           </button>
         </div>
       </div>
@@ -298,6 +333,7 @@ function SettingsModal({ onClose, onOpenChangelog }) {
 function TopBar({ onOpenChangelog }) {
   const { user, userProfile, logout } = useAuth()
   const gameState = useGame()
+  const { t } = useLanguage()
   const navigate = useNavigate()
   const location = useLocation()
   const [showSettings, setShowSettings] = useState(false)
@@ -351,7 +387,7 @@ function TopBar({ onOpenChangelog }) {
             id="nav-game"
           >
             <span style={{ fontSize: '11px', transform: 'translateY(-1px)' }}>🎮</span>
-            <span>Jeu</span>
+            <span>{t('nav_game')}</span>
           </button>
           <button
             className={`top-bar-btn ${isActive('/raid')}`}
@@ -359,7 +395,7 @@ function TopBar({ onOpenChangelog }) {
             id="nav-raid"
           >
             <span style={{ fontSize: '11px', transform: 'translateY(-1px)' }}>⚔️</span>
-            <span>Raid Coop</span>
+            <span>{t('nav_raid')}</span>
           </button>
           <button
             className={`top-bar-btn ${isActive('/leaderboard')}`}
@@ -395,7 +431,7 @@ function TopBar({ onOpenChangelog }) {
             id="nav-leaderboard"
           >
             <span style={{ fontSize: '11px', transform: 'translateY(-1px)' }}>🏆</span>
-            <span>Classement</span>
+            <span>{t('nav_leaderboard')}</span>
           </button>
           <button
             className={`top-bar-btn ${isActive('/friends')}`}
@@ -403,7 +439,7 @@ function TopBar({ onOpenChangelog }) {
             id="nav-friends"
           >
             <span style={{ fontSize: '11px', transform: 'translateY(-1px)' }}>👥</span>
-            <span>Amis</span>
+            <span>{t('nav_friends')}</span>
           </button>
           <button
             className={`top-bar-btn ${isActive('/stats')}`}
@@ -411,7 +447,7 @@ function TopBar({ onOpenChangelog }) {
             id="nav-stats"
           >
             <span style={{ fontSize: '11px', transform: 'translateY(-1px)' }}>📊</span>
-            <span>Stats</span>
+            <span>{t('nav_stats')}</span>
           </button>
           {userProfile?.isAdmin && (
             <button
@@ -420,7 +456,7 @@ function TopBar({ onOpenChangelog }) {
               id="nav-admin"
             >
               <span style={{ fontSize: '11px', transform: 'translateY(-1px)' }}>⚙️</span>
-              <span>Admin</span>
+              <span>{t('nav_admin')}</span>
             </button>
           )}
         </div>
@@ -431,7 +467,7 @@ function TopBar({ onOpenChangelog }) {
             className="top-bar-user"
             onClick={() => setShowSettings(true)}
             style={{ cursor: 'pointer' }}
-            title="Paramètres du compte"
+            title="Paramètres"
           >
             {user?.photoURL && (
               <img src={user.photoURL} alt="" className="top-bar-avatar" />
@@ -445,7 +481,7 @@ function TopBar({ onOpenChangelog }) {
               id="btn-logout"
               style={{ fontSize: '7px', color: 'var(--cannot-afford)', marginLeft: '8px' }}
             >
-              <span className="deco-text">Déco</span>
+              <span className="deco-text">{t('logout')}</span>
               <span className="deco-icon" style={{ display: 'none', fontSize: '10px' }}>🚪</span>
             </button>
           </div>
@@ -458,6 +494,7 @@ function TopBar({ onOpenChangelog }) {
 // --- Achievement Toast System ---
 function AchievementToast() {
   const [toast, setToast] = useState(null)
+  const { t } = useLanguage()
 
   React.useEffect(() => {
     const handleUnlock = (e) => {
@@ -474,7 +511,7 @@ function AchievementToast() {
     <div className="achievement-toast">
       <div className="achievement-icon">{toast.icon}</div>
       <div className="achievement-text">
-        <h4>Succès déverrouillé !</h4>
+        <h4>{t('achievement_unlocked')}</h4>
         <p>{toast.name}</p>
       </div>
     </div>
@@ -484,6 +521,7 @@ function AchievementToast() {
 // --- System Toast System ---
 function SystemToast() {
   const [toast, setToast] = useState(null)
+  const { t } = useLanguage()
 
   React.useEffect(() => {
     const handleToast = (e) => {
@@ -506,7 +544,7 @@ function SystemToast() {
       <div className="achievement-icon">{isError ? '❌' : '✅'}</div>
       <div className="achievement-text">
         <h4 style={{ color: isError ? 'var(--cannot-afford)' : 'var(--can-afford)' }}>
-          {toast.title || (isError ? 'Erreur' : 'Succès')}
+          {toast.title || (isError ? t('error') : t('success'))}
         </h4>
         <p style={{ whiteSpace: 'pre-line', fontSize: '9px', lineHeight: '1.4' }}>{toast.message}</p>
       </div>
@@ -523,8 +561,8 @@ function GameEngine() {
 
 function AuthenticatedApp() {
   const [showChangelog, setShowChangelog] = useState(false)
-
   const { user } = useAuth()
+  const { t } = useLanguage()
 
   // Automatic first-time update pop-up check on refresh/mount
   useEffect(() => {
@@ -550,7 +588,7 @@ function AuthenticatedApp() {
                 new CustomEvent('system_toast', {
                   detail: {
                     type: 'success',
-                    title: '⚔️ Invitation au Raid !',
+                    title: '⚔️ ' + t('raid_title'),
                     message: `${latest.hostName} vous invite à son salon de Raid Coop !`,
                   },
                 })
@@ -562,7 +600,7 @@ function AuthenticatedApp() {
       () => {}
     )
     return () => unsub()
-  }, [user])
+  }, [user, t])
 
   const handleCloseChangelog = () => {
     localStorage.setItem('bzz_last_seen_version', APP_VERSION)

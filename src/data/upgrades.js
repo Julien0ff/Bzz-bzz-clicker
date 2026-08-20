@@ -1,13 +1,17 @@
 // ===================================================
-// Upgrades Data — Game Balance Configuration
+// Upgrades Data — Game Balance & Localization Registry
 // ===================================================
 
 export const PRODUCTION_UPGRADES = [
   {
     id: 'flower',
     name: 'Fleur',
+    name_fr: 'Fleur',
+    name_en: 'Flower',
     icon: '🌸',
     description: 'Une jolie fleur qui attire les abeilles.',
+    description_fr: 'Une jolie fleur qui attire les abeilles.',
+    description_en: 'A pretty flower that attracts hardworking bees.',
     baseCost: 15,
     baseProduction: 0.1,
     costMultiplier: 1.15,
@@ -16,8 +20,12 @@ export const PRODUCTION_UPGRADES = [
   {
     id: 'babyBee',
     name: 'Bébé Abeille',
+    name_fr: 'Bébé Abeille',
+    name_en: 'Baby Bee',
     icon: '🐝',
     description: 'Une petite abeille travailleuse qui récolte du nectar.',
+    description_fr: 'Une petite abeille travailleuse qui récolte du nectar.',
+    description_en: 'A small industrious bee gathering sweet nectar.',
     baseCost: 100,
     baseProduction: 1,
     costMultiplier: 1.15,
@@ -26,8 +34,12 @@ export const PRODUCTION_UPGRADES = [
   {
     id: 'beehive',
     name: 'Ruche',
+    name_fr: 'Ruche',
+    name_en: 'Beehive',
     icon: '🏠',
     description: 'Une ruche qui abrite plusieurs abeilles productrices.',
+    description_fr: 'Une ruche qui abrite plusieurs abeilles productrices.',
+    description_en: 'A bustling beehive sheltering producer bees.',
     baseCost: 1100,
     baseProduction: 8,
     costMultiplier: 1.15,
@@ -36,8 +48,12 @@ export const PRODUCTION_UPGRADES = [
   {
     id: 'extractor',
     name: 'Extracteur',
+    name_fr: 'Extracteur',
+    name_en: 'Honey Extractor',
     icon: '🍯',
     description: 'Un extracteur de nectar haute performance.',
+    description_fr: 'Un extracteur de nectar haute performance.',
+    description_en: 'A high-performance honey centrifuge extractor.',
     baseCost: 12000,
     baseProduction: 47,
     costMultiplier: 1.15,
@@ -46,8 +62,12 @@ export const PRODUCTION_UPGRADES = [
   {
     id: 'queenBee',
     name: 'Reine',
+    name_fr: 'Reine',
+    name_en: 'Queen Bee',
     icon: '👑',
     description: "L'abeille reine commande toute la colonie.",
+    description_fr: "L'abeille reine commande toute la colonie.",
+    description_en: 'The queen bee directing the entire colony.',
     baseCost: 130000,
     baseProduction: 260,
     costMultiplier: 1.15,
@@ -56,8 +76,12 @@ export const PRODUCTION_UPGRADES = [
   {
     id: 'honeyFactory',
     name: 'Usine à Miel',
+    name_fr: 'Usine à Miel',
+    name_en: 'Honey Factory',
     icon: '🏭',
-    description: "Une usine entière dédiée à la production de miel.",
+    description: 'Une usine entière dédiée à la production de miel.',
+    description_fr: 'Une usine entière dédiée à la production de miel.',
+    description_en: 'A massive automated factory dedicated to honey production.',
     baseCost: 1400000,
     baseProduction: 1400,
     costMultiplier: 1.15,
@@ -66,8 +90,12 @@ export const PRODUCTION_UPGRADES = [
   {
     id: 'alchemyLab',
     name: 'Laboratoire Apicole',
+    name_fr: 'Laboratoire Apicole',
+    name_en: 'Apiary Laboratory',
     icon: '🧪',
-    description: "Des abeilles scientifiques optimisent la formule du miel.",
+    description: 'Des abeilles scientifiques optimisent la formule du miel.',
+    description_fr: 'Des abeilles scientifiques optimisent la formule du miel.',
+    description_en: 'Scientist bees formulating hyper-concentrated honey.',
     baseCost: 20000000,
     baseProduction: 7800,
     costMultiplier: 1.15,
@@ -76,8 +104,12 @@ export const PRODUCTION_UPGRADES = [
   {
     id: 'netherPortal',
     name: 'Portail du Nether',
+    name_fr: 'Portail du Nether',
+    name_en: 'Nether Portal',
     icon: '🌌',
     description: "Récolte du miel de magma dans d'autres dimensions.",
+    description_fr: "Récolte du miel de magma dans d'autres dimensions.",
+    description_en: 'Harvests molten magma honey from other dimensions.',
     baseCost: 330000000,
     baseProduction: 44000,
     costMultiplier: 1.15,
@@ -86,8 +118,12 @@ export const PRODUCTION_UPGRADES = [
   {
     id: 'worldTree',
     name: "L'Arbre Monde",
+    name_fr: "L'Arbre Monde",
+    name_en: 'The World Tree',
     icon: '🌳',
     description: "Un arbre colossal abritant l'ultime colonie d'abeilles.",
+    description_fr: "Un arbre colossal abritant l'ultime colonie d'abeilles.",
+    description_en: 'A colossal mythical tree sheltering the primeval swarm.',
     baseCost: 5000000000, // 5 Billion
     baseProduction: 180000,
     costMultiplier: 1.18,
@@ -96,8 +132,12 @@ export const PRODUCTION_UPGRADES = [
   {
     id: 'starHive',
     name: 'Ruche Stellaire',
+    name_fr: 'Ruche Stellaire',
+    name_en: 'Stellar Hive',
     icon: '🌠',
-    description: "Des abeilles astronautes récoltant du nectar céleste.",
+    description: 'Des abeilles astronautes récoltant du nectar céleste.',
+    description_fr: 'Des abeilles astronautes récoltant du nectar céleste.',
+    description_en: 'Cosmonaut bees foraging stardust and stellar nectar.',
     baseCost: 80000000000, // 80 Billion
     baseProduction: 950000,
     costMultiplier: 1.18,
@@ -106,8 +146,12 @@ export const PRODUCTION_UPGRADES = [
   {
     id: 'honeyDimension',
     name: 'Dimension de Miel',
+    name_fr: 'Dimension de Miel',
+    name_en: 'Honey Dimension',
     icon: '🌌',
-    description: "Un portail vers une dimension faite de pur miel pur.",
+    description: 'Un portail vers une dimension faite de pur miel pur.',
+    description_fr: 'Un portail vers une dimension faite de pur miel pur.',
+    description_en: 'A rift open to an alternate realm of liquid gold.',
     baseCost: 1500000000000, // 1.5 Trillion
     baseProduction: 4500000,
     costMultiplier: 1.18,
@@ -116,8 +160,12 @@ export const PRODUCTION_UPGRADES = [
   {
     id: 'galacticSwarm',
     name: "L'Essaim Galactique",
+    name_fr: "L'Essaim Galactique",
+    name_en: 'Galactic Swarm',
     icon: '💫',
     description: "Un essaim d'abeilles de la taille d'une galaxie.",
+    description_fr: "Un essaim d'abeilles de la taille d'une galaxie.",
+    description_en: 'A galaxy-spanning swarm of lightspeed bees.',
     baseCost: 20000000000000, // 20 Trillion
     baseProduction: 25000000,
     costMultiplier: 1.20,
@@ -126,8 +174,12 @@ export const PRODUCTION_UPGRADES = [
   {
     id: 'cyberHive',
     name: 'Ruche Cybernétique',
+    name_fr: 'Ruche Cybernétique',
+    name_en: 'Cyber Hive',
     icon: '🤖',
     description: "Des abeilles robots optimisées par l'Intelligence Artificielle.",
+    description_fr: "Des abeilles robots optimisées par l'Intelligence Artificielle.",
+    description_en: 'Nanotech robotic bees synchronized by an AI core.',
     baseCost: 350000000000000, // 350 Trillion
     baseProduction: 180000000,
     costMultiplier: 1.20,
@@ -136,8 +188,12 @@ export const PRODUCTION_UPGRADES = [
   {
     id: 'honeyWell',
     name: 'Puits de Miel',
+    name_fr: 'Puits de Miel',
+    name_en: 'Honey Well',
     icon: '🕳️',
     description: "Un forage profond jusqu'au centre de la Terre pour du miel fossile.",
+    description_fr: "Un forage profond jusqu'au centre de la Terre pour du miel fossile.",
+    description_en: 'A deep bore to the molten planetary core of fossil nectar.',
     baseCost: 5000000000000000, // 5 Quadrillion
     baseProduction: 950000000,
     costMultiplier: 1.20,
@@ -146,8 +202,12 @@ export const PRODUCTION_UPGRADES = [
   {
     id: 'blackHole',
     name: 'Trou Noir Mielleux',
+    name_fr: 'Trou Noir Mielleux',
+    name_en: 'Honey Black Hole',
     icon: '🌌',
-    description: "Aspire le miel de toutes les dimensions parallèles à la fois.",
+    description: 'Aspire le miel de toutes les dimensions parallèles à la fois.',
+    description_fr: 'Aspire le miel de toutes les dimensions parallèles à la fois.',
+    description_en: 'Pulls infinite honey from parallel multiverses simultaneously.',
     baseCost: 75000000000000000, // 75 Quadrillion
     baseProduction: 6000000000,
     costMultiplier: 1.22,
@@ -156,8 +216,12 @@ export const PRODUCTION_UPGRADES = [
   {
     id: 'timeMachine',
     name: 'Machine Temporelle',
+    name_fr: 'Machine Temporelle',
+    name_en: 'Time Machine',
     icon: '⏳',
-    description: "Récolte le miel du passé et du futur simultanément.",
+    description: 'Récolte le miel du passé et du futur simultanément.',
+    description_fr: 'Récolte le miel du passé et du futur simultanément.',
+    description_en: 'Reaps honey across past, present, and future timelines.',
     baseCost: 1000000000000000000, // 1 Quintillion
     baseProduction: 45000000000,
     costMultiplier: 1.22,
@@ -166,8 +230,12 @@ export const PRODUCTION_UPGRADES = [
   {
     id: 'multiverseHive',
     name: 'Ruche du Multivers',
+    name_fr: 'Ruche du Multivers',
+    name_en: 'Multiverse Hive',
     icon: '🌀',
-    description: "Connecte les ruches de tous les univers connus et inconnus.",
+    description: 'Connecte les ruches de tous les univers connus et inconnus.',
+    description_fr: 'Connecte les ruches de tous les univers connus et inconnus.',
+    description_en: 'Unifies the infinite hive minds of all alternate realities.',
     baseCost: 15000000000000000000, // 15 Quintillion
     baseProduction: 300000000000,
     costMultiplier: 1.20,
@@ -176,11 +244,114 @@ export const PRODUCTION_UPGRADES = [
   {
     id: 'beeGod',
     name: 'Dieu des Abeilles',
+    name_fr: 'Dieu des Abeilles',
+    name_en: 'God of Bees',
     icon: '👑',
     description: "L'entité créatrice de tout le miel existant.",
+    description_fr: "L'entité créatrice de tout le miel existant.",
+    description_en: 'The primordial deity that wove the fabric of honey itself.',
     baseCost: 250000000000000000000, // 250 Quintillion
     baseProduction: 2000000000000,
     costMultiplier: 1.20,
+    maxCount: 200,
+  },
+  // --- NOUVEAUX BÂTIMENTS HAUT NIVEAU ---
+  {
+    id: 'cosmicHive',
+    name: 'Ruche Cosmique',
+    name_fr: 'Ruche Cosmique',
+    name_en: 'Cosmic Hive',
+    icon: '🪐',
+    description: 'Une mégastructure stellaire tissée dans les anneaux planétaires.',
+    description_fr: 'Une mégastructure stellaire tissée dans les anneaux planétaires.',
+    description_en: 'A stellar megastructure forged within planetary rings.',
+    baseCost: 5000000000000000000000, // 5 Sextillion (5e21)
+    baseProduction: 15000000000000, // 15 Trillion/s
+    costMultiplier: 1.20,
+    maxCount: 200,
+  },
+  {
+    id: 'singularityHive',
+    name: 'Ruche de la Singularité',
+    name_fr: 'Ruche de la Singularité',
+    name_en: 'Singularity Hive',
+    icon: '🔮',
+    description: 'Une ruche dense condensant la gravité en pur nectar énergétique.',
+    description_fr: 'Une ruche dense condensant la gravité en pur nectar énergétique.',
+    description_en: 'A gravitational singularity compressing spacetime into energetic honey.',
+    baseCost: 100000000000000000000000, // 100 Sextillion (1e23)
+    baseProduction: 120000000000000, // 120 Trillion/s
+    costMultiplier: 1.20,
+    maxCount: 200,
+  },
+  {
+    id: 'chronosHive',
+    name: 'Ruche de Chronos',
+    name_fr: 'Ruche de Chronos',
+    name_en: 'Chronos Hive',
+    icon: '⚡',
+    description: 'Une ruche hors du temps générant des éternités de miel en un clin d\'œil.',
+    description_fr: 'Une ruche hors du temps générant des éternités de miel en un clin d\'œil.',
+    description_en: 'A timeless sanctuary extracting aeons of honey in a fraction of a second.',
+    baseCost: 2000000000000000000000000, // 2 Septillion (2e24)
+    baseProduction: 1000000000000000, // 1 Quadrillion/s
+    costMultiplier: 1.21,
+    maxCount: 200,
+  },
+  {
+    id: 'infinityHive',
+    name: "Ruche de l'Infini",
+    name_fr: "Ruche de l'Infini",
+    name_en: 'Infinity Hive',
+    icon: '♾️',
+    description: 'Une ruche aux alvéoles mathématiquement infinies et inépuisables.',
+    description_fr: 'Une ruche aux alvéoles mathématiquement infinies et inépuisables.',
+    description_en: 'An endless tessellation of non-Euclidean infinite comb chambers.',
+    baseCost: 50000000000000000000000000, // 50 Septillion (5e25)
+    baseProduction: 8000000000000000, // 8 Quadrillion/s
+    costMultiplier: 1.22,
+    maxCount: 200,
+  },
+  {
+    id: 'primordialNexus',
+    name: 'Nexus Primordial',
+    name_fr: 'Nexus Primordial',
+    name_en: 'Primordial Nexus',
+    icon: '💠',
+    description: 'Le cœur battant de toute la création mielleuse.',
+    description_fr: 'Le cœur battant de toute la création mielleuse.',
+    description_en: 'The pulsing crystal core where all honey matter was born.',
+    baseCost: 1000000000000000000000000000, // 1 Octillion (1e27)
+    baseProduction: 75000000000000000, // 75 Quadrillion/s
+    costMultiplier: 1.22,
+    maxCount: 200,
+  },
+  {
+    id: 'omnipresentSwarm',
+    name: 'Essaim Omniprésent',
+    name_fr: 'Essaim Omniprésent',
+    name_en: 'Omnipresent Swarm',
+    icon: '🌌',
+    description: 'Des milliards de milliards d\'abeilles existant à chaque point de l\'espace.',
+    description_fr: 'Des milliards de milliards d\'abeilles existant à chaque point de l\'espace.',
+    description_en: 'Trillions of celestial bees occupying every point in reality at once.',
+    baseCost: 25000000000000000000000000000, // 25 Octillion (2.5e28)
+    baseProduction: 600000000000000000, // 600 Quadrillion/s
+    costMultiplier: 1.24,
+    maxCount: 200,
+  },
+  {
+    id: 'celestialPantheon',
+    name: 'Panthéon Céleste',
+    name_fr: 'Panthéon Céleste',
+    name_en: 'Celestial Pantheon',
+    icon: '🏛️',
+    description: 'Le sanctuaire des Divinités Apicoles veillant sur le multivers.',
+    description_fr: 'Le sanctuaire des Divinités Apicoles veillant sur le multivers.',
+    description_en: 'The divine summit of bee gods presiding over reality itself.',
+    baseCost: 500000000000000000000000000000, // 500 Octillion (5e29)
+    baseProduction: 5000000000000000000, // 5 Quintillion/s
+    costMultiplier: 1.25,
     maxCount: 200,
   },
 ]
@@ -189,11 +360,15 @@ export const CLICK_UPGRADES = [
   {
     id: 'stickyFinger',
     name: 'Doigt Collant',
+    name_fr: 'Doigt Collant',
+    name_en: 'Sticky Finger',
     icon: '🖱️',
     description: 'Vos doigts collent au miel, augmentant la récolte par clic.',
+    description_fr: 'Vos doigts collent au miel, augmentant la récolte par clic.',
+    description_en: 'Your fingers stick to honey, enhancing manual harvest.',
     cost: 150,
     clickBonus: 1,
-    hpsPercent: 0.5, // +0.5% du HPS par niveau
+    hpsPercent: 0.5,
     oneTime: false,
     maxCount: 30,
     costMultiplier: 1.5,
@@ -201,8 +376,12 @@ export const CLICK_UPGRADES = [
   {
     id: 'waxGloves',
     name: 'Gants en Cire',
+    name_fr: 'Gants en Cire',
+    name_en: 'Wax Gloves',
     icon: '🧤',
     description: 'Des gants spéciaux qui captent le miel plus efficacement.',
+    description_fr: 'Des gants spéciaux qui captent le miel plus efficacement.',
+    description_en: 'Specially crafted wax gloves to harvest honey cleanly.',
     cost: 1000,
     clickBonus: 5,
     hpsPercent: 1,
@@ -213,8 +392,12 @@ export const CLICK_UPGRADES = [
   {
     id: 'beePaw',
     name: "Patte d'Abeille",
+    name_fr: "Patte d'Abeille",
+    name_en: 'Bee Paw',
     icon: '🐾',
     description: "Vos mains se transforment en pattes d'abeille ultra efficaces.",
+    description_fr: "Vos mains se transforment en pattes d'abeille ultra efficaces.",
+    description_en: 'Your hands take the form of ultra-efficient bee paws.',
     cost: 25000,
     clickBonus: 25,
     hpsPercent: 1.5,
@@ -225,8 +408,12 @@ export const CLICK_UPGRADES = [
   {
     id: 'expBottle',
     name: "Fiole d'Expérience",
+    name_fr: "Fiole d'Expérience",
+    name_en: 'Bottle of Enchanting',
     icon: '✨',
-    description: "La magie concentrée renforce votre puissance de clic.",
+    description: 'La magie concentrée renforce votre puissance de clic.',
+    description_fr: 'La magie concentrée renforce votre puissance de clic.',
+    description_en: 'Concentrated magic infuses your clicks with power.',
     cost: 500000,
     clickBonus: 100,
     hpsPercent: 2,
@@ -236,9 +423,13 @@ export const CLICK_UPGRADES = [
   },
   {
     id: 'diamondSword',
-    name: "Épée en Diamant",
+    name: 'Épée en Diamant',
+    name_fr: 'Épée en Diamant',
+    name_en: 'Diamond Sword',
     icon: '⚔️',
-    description: "Parce que taper fort, ça marche aussi pour récolter le miel !",
+    description: 'Parce que taper fort, ça marche aussi pour récolter le miel !',
+    description_fr: 'Parce que taper fort, ça marche aussi pour récolter le miel !',
+    description_en: 'Sharp strikes slice open rich honeycomb chambers!',
     cost: 10000000,
     clickBonus: 500,
     hpsPercent: 2.5,
@@ -248,9 +439,13 @@ export const CLICK_UPGRADES = [
   },
   {
     id: 'honeyAura',
-    name: "Aura de Miel",
+    name: 'Aura de Miel',
+    name_fr: 'Aura de Miel',
+    name_en: 'Honey Aura',
     icon: '🌟',
-    description: "Une aura divine qui attire le miel à chaque mouvement.",
+    description: 'Une aura divine qui attire le miel à chaque mouvement.',
+    description_fr: 'Une aura divine qui attire le miel à chaque mouvement.',
+    description_en: 'A glowing aura pulling droplets of gold on every tap.',
     cost: 250000000,
     clickBonus: 2500,
     hpsPercent: 3,
@@ -260,9 +455,13 @@ export const CLICK_UPGRADES = [
   },
   {
     id: 'hardenedGloves',
-    name: "Gants en Miel Durci",
+    name: 'Gants en Miel Durci',
+    name_fr: 'Gants en Miel Durci',
+    name_en: 'Hardened Honey Gloves',
     icon: '🥊',
-    description: "Des poings capables de briser des montagnes de miel.",
+    description: 'Des poings capables de briser des montagnes de miel.',
+    description_fr: 'Des poings capables de briser des montagnes de miel.',
+    description_en: 'Fists crystallized from amber to shatter honey mountains.',
     cost: 5000000000,
     clickBonus: 10000,
     hpsPercent: 3.5,
@@ -272,9 +471,13 @@ export const CLICK_UPGRADES = [
   },
   {
     id: 'honeyLaser',
-    name: "Rayon Laser Mielleux",
+    name: 'Rayon Laser Mielleux',
+    name_fr: 'Rayon Laser Mielleux',
+    name_en: 'Honey Laser Beam',
     icon: '💥',
-    description: "Un laser qui désintègre la ruche pour en extraire le miel pur.",
+    description: 'Un laser qui désintègre la ruche pour en extraire le miel pur.',
+    description_fr: 'Un laser qui désintègre la ruche pour en extraire le miel pur.',
+    description_en: 'A high-energy laser beam vaporizing raw honeycomb into nectar.',
     cost: 150000000000,
     clickBonus: 50000,
     hpsPercent: 4,
@@ -284,9 +487,13 @@ export const CLICK_UPGRADES = [
   },
   {
     id: 'divineFinger',
-    name: "Doigt Divin",
+    name: 'Doigt Divin',
+    name_fr: 'Doigt Divin',
+    name_en: 'Divine Touch',
     icon: '☝️',
-    description: "Le toucher du créateur lui-même.",
+    description: 'Le toucher du créateur lui-même.',
+    description_fr: 'Le toucher du créateur lui-même.',
+    description_en: 'The celestial touch of the creator itself.',
     cost: 5000000000000,
     clickBonus: 250000,
     hpsPercent: 5,
@@ -296,9 +503,13 @@ export const CLICK_UPGRADES = [
   },
   {
     id: 'autoClicker',
-    name: "Auto-Clicker Magique",
+    name: 'Auto-Clicker Magique',
+    name_fr: 'Auto-Clicker Magique',
+    name_en: 'Magic Auto-Clicker',
     icon: '⚙️',
-    description: "Une machine antique qui clique automatiquement pour vous 1 fois par seconde.",
+    description: 'Une machine antique qui clique automatiquement pour vous 1 fois par seconde.',
+    description_fr: 'Une machine antique qui clique automatiquement pour vous 1 fois par seconde.',
+    description_en: 'An ancient contraption clicking automatically once per second.',
     cost: 100000000000000,
     clickBonus: 0,
     hpsPercent: 0,
@@ -309,8 +520,12 @@ export const CLICK_UPGRADES = [
   {
     id: 'infinityGauntlet',
     name: "Gantelet de l'Infini",
+    name_fr: "Gantelet de l'Infini",
+    name_en: 'Infinity Gauntlet',
     icon: '🧤',
     description: "D'un simple claquement de doigt, la moitié de l'univers se transforme en miel.",
+    description_fr: "D'un simple claquement de doigt, la moitié de l'univers se transforme en miel.",
+    description_en: 'With a single snap, half of the cosmos turns into sweet honey.',
     cost: 5000000000000000,
     clickBonus: 1000000,
     hpsPercent: 6,
@@ -320,10 +535,14 @@ export const CLICK_UPGRADES = [
   },
   {
     id: 'quantumFinger',
-    name: "Doigt Quantique",
+    name: 'Doigt Quantique',
+    name_fr: 'Doigt Quantique',
+    name_en: 'Quantum Finger',
     icon: '⚛️',
     description: "Un clic existe et n'existe pas en même temps, générant une infinité de miel.",
-    cost: 1000000000000000000, 
+    description_fr: "Un clic existe et n'existe pas en même temps, générant une infinité de miel.",
+    description_en: 'Clicks exist in superposition, yielding infinite honey waves.',
+    cost: 1000000000000000000,
     clickBonus: 50000000,
     hpsPercent: 7,
     oneTime: false,
@@ -332,9 +551,13 @@ export const CLICK_UPGRADES = [
   },
   {
     id: 'bigBangClick',
-    name: "Clic du Big Bang",
+    name: 'Clic du Big Bang',
+    name_fr: 'Clic du Big Bang',
+    name_en: 'Big Bang Click',
     icon: '💥',
     description: "L'origine de l'univers était en fait un clic géant sur une abeille.",
+    description_fr: "L'origine de l'univers était en fait un clic géant sur une abeille.",
+    description_en: 'The primordial spark of creation was simply a massive click.',
     cost: 500000000000000000000,
     clickBonus: 2500000000,
     hpsPercent: 10,
@@ -342,71 +565,174 @@ export const CLICK_UPGRADES = [
     maxCount: 30,
     costMultiplier: 1.8,
   },
+  // --- NOUVEAUX CLICS HAUT NIVEAU ---
+  {
+    id: 'singularityFinger',
+    name: 'Doigt de Singularité',
+    name_fr: 'Doigt de Singularité',
+    name_en: 'Singularity Finger',
+    icon: '🔮',
+    description: 'La masse d\'un soleil concentrée dans la pointe de votre index.',
+    description_fr: 'La masse d\'un soleil concentrée dans la pointe de votre index.',
+    description_en: 'The gravitational pull of a stellar core concentrated on your fingertip.',
+    cost: 10000000000000000000000, // 10 Sextillion
+    clickBonus: 20000000000, // 20B
+    hpsPercent: 12,
+    oneTime: false,
+    maxCount: 30,
+    costMultiplier: 1.8,
+  },
+  {
+    id: 'supernovaClick',
+    name: 'Frappe Supernova',
+    name_fr: 'Frappe Supernova',
+    name_en: 'Supernova Strike',
+    icon: '☀️',
+    description: 'Chaque impact libère l\'énergie colossale d\'une étoile mourante.',
+    description_fr: 'Chaque impact libère l\'énergie colossale d\'une étoile mourante.',
+    description_en: 'Every tap triggers the explosive brilliance of a collapsing star.',
+    cost: 250000000000000000000000, // 250 Sextillion
+    clickBonus: 150000000000, // 150B
+    hpsPercent: 15,
+    oneTime: false,
+    maxCount: 30,
+    costMultiplier: 1.8,
+  },
+  {
+    id: 'cosmicStaff',
+    name: 'Sceptre Cosmique',
+    name_fr: 'Sceptre Cosmique',
+    name_en: 'Cosmic Scepter',
+    icon: '🪄',
+    description: 'Un artefact ancien couronnant le maître des étoiles et des ruches.',
+    description_fr: 'Un artefact ancien couronnant le maître des étoiles et des ruches.',
+    description_en: 'An ancient relic channeling the cosmic harmony of stellar hives.',
+    cost: 5000000000000000000000000, // 5 Septillion
+    clickBonus: 1200000000000, // 1.2T
+    hpsPercent: 18,
+    oneTime: false,
+    maxCount: 30,
+    costMultiplier: 1.8,
+  },
+  {
+    id: 'infinityGauntletPrime',
+    name: 'Gantelet Primordial',
+    name_fr: 'Gantelet Primordial',
+    name_en: 'Primordial Gauntlet',
+    icon: '🛡️',
+    description: 'Forgé dans les flammes de la première ruche du multivers.',
+    description_fr: 'Forgé dans les flammes de la première ruche du multivers.',
+    description_en: 'Forged in the dawn flames of the very first multiverse hive.',
+    cost: 100000000000000000000000000, // 100 Septillion
+    clickBonus: 10000000000000, // 10T
+    hpsPercent: 22,
+    oneTime: false,
+    maxCount: 30,
+    costMultiplier: 1.85,
+  },
+  {
+    id: 'godHand',
+    name: 'Main Divine Suprême',
+    name_fr: 'Main Divine Suprême',
+    name_en: 'Supreme God Hand',
+    icon: '✨',
+    description: 'La paume de la Reine Suprême façonnant les constellations de miel.',
+    description_fr: 'La paume de la Reine Suprême façonnant les constellations de miel.',
+    description_en: 'The hand of the Supreme Queen sculpting constellations of honey.',
+    cost: 2000000000000000000000000000, // 2 Octillion
+    clickBonus: 100000000000000, // 100T
+    hpsPercent: 25,
+    oneTime: false,
+    maxCount: 30,
+    costMultiplier: 1.85,
+  },
+  {
+    id: 'creatorFinger',
+    name: 'Doigt de la Création Pure',
+    name_fr: 'Doigt de la Création Pure',
+    name_en: 'Pure Creation Touch',
+    icon: '👑',
+    description: 'D\'un simple geste, vous donnez naissance à des galaxies entières de miel.',
+    description_fr: 'D\'un simple geste, vous donnez naissance à des galaxies entières de miel.',
+    description_en: 'With a mere gesture, entire galaxies of liquid gold burst into existence.',
+    cost: 50000000000000000000000000000, // 50 Octillion
+    clickBonus: 1000000000000000, // 1Qa
+    hpsPercent: 30,
+    oneTime: false,
+    maxCount: 30,
+    costMultiplier: 1.9,
+  },
 ]
 
-// ===================================================
-// Building Milestones — x2 multiplier at each tier
-// ===================================================
 export const BUILDING_MILESTONES = [25, 50, 100, 150, 200]
 
-/**
- * Get the milestone multiplier for a building based on count
- * Each milestone doubles the production: 25->x2, 50->x4, 100->x8, 150->x16, 200->x32
- */
-export function getMilestoneMultiplier(count) {
+export function getMilestoneMultiplier(count, overrideBoost = 2) {
   let multi = 1
   for (const threshold of BUILDING_MILESTONES) {
     if (count >= threshold) {
-      multi *= 2
+      multi *= overrideBoost
     }
   }
   return multi
 }
 
-// ===================================================
-// Synergy Upgrades — Cross-building bonuses
-// ===================================================
 export const SYNERGY_UPGRADES = [
   {
     id: 'crossPollination',
     name: 'Pollenisation Croisée',
+    name_fr: 'Pollenisation Croisée',
+    name_en: 'Cross-Pollination',
     icon: '🌼',
     description: 'Chaque Fleur augmente la production des Bébés Abeilles de +1%.',
+    description_fr: 'Chaque Fleur augmente la production des Bébés Abeilles de +1%.',
+    description_en: 'Each Flower boosts Baby Bee production by +1%.',
     cost: 50000,
     costMultiplier: 1.5,
     maxCount: 1,
     sourceBuilding: 'flower',
     targetBuilding: 'babyBee',
-    bonusPerSource: 0.01, // +1% per flower
+    bonusPerSource: 0.01,
   },
   {
     id: 'royalJellyElite',
     name: "Gelée d'Élite",
+    name_fr: "Gelée d'Élite",
+    name_en: 'Elite Royal Jelly',
     icon: '👑',
     description: 'Les Reines augmentent la puissance de toutes les Ruches de +5%.',
+    description_fr: 'Les Reines augmentent la puissance de toutes les Ruches de +5%.',
+    description_en: 'Queen Bees increase the power of all Beehives by +5%.',
     cost: 5000000,
     costMultiplier: 1.5,
     maxCount: 1,
     sourceBuilding: 'queenBee',
     targetBuilding: 'beehive',
-    bonusPerSource: 0.05, // +5% per queen
+    bonusPerSource: 0.05,
   },
   {
     id: 'cyberOverclock',
     name: 'Overclock Cybernétique',
+    name_fr: 'Overclock Cybernétique',
+    name_en: 'Cyber Overclock',
     icon: '🤖',
     description: 'Les Ruches Cybernétiques réduisent le coût de tous les bâtiments de 2%.',
+    description_fr: 'Les Ruches Cybernétiques réduisent le coût de tous les bâtiments de 2%.',
+    description_en: 'Cyber Hives reduce the purchase cost of all buildings by 2%.',
     cost: 500000000000000,
     costMultiplier: 1.5,
     maxCount: 1,
     sourceBuilding: 'cyberHive',
-    costReductionPerSource: 0.02, // -2% cost per cyberHive (capped)
+    costReductionPerSource: 0.02,
   },
   {
     id: 'factoryHarvest',
     name: 'Récolte Industrielle',
+    name_fr: 'Récolte Industrielle',
+    name_en: 'Industrial Harvest',
     icon: '🏭',
     description: "Chaque Usine à Miel augmente la production de l'Extracteur de +3%.",
+    description_fr: "Chaque Usine à Miel augmente la production de l'Extracteur de +3%.",
+    description_en: 'Each Honey Factory boosts Honey Extractor output by +3%.',
     cost: 10000000,
     costMultiplier: 1.5,
     maxCount: 1,
@@ -417,8 +743,12 @@ export const SYNERGY_UPGRADES = [
   {
     id: 'netherInfusion',
     name: 'Infusion du Nether',
+    name_fr: 'Infusion du Nether',
+    name_en: 'Nether Infusion',
     icon: '🔥',
-    description: "Les Portails du Nether boostent le Laboratoire Apicole de +4%.",
+    description: 'Les Portails du Nether boostent le Laboratoire Apicole de +4%.',
+    description_fr: 'Les Portails du Nether boostent le Laboratoire Apicole de +4%.',
+    description_en: 'Nether Portals empower the Apiary Laboratory by +4%.',
     cost: 500000000,
     costMultiplier: 1.5,
     maxCount: 1,
@@ -429,8 +759,12 @@ export const SYNERGY_UPGRADES = [
   {
     id: 'cosmicHarmony',
     name: 'Harmonie Cosmique',
+    name_fr: 'Harmonie Cosmique',
+    name_en: 'Cosmic Harmony',
     icon: '✨',
     description: "Les Ruches Stellaires boostent l'Arbre Monde de +3%.",
+    description_fr: "Les Ruches Stellaires boostent l'Arbre Monde de +3%.",
+    description_en: 'Stellar Hives amplify The World Tree production by +3%.',
     cost: 500000000000,
     costMultiplier: 1.5,
     maxCount: 1,
@@ -441,8 +775,12 @@ export const SYNERGY_UPGRADES = [
   {
     id: 'dimensionLink',
     name: 'Lien Dimensionnel',
+    name_fr: 'Lien Dimensionnel',
+    name_en: 'Dimensional Link',
     icon: '🌀',
     description: 'Les Dimensions de Miel augmentent la puissance des Trous Noirs de +5%.',
+    description_fr: 'Les Dimensions de Miel augmentent la puissance des Trous Noirs de +5%.',
+    description_en: 'Honey Dimensions boost Honey Black Holes by +5%.',
     cost: 100000000000000,
     costMultiplier: 1.5,
     maxCount: 1,
@@ -453,8 +791,12 @@ export const SYNERGY_UPGRADES = [
   {
     id: 'temporalEcho',
     name: 'Écho Temporel',
+    name_fr: 'Écho Temporel',
+    name_en: 'Temporal Echo',
     icon: '⏳',
     description: 'Les Machines Temporelles boostent la Ruche du Multivers de +4%.',
+    description_fr: 'Les Machines Temporelles boostent la Ruche du Multivers de +4%.',
+    description_en: 'Time Machines boost Multiverse Hive production by +4%.',
     cost: 50000000000000000,
     costMultiplier: 1.5,
     maxCount: 1,
@@ -462,106 +804,402 @@ export const SYNERGY_UPGRADES = [
     targetBuilding: 'multiverseHive',
     bonusPerSource: 0.04,
   },
+  // --- NOUVELLES SYNERGIES HAUT NIVEAU ---
+  {
+    id: 'godlyPollen',
+    name: 'Pollen Divin',
+    name_fr: 'Pollen Divin',
+    name_en: 'Godly Pollen',
+    icon: '👑',
+    description: 'Chaque Dieu des Abeilles augmente la production des Fleurs de +10% et inversement.',
+    description_fr: 'Chaque Dieu des Abeilles augmente la production des Fleurs de +10% et inversement.',
+    description_en: 'Each God of Bees enhances Flowers by +10% and vice versa.',
+    cost: 1000000000000000000000, // 1 Sextillion
+    costMultiplier: 1.5,
+    maxCount: 1,
+    sourceBuilding: 'beeGod',
+    targetBuilding: 'flower',
+    bonusPerSource: 0.10,
+  },
+  {
+    id: 'cosmicSingularity',
+    name: 'Singularité Cosmique',
+    name_fr: 'Singularité Cosmique',
+    name_en: 'Cosmic Singularity',
+    icon: '🪐',
+    description: 'Les Ruches Cosmiques augmentent la puissance de la Ruche de Singularité de +5%.',
+    description_fr: 'Les Ruches Cosmiques augmentent la puissance de la Ruche de Singularité de +5%.',
+    description_en: 'Cosmic Hives amplify Singularity Hive output by +5%.',
+    cost: 20000000000000000000000, // 20 Sextillion
+    costMultiplier: 1.5,
+    maxCount: 1,
+    sourceBuilding: 'cosmicHive',
+    targetBuilding: 'singularityHive',
+    bonusPerSource: 0.05,
+  },
+  {
+    id: 'chronosInfinity',
+    name: "Boucle d'Infinité",
+    name_fr: "Boucle d'Infinité",
+    name_en: 'Infinity Loop',
+    icon: '⚡',
+    description: "La Ruche de Chronos augmente la puissance de la Ruche de l'Infini de +6%.",
+    description_fr: "La Ruche de Chronos augmente la puissance de la Ruche de l'Infini de +6%.",
+    description_en: 'Chronos Hives multiply Infinity Hive production by +6%.',
+    cost: 10000000000000000000000000, // 10 Septillion
+    costMultiplier: 1.5,
+    maxCount: 1,
+    sourceBuilding: 'chronosHive',
+    targetBuilding: 'infinityHive',
+    bonusPerSource: 0.06,
+  },
+  {
+    id: 'primordialResonance',
+    name: 'Résonance Primordiale',
+    name_fr: 'Résonance Primordiale',
+    name_en: 'Primordial Resonance',
+    icon: '💠',
+    description: "Le Nexus Primordial augmente la production de l'Arbre Monde de +8%.",
+    description_fr: "Le Nexus Primordial augmente la production de l'Arbre Monde de +8%.",
+    description_en: 'The Primordial Nexus resonates with The World Tree, boosting it by +8%.',
+    cost: 5000000000000000000000000000, // 5 Octillion
+    costMultiplier: 1.5,
+    maxCount: 1,
+    sourceBuilding: 'primordialNexus',
+    targetBuilding: 'worldTree',
+    bonusPerSource: 0.08,
+  },
+  {
+    id: 'omnipresentOverload',
+    name: 'Surcharge Omniprésente',
+    name_fr: 'Surcharge Omniprésente',
+    name_en: 'Omnipresent Overload',
+    icon: '💫',
+    description: "L'Essaim Omniprésent démultiplie l'Essaim Galactique de +12%.",
+    description_fr: "L'Essaim Omniprésent démultiplie l'Essaim Galactique de +12%.",
+    description_en: 'The Omnipresent Swarm supercharges Galactic Swarms by +12%.',
+    cost: 100000000000000000000000000000, // 100 Octillion
+    costMultiplier: 1.5,
+    maxCount: 1,
+    sourceBuilding: 'omnipresentSwarm',
+    targetBuilding: 'galacticSwarm',
+    bonusPerSource: 0.12,
+  },
+  {
+    id: 'pantheonAscension',
+    name: 'Bénédiction du Panthéon',
+    name_fr: 'Bénédiction du Panthéon',
+    name_en: 'Pantheon Blessing',
+    icon: '🏛️',
+    description: 'Le Panthéon Céleste décuple la puissance du Dieu des Abeilles de +15%.',
+    description_fr: 'Le Panthéon Céleste décuple la puissance du Dieu des Abeilles de +15%.',
+    description_en: 'The Celestial Pantheon empowers the God of Bees by +15%.',
+    cost: 500000000000000000000000000000, // 500 Octillion
+    costMultiplier: 1.5,
+    maxCount: 1,
+    sourceBuilding: 'celestialPantheon',
+    targetBuilding: 'beeGod',
+    bonusPerSource: 0.15,
+  },
 ]
 
 // ===================================================
-// Prestige Talents — Buyable with Royal Jelly
+// Prestige Talents — Buyable with Royal Jelly 👑
 // ===================================================
 export const PRESTIGE_TALENTS = [
   {
     id: 'goldenSpeed',
-    name: "Instinct Doré",
+    name: 'Instinct Doré',
+    name_fr: 'Instinct Doré',
+    name_en: 'Golden Instinct',
     icon: '⚡',
     description: "L'Abeille Dorée apparaît 25% plus souvent.",
+    description_fr: "L'Abeille Dorée apparaît 25% plus souvent.",
+    description_en: 'Golden Bees appear 25% more frequently.',
     cost: 1,
-    maxCount: 4, // stackable up to 4 times = 100% faster
+    costMultiplier: 1.5,
+    maxCount: 4,
     effect: 'goldenBeeSpeed',
-    effectValue: 0.25, // per level
+    effectValue: 0.25,
   },
   {
     id: 'clickForce',
-    name: "Force du Clic",
+    name: 'Force du Clic',
+    name_fr: 'Force du Clic',
+    name_en: 'Click Force',
     icon: '💪',
-    description: "Multiplie la puissance de clic par x1.5.",
+    description: 'Multiplie la puissance de clic par x1.5.',
+    description_fr: 'Multiplie la puissance de clic par x1.5.',
+    description_en: 'Multiplies manual click power by x1.5 per level.',
     cost: 2,
-    maxCount: 5,
+    costMultiplier: 1.5,
+    maxCount: 10,
     effect: 'clickMultiplier',
-    effectValue: 1.5, // multiplicative per level
+    effectValue: 1.5,
   },
   {
     id: 'productionBoost',
-    name: "Boost de Production",
+    name: 'Boost de Production',
+    name_fr: 'Boost de Production',
+    name_en: 'Production Surge',
     icon: '🚀',
-    description: "Multiplie toute la production passive par x1.25.",
+    description: 'Multiplie toute la production passive par x1.25.',
+    description_fr: 'Multiplie toute la production passive par x1.25.',
+    description_en: 'Multiplies all passive honey production by x1.25 per level.',
     cost: 3,
-    maxCount: 10,
+    costMultiplier: 1.4,
+    maxCount: 20,
     effect: 'productionMultiplier',
     effectValue: 1.25,
   },
   {
     id: 'headStart',
-    name: "Départ en Trombe",
+    name: 'Départ en Trombe',
+    name_fr: 'Départ en Trombe',
+    name_en: 'Head Start',
     icon: '🏁',
-    description: "Commencez chaque prestige avec 10 000 miel.",
+    description: 'Commencez chaque prestige avec 10 000 miel.',
+    description_fr: 'Commencez chaque prestige avec 10 000 miel.',
+    description_en: 'Start every prestige run with 10,000 extra honey.',
     cost: 1,
-    maxCount: 5, // stackable: 10k, 20k, 30k...
+    costMultiplier: 1.5,
+    maxCount: 10,
     effect: 'startingHoney',
     effectValue: 10000,
   },
   {
     id: 'frenzyDuration',
-    name: "Frenzy Prolongé",
+    name: 'Frenzy Prolongé',
+    name_fr: 'Frenzy Prolongé',
+    name_en: 'Extended Frenzy',
     icon: '🔥',
-    description: "La durée de la Frenzy augmente de +10 secondes.",
+    description: 'La durée de la Frenzy augmente de +10 secondes.',
+    description_fr: 'La durée de la Frenzy augmente de +10 secondes.',
+    description_en: 'Frenzy buff duration is increased by +10 seconds per level.',
     cost: 2,
-    maxCount: 5,
+    costMultiplier: 1.5,
+    maxCount: 10,
     effect: 'frenzyDuration',
-    effectValue: 10, // seconds per level
+    effectValue: 10,
   },
   {
     id: 'jellyHarvest',
-    name: "Récolte de Gelée",
+    name: 'Récolte de Gelée',
+    name_fr: 'Récolte de Gelée',
+    name_en: 'Jelly Harvester',
     icon: '🍯',
     description: "Gagnez 10% de Gelée Royale en plus lors de l'Ascension.",
+    description_fr: "Gagnez 10% de Gelée Royale en plus lors de l'Ascension.",
+    description_en: 'Earn +10% more Royal Jelly upon performing an Ascension.',
     cost: 5,
-    maxCount: 10,
+    costMultiplier: 1.5,
+    maxCount: 15,
     effect: 'jellyBonus',
-    effectValue: 0.10, // +10% per level
+    effectValue: 0.10,
   },
   {
     id: 'comboMaster',
-    name: "Maître du Combo",
+    name: 'Maître du Combo',
+    name_fr: 'Maître du Combo',
+    name_en: 'Combo Master',
     icon: '🎯',
-    description: "La jauge de combo se remplit 20% plus vite.",
+    description: 'La jauge de combo se remplit 20% plus vite.',
+    description_fr: 'La jauge de combo se remplit 20% plus vite.',
+    description_en: 'Combo hits accumulate 20% faster per level.',
     cost: 3,
-    maxCount: 5,
+    costMultiplier: 1.5,
+    maxCount: 10,
     effect: 'comboSpeed',
     effectValue: 0.20,
   },
   {
     id: 'milestonePower',
-    name: "Pouvoir des Paliers",
+    name: 'Pouvoir des Paliers',
+    name_fr: 'Pouvoir des Paliers',
+    name_en: 'Milestone Power',
     icon: '📈',
-    description: "Les paliers de bâtiments donnent x2.5 au lieu de x2.",
+    description: 'Les paliers de bâtiments donnent x2.5 au lieu de x2.',
+    description_fr: 'Les paliers de bâtiments donnent x2.5 au lieu de x2.',
+    description_en: 'Building milestone multipliers grant x2.5 instead of x2.',
     cost: 10,
+    costMultiplier: 1,
     maxCount: 1,
     effect: 'milestoneBoost',
     effectValue: 2.5,
   },
+  // --- NOUVEAUX TALENTS CÉLESTES HAUT NIVEAU & ENDGAME ---
+  {
+    id: 'cosmicTouch',
+    name: 'Touche Cosmique',
+    name_fr: 'Touche Cosmique',
+    name_en: 'Cosmic Touch',
+    icon: '✨',
+    description: 'Augmente la force de clic de base de +100% par niveau.',
+    description_fr: 'Augmente la force de clic de base de +100% par niveau.',
+    description_en: 'Increases base click power by +100% per level.',
+    cost: 25,
+    costMultiplier: 1.4,
+    maxCount: 20,
+    effect: 'cosmicTouch',
+    effectValue: 1.0,
+  },
+  {
+    id: 'astralSwarm',
+    name: 'Essaim Astral',
+    name_fr: 'Essaim Astral',
+    name_en: 'Astral Swarm',
+    icon: '🌌',
+    description: 'Multiplie toute la production passive de +50% par niveau.',
+    description_fr: 'Multiplie toute la production passive de +50% par niveau.',
+    description_en: 'Boosts entire passive production by +50% per level.',
+    cost: 50,
+    costMultiplier: 1.4,
+    maxCount: 20,
+    effect: 'astralSwarm',
+    effectValue: 0.50,
+  },
+  {
+    id: 'royalSynergy',
+    name: 'Résonance Royale',
+    name_fr: 'Résonance Royale',
+    name_en: 'Royal Synergy',
+    icon: '💎',
+    description: 'Chaque Gelée Royale possédée donne +0.05% HPS supplémentaire par niveau.',
+    description_fr: 'Chaque Gelée Royale possédée donne +0.05% HPS supplémentaire par niveau.',
+    description_en: 'Each Royal Jelly held provides an extra +0.05% HPS per level.',
+    cost: 100,
+    costMultiplier: 1.5,
+    maxCount: 10,
+    effect: 'royalSynergy',
+    effectValue: 0.0005,
+  },
+  {
+    id: 'critMaster',
+    name: 'Pique Critique',
+    name_fr: 'Pique Critique',
+    name_en: 'Critical Sting',
+    icon: '🗡️',
+    description: '5% de chance par niveau d\'infliger un coup critique de clic x10.',
+    description_fr: '5% de chance par niveau d\'infliger un coup critique de clic x10.',
+    description_en: '5% chance per level to land a devastating x10 critical click.',
+    cost: 200,
+    costMultiplier: 1.5,
+    maxCount: 10,
+    effect: 'critChance',
+    effectValue: 0.05,
+  },
+  {
+    id: 'hyperFrenzy',
+    name: 'Hyper Frenzy',
+    name_fr: 'Hyper Frenzy',
+    name_en: 'Hyper Frenzy',
+    icon: '⚡',
+    description: 'Le multiplicateur Frenzy de l\'Abeille Dorée augmente de +5x par niveau (x12, x17, x22...).',
+    description_fr: 'Le multiplicateur Frenzy de l\'Abeille Dorée augmente de +5x par niveau (x12, x17, x22...).',
+    description_en: 'Golden Bee Frenzy multiplier gains +5x per level (x12, x17, x22...).',
+    cost: 500,
+    costMultiplier: 1.6,
+    maxCount: 5,
+    effect: 'hyperFrenzy',
+    effectValue: 5,
+  },
+  {
+    id: 'bossSlayer',
+    name: 'Pourfendeur de Titans',
+    name_fr: 'Pourfendeur de Titans',
+    name_en: 'Titan Slayer',
+    icon: '⚔️',
+    description: 'Augmente les dégâts infligés aux Boss de Raid de +25% par niveau.',
+    description_fr: 'Augmente les dégâts infligés aux Boss de Raid de +25% par niveau.',
+    description_en: 'Increases manual damage dealt to Co-op Raid Bosses by +25% per level.',
+    cost: 1000,
+    costMultiplier: 1.5,
+    maxCount: 10,
+    effect: 'bossSlayer',
+    effectValue: 0.25,
+  },
+  {
+    id: 'celestialDiscount',
+    name: 'Grâce Divine',
+    name_fr: 'Grâce Divine',
+    name_en: 'Celestial Discount',
+    icon: '🏷️',
+    description: 'Réduit le coût en miel de tous les bâtiments et clics de 5% par rang (max -40%).',
+    description_fr: 'Réduit le coût en miel de tous les bâtiments et clics de 5% par rang (max -40%).',
+    description_en: 'Reduces honey cost of all hives and clicks by 5% per rank (max -40%).',
+    cost: 750,
+    costMultiplier: 1.6,
+    maxCount: 8,
+    effect: 'celestialDiscount',
+    effectValue: 0.05,
+  },
+  {
+    id: 'nectarDuplicator',
+    name: 'Duplicateur de Nectar',
+    name_fr: 'Duplicateur de Nectar',
+    name_en: 'Nectar Duplicator',
+    icon: '🎲',
+    description: '10% de chance par rang qu\'un clic double instantanément son gain de miel.',
+    description_fr: '10% de chance par rang qu\'un clic double instantanément son gain de miel.',
+    description_en: '10% chance per rank for a click to yield double honey rewards.',
+    cost: 1500,
+    costMultiplier: 1.6,
+    maxCount: 5,
+    effect: 'nectarDuplicator',
+    effectValue: 0.10,
+  },
+  {
+    id: 'infiniteAscension',
+    name: 'Transcendance Éternelle',
+    name_fr: 'Transcendance Éternelle',
+    name_en: 'Eternal Transcendence',
+    icon: '♾️',
+    description: 'Démultiplie toute votre puissance (HPS et Clic) par x2 par niveau.',
+    description_fr: 'Démultiplie toute votre puissance (HPS et Clic) par x2 par niveau.',
+    description_en: 'Multiplies all your stats (HPS and Click Power) by x2 per level.',
+    cost: 2500,
+    costMultiplier: 2.0,
+    maxCount: 6,
+    effect: 'infiniteAscension',
+    effectValue: 2.0,
+  },
+  {
+    id: 'godhood',
+    name: 'Divinité Suprême',
+    name_fr: 'Divinité Suprême',
+    name_en: 'Supreme Hive Godhood',
+    icon: '🌟',
+    description: 'Le sacre ultime : +500% HPS, +500% Force de Clic et +50% Dégâts Boss !',
+    description_fr: 'Le sacre ultime : +500% HPS, +500% Force de Clic et +50% Dégâts Boss !',
+    description_en: 'The ultimate ascension: +500% HPS, +500% Click Power, and +50% Boss Damage!',
+    cost: 10000,
+    costMultiplier: 1,
+    maxCount: 1,
+    effect: 'godhood',
+    effectValue: 5.0,
+  },
 ]
 
 /**
- * Calculate the current cost of an upgrade based on how many the player owns
+ * Calculate the current cost of an upgrade based on count and discounts
  */
-export function getUpgradeCost(upgrade, count) {
-  return Math.floor(upgrade.baseCost * Math.pow(upgrade.costMultiplier, count))
+export function getUpgradeCost(upgrade, count, discountPercent = 0) {
+  const raw = Math.floor(upgrade.baseCost * Math.pow(upgrade.costMultiplier, count))
+  if (discountPercent > 0) {
+    return Math.max(1, Math.floor(raw * (1 - Math.min(0.75, discountPercent))))
+  }
+  return raw
 }
 
 /**
- * Calculate click upgrade cost based on how many the player owns
+ * Calculate click upgrade cost based on count and discounts
  */
-export function getClickUpgradeCost(upgrade, count) {
-  return Math.floor(upgrade.cost * Math.pow(upgrade.costMultiplier, count))
+export function getClickUpgradeCost(upgrade, count, discountPercent = 0) {
+  const raw = Math.floor(upgrade.cost * Math.pow(upgrade.costMultiplier, count))
+  if (discountPercent > 0) {
+    return Math.max(1, Math.floor(raw * (1 - Math.min(0.75, discountPercent))))
+  }
+  return raw
 }
 
 /**
@@ -569,6 +1207,15 @@ export function getClickUpgradeCost(upgrade, count) {
  */
 export function getSynergyCost(synergy, count) {
   return Math.floor(synergy.cost * Math.pow(synergy.costMultiplier, count))
+}
+
+/**
+ * Calculate prestige talent cost with exponential scaling
+ */
+export function getPrestigeTalentCost(talent, count = 0) {
+  if (!talent) return 0
+  if (!talent.costMultiplier || talent.costMultiplier <= 1) return talent.cost
+  return Math.floor(talent.cost * Math.pow(talent.costMultiplier, count))
 }
 
 /**
@@ -581,7 +1228,10 @@ export function formatNumber(num) {
     return num % 1 === 0 ? num.toString() : num.toFixed(1)
   }
 
-  const suffixes = ['', 'K', 'M', 'B', 'T', 'Qa', 'Qi', 'Sx', 'Sp', 'Oc']
+  const suffixes = [
+    '', 'K', 'M', 'B', 'T', 'Qa', 'Qi', 'Sx', 'Sp', 'Oc', 'No', 'Dc',
+    'Ud', 'Dd', 'Td', 'Qad', 'Qid', 'Sxd', 'Spd', 'Ocd', 'Nod', 'Vg'
+  ]
   const tier = Math.floor(Math.log10(Math.abs(num)) / 3)
 
   if (tier === 0) return num.toFixed(0)

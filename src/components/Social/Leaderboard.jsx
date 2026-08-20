@@ -7,9 +7,11 @@ import { collection, query, orderBy, limit, getDocs, onSnapshot, doc, getDoc } f
 import { db } from '../../firebase'
 import { formatNumber } from '../../data/upgrades'
 import { useAuth } from '../../contexts/AuthContext'
+import { useLanguage } from '../../contexts/LanguageContext'
 
 export default function Leaderboard() {
   const { user } = useAuth()
+  const { t } = useLanguage()
   const [entries, setEntries] = useState([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('global') // 'global' or 'friends'
@@ -22,7 +24,7 @@ export default function Leaderboard() {
       try {
         const profileDoc = await getDoc(doc(db, 'users', user.uid))
         const friends = profileDoc.data()?.friends || []
-        setFriendIds([...friends, user.uid]) // include self in friends leaderboard
+        setFriendIds([...friends, user.uid])
       } catch (err) {
         console.error('Error loading friends for leaderboard:', err)
       }
@@ -36,7 +38,6 @@ export default function Leaderboard() {
 
     const unsubscribe = onSnapshot(q, async (snapshot) => {
       try {
-        // Fetch users to get display names and PFPs
         const usersRef = collection(db, 'users')
         const usersSnapshot = await getDocs(usersRef)
         const usersMap = {}
@@ -47,11 +48,11 @@ export default function Leaderboard() {
         const results = []
         snapshot.forEach(doc => {
           const data = doc.data()
-          const user = usersMap[doc.id]
+          const u = usersMap[doc.id]
           results.push({
             uid: doc.id,
-            displayName: user?.displayName || 'Joueur inconnu',
-            photoURL: user?.photoURL || null,
+            displayName: u?.displayName || 'Player',
+            photoURL: u?.photoURL || null,
             totalHoney: data.totalHoney || 0,
             honeyPerSecond: data.honeyPerSecond || 0,
             royalJelly: data.royalJelly || 0,
@@ -86,7 +87,6 @@ export default function Leaderboard() {
     return `#${index + 1}`
   }
 
-  // Filter entries based on tab
   const filteredEntries = filter === 'friends'
     ? entries.filter(e => friendIds.includes(e.uid))
     : entries
@@ -94,7 +94,7 @@ export default function Leaderboard() {
   return (
     <div className="leaderboard-container">
       <div className="mc-panel" style={{ marginBottom: '16px' }}>
-        <h2>🏆 CLASSEMENT</h2>
+        <h2>{t('leaderboard_title')}</h2>
 
         {/* Filter tabs */}
         <div style={{ display: 'flex', gap: '0', marginBottom: '16px', borderBottom: '3px solid var(--mc-border-dark)' }}>
@@ -103,22 +103,22 @@ export default function Leaderboard() {
             onClick={() => setFilter('global')}
             style={{ flex: 1 }}
           >
-            🌍 Mondial
+            🌍 Global
           </button>
           <button
             className={`shop-tab ${filter === 'friends' ? 'active' : ''}`}
             onClick={() => setFilter('friends')}
             style={{ flex: 1 }}
           >
-            👥 Entre Amis
+            👥 {t('nav_friends')}
           </button>
         </div>
 
-        {loading && <div className="loading-text" style={{ textAlign: 'center' }}>Chargement...</div>}
+        {loading && <div className="loading-text" style={{ textAlign: 'center' }}>{t('loading')}</div>}
 
         {!loading && filteredEntries.length === 0 && (
           <div className="loading-text" style={{ textAlign: 'center' }}>
-            {filter === 'friends' ? "Aucun ami dans le classement. Ajoutez des amis !" : "Aucun joueur pour l'instant."}
+            {t('leaderboard_empty')}
           </div>
         )}
 
