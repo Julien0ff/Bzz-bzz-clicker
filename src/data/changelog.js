@@ -2,44 +2,75 @@
 // Changelog Data — What's new in each version
 // ===================================================
 
-export const APP_VERSION = '4.0.0' // Current deployed version
+export const APP_VERSION = '4.5.0' // Current deployed version
 
 export const CHANGELOGS = [
   {
-    version: '4.0.0',
-    title: '⚔️ Mise à Jour : Raid Coop & Corrections Globales',
+    version: '4.5.0',
+    title: '⚔️ Mise à Jour : Salons de Raid, Animations & Cooldowns',
     date: '20 Août 2026',
     badge: 'ACTUELLE',
     highlights: [
       {
         type: 'new',
+        icon: '🏰',
+        label: 'Salons de Raid & Invitations d\'Amis',
+        desc: 'Créez votre propre salon de combat ou rejoignez celui d\'un ami. Invitez vos compagnons en un clic avec notification instantanée !'
+      },
+      {
+        type: 'new',
+        icon: '👥',
+        label: 'Règle des 2 Joueurs Minimum & Statut Prêt',
+        desc: 'Le combat ne peut démarrer qu\'avec au moins 2 apiculteurs prêts dans le salon pour une vraie expérience coopérative.'
+      },
+      {
+        type: 'ui',
+        icon: '💥',
+        label: 'Animations & Effets Tranchants (Slash FX)',
+        desc: 'Animation de flottement du boss, secousses violentes à l\'impact, flashs lumineux et effets de coups d\'épée lors de chaque attaque.'
+      },
+      {
+        type: 'balance',
+        icon: '⏳',
+        label: 'Paliers de Boss & Chronomètres de Réapparition',
+        desc: '3 Boss colossaux avec temps de récupération échelonnés (30 min, 1h, 1h30) et compte à rebours en direct entre chaque victoire.'
+      },
+      {
+        type: 'fix',
+        icon: '🛡️',
+        label: 'Optimisations & Zéro Erreur Console',
+        desc: 'Correction du chargement de la police Minecraft et sécurisation de tous les écouteurs réseau Firestore.'
+      }
+    ]
+  },
+  {
+    version: '4.0.0',
+    title: '⚔️ Mise à Jour : Raid Coop & Corrections Globales',
+    date: '20 Août 2026',
+    highlights: [
+      {
+        type: 'new',
         icon: '⚔️',
         label: 'Raid Coopératif de Ruche',
-        desc: 'Unissez vos forces avec tous les apiculteurs pour vaincre le Frelon Colossal et remporter du miel et de la Gelée Royale !'
+        desc: 'Affrontez le Frelon Colossal et remportez du miel et de la Gelée Royale !'
       },
       {
         type: 'fix',
         icon: '🌐',
         label: 'Correction Erreur 404',
-        desc: 'Rafraîchir la page sur /friends, /stats ou /leaderboard fonctionne désormais sans aucune erreur 404.'
+        desc: 'Rafraîchir la page sur /friends, /stats ou /leaderboard fonctionne sans erreur 404.'
       },
       {
         type: 'balance',
         icon: '🐝',
-        label: 'Fréquence Abeille Dorée Réajustée',
-        desc: 'Apparition rééquilibrée (entre 1 et 3 minutes) pour préserver la rareté et la puissance des buffs.'
+        label: 'Abeille Dorée Rééquilibrée',
+        desc: 'Apparition ajustée entre 1 et 3 minutes pour préserver la rareté des buffs.'
       },
       {
         type: 'ui',
         icon: '🎨',
-        label: 'Refonte Visuelle de la Boutique',
-        desc: 'Paliers intégrés directement dans les cartes de bâtiments et typographie nettement plus lisible pour les descriptions de synergies.'
-      },
-      {
-        type: 'social',
-        icon: '👥',
-        label: 'Synchronisation des Demandes d\'Amis',
-        desc: 'Correction du statut en attente lors de l\'acceptation mutuelle et actualisation automatique en temps réel.'
+        label: 'Refonte de la Boutique',
+        desc: 'Paliers intégrés directement dans les cartes et typographie fluide.'
       }
     ]
   },
@@ -52,13 +83,13 @@ export const CHANGELOGS = [
         type: 'balance',
         icon: '⚡',
         label: 'Jauge de Combo & Fièvre',
-        desc: 'Enchaînez les clics pour débloquer des multiplicateurs allant jusqu\'à x5.'
+        desc: 'Enchaînez les clics pour débloquer des multiplicateurs jusqu\'à x5.'
       },
       {
         type: 'balance',
         icon: '📈',
         label: 'Synergie Clics / HPS',
-        desc: 'Vos améliorations de clic profitent directement de votre production passive.'
+        desc: 'Les améliorations de clic profitent directement de votre production/sec.'
       },
       {
         type: 'new',
@@ -70,7 +101,7 @@ export const CHANGELOGS = [
         type: 'new',
         icon: '🔬',
         label: 'Recherches & Synergies',
-        desc: '8 synergies inter-bâtiments pour booster les ruches, abeilles et fleurs.'
+        desc: '8 synergies inter-bâtiments pour doper vos ruches et abeilles.'
       }
     ]
   }

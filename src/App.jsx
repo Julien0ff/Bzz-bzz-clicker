@@ -19,6 +19,8 @@ import ChangelogModal from './components/UI/ChangelogModal'
 import BanScreen from './components/UI/BanScreen'
 import { useGameLoop } from './hooks/useGameLoop'
 import { useSaveGame } from './hooks/useSaveGame'
+import { doc, onSnapshot, setDoc } from 'firebase/firestore'
+import { db } from './firebase'
 import beeSrc from '/assets/Bee_(Dungeons).png'
 import MusicPlayer from './components/UI/MusicPlayer'
 import Intermission from './components/UI/Intermission'
@@ -522,6 +524,8 @@ function GameEngine() {
 function AuthenticatedApp() {
   const [showChangelog, setShowChangelog] = useState(false)
 
+  const { user } = useAuth()
+
   // Automatic first-time update pop-up check on refresh/mount
   useEffect(() => {
     const lastSeen = localStorage.getItem('bzz_last_seen_version')
@@ -529,6 +533,36 @@ function AuthenticatedApp() {
       setShowChangelog(true)
     }
   }, [])
+
+  // Real-time listener for Raid invites from friends
+  useEffect(() => {
+    if (!user) return
+    const unsub = onSnapshot(
+      doc(db, 'users', user.uid),
+      (docSnap) => {
+        if (docSnap.exists()) {
+          const invites = docSnap.data().raidInvites || []
+          if (invites.length > 0) {
+            const latest = invites[invites.length - 1]
+            const age = Date.now() - new Date(latest.sentAt).getTime()
+            if (age < 60000) {
+              window.dispatchEvent(
+                new CustomEvent('system_toast', {
+                  detail: {
+                    type: 'success',
+                    title: '⚔️ Invitation au Raid !',
+                    message: `${latest.hostName} vous invite à son salon de Raid Coop !`,
+                  },
+                })
+              )
+            }
+          }
+        }
+      },
+      () => {}
+    )
+    return () => unsub()
+  }, [user])
 
   const handleCloseChangelog = () => {
     localStorage.setItem('bzz_last_seen_version', APP_VERSION)
