@@ -43,7 +43,7 @@ export default function ChangelogModal({ isOpen, onClose }) {
       >
         <div style={{ textAlign: 'center', borderBottom: '3px solid var(--mc-border-dark)', paddingBottom: '12px' }}>
           <div style={{ fontSize: '8px', color: 'var(--honey-light)', letterSpacing: '2px', marginBottom: '4px' }}>
-            BZZ BZZ CLICKER v{APP_VERSION}
+            BEE CLICKER v{APP_VERSION}
           </div>
           <h2 style={{ margin: 0, fontSize: '13px', color: 'var(--text-primary)' }}>
             📜 NOUVEAUTÉS DE LA VERSION

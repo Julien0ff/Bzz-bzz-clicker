@@ -64,6 +64,9 @@ export default function Leaderboard() {
         console.error('Error fetching leaderboard:', err)
         setLoading(false)
       }
+    }, (error) => {
+      console.warn('Leaderboard snapshot notice:', error.message)
+      setLoading(false)
     })
 
     return () => unsubscribe()

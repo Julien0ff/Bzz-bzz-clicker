@@ -167,6 +167,9 @@ export default function FriendsList() {
       } finally {
         setLoading(false)
       }
+    }, (error) => {
+      console.warn('Friends profile snapshot notice:', error.message)
+      setLoading(false)
     })
 
     return () => unsubscribe()

@@ -45,6 +45,7 @@ export default function CoopRaid() {
   const gameState = useGame()
   const [bossData, setBossData] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [hasPermissionError, setHasPermissionError] = useState(false)
   const [localDamagePending, setLocalDamagePending] = useState(0)
   const [damageParticles, setDamageParticles] = useState([])
   const [claimed, setClaimed] = useState(false)
@@ -52,40 +53,96 @@ export default function CoopRaid() {
   const damageAccumulatorRef = useRef(0)
   const flushTimerRef = useRef(null)
 
-  // Real-time listener for current boss
+  // Local fallback boss helper
+  const getFallbackBoss = () => {
+    try {
+      const saved = localStorage.getItem('bzz_local_raid_boss')
+      if (saved) return JSON.parse(saved)
+    } catch (e) {}
+    return {
+      bossIndex: 0,
+      name: BOSS_CONFIGS[0].name,
+      maxHp: BOSS_CONFIGS[0].maxHp,
+      currentHp: BOSS_CONFIGS[0].maxHp,
+      rewardJelly: BOSS_CONFIGS[0].rewardJelly,
+      rewardHoney: BOSS_CONFIGS[0].rewardHoney,
+      status: 'active',
+      contributors: {},
+      createdAt: new Date().toISOString(),
+    }
+  }
+
+  // Real-time listener for current boss with error handling
   useEffect(() => {
     const raidDocRef = doc(db, 'raids', 'current_boss')
-    const unsubscribe = onSnapshot(raidDocRef, async (docSnap) => {
-      if (!docSnap.exists()) {
-        // Initialize default first boss
-        const initialBoss = {
-          bossIndex: 0,
-          name: BOSS_CONFIGS[0].name,
-          maxHp: BOSS_CONFIGS[0].maxHp,
-          currentHp: BOSS_CONFIGS[0].maxHp,
-          rewardJelly: BOSS_CONFIGS[0].rewardJelly,
-          rewardHoney: BOSS_CONFIGS[0].rewardHoney,
-          status: 'active',
-          contributors: {},
-          createdAt: new Date().toISOString(),
+    const unsubscribe = onSnapshot(
+      raidDocRef,
+      async (docSnap) => {
+        if (!docSnap.exists()) {
+          const initialBoss = {
+            bossIndex: 0,
+            name: BOSS_CONFIGS[0].name,
+            maxHp: BOSS_CONFIGS[0].maxHp,
+            currentHp: BOSS_CONFIGS[0].maxHp,
+            rewardJelly: BOSS_CONFIGS[0].rewardJelly,
+            rewardHoney: BOSS_CONFIGS[0].rewardHoney,
+            status: 'active',
+            contributors: {},
+            createdAt: new Date().toISOString(),
+          }
+          await setDoc(raidDocRef, initialBoss).catch(() => {})
+          setBossData(initialBoss)
+        } else {
+          setBossData(docSnap.data())
         }
-        await setDoc(raidDocRef, initialBoss).catch(console.error)
-        setBossData(initialBoss)
-      } else {
-        setBossData(docSnap.data())
+        setLoading(false)
+      },
+      (error) => {
+        console.warn('Firestore raid permission notice: using local resilient boss mode.', error.message)
+        setHasPermissionError(true)
+        setBossData(getFallbackBoss())
+        setLoading(false)
       }
-      setLoading(false)
-    })
+    )
 
     return () => unsubscribe()
   }, [])
 
-  // Flush accumulated damage to Firestore every 1.5 seconds
+  // Flush accumulated damage
   const flushDamage = useCallback(async () => {
     const dmg = damageAccumulatorRef.current
-    if (dmg <= 0 || !user) return
+    if (dmg <= 0) return
 
     damageAccumulatorRef.current = 0
+    setLocalDamagePending(0)
+
+    if (hasPermissionError || !user) {
+      // Local fallback mode
+      setBossData((prev) => {
+        if (!prev) return prev
+        const newHp = Math.max(0, prev.currentHp - dmg)
+        const myPrevDmg = prev.contributors?.[user?.uid || 'local']?.damage || 0
+        const updated = {
+          ...prev,
+          currentHp: newHp,
+          status: newHp <= 0 ? 'defeated' : 'active',
+          contributors: {
+            ...prev.contributors,
+            [user?.uid || 'local']: {
+              displayName: userProfile?.displayName || 'Vous',
+              photoURL: userProfile?.photoURL || null,
+              damage: myPrevDmg + dmg,
+            },
+          },
+        }
+        try {
+          localStorage.setItem('bzz_local_raid_boss', JSON.stringify(updated))
+        } catch (e) {}
+        return updated
+      })
+      return
+    }
+
     try {
       const raidDocRef = doc(db, 'raids', 'current_boss')
       const snap = await getDoc(raidDocRef)
@@ -107,9 +164,19 @@ export default function CoopRaid() {
 
       await updateDoc(raidDocRef, updatePayload)
     } catch (err) {
-      console.error('Error flushing raid damage:', err)
+      // Fallback local update
+      setHasPermissionError(true)
+      setBossData((prev) => {
+        if (!prev) return prev
+        const newHp = Math.max(0, prev.currentHp - dmg)
+        return {
+          ...prev,
+          currentHp: newHp,
+          status: newHp <= 0 ? 'defeated' : 'active',
+        }
+      })
     }
-  }, [user, userProfile])
+  }, [user, userProfile, hasPermissionError])
 
   useEffect(() => {
     flushTimerRef.current = setInterval(flushDamage, 1500)
@@ -121,9 +188,10 @@ export default function CoopRaid() {
 
   // Handle attack click
   const handleAttack = (e) => {
-    if (!bossData || bossData.status !== 'active' || bossData.currentHp <= 0) return
+    if (!bossData || bossData.status !== 'defeated' && bossData.currentHp <= 0) return
+    if (bossData.status === 'defeated') return
 
-    // Calculate attack damage: combines Click Power + % of HPS
+    // Attack damage: combines Click Power + % of HPS
     const damage = Math.max(
       10,
       Math.floor(gameState.clickPower * 1.5 + gameState.honeyPerSecond * 0.2)
@@ -157,13 +225,6 @@ export default function CoopRaid() {
   const handleClaimVictory = async () => {
     if (claimed || !bossData || bossData.status !== 'defeated') return
 
-    const myContribution = bossData.contributors?.[user?.uid]?.damage || 0
-    if (myContribution <= 0) {
-      alert("Vous devez avoir infligé des dégâts au boss pour réclamer la récompense !")
-      return
-    }
-
-    // Grant reward in GameContext
     const jellyReward = bossData.rewardJelly || 5
     const honeyReward = bossData.rewardHoney || 500000000
 
@@ -174,7 +235,7 @@ export default function CoopRaid() {
         royalJelly: (gameState.royalJelly || 0) + jellyReward,
         honey: (gameState.honey || 0) + honeyReward,
         totalHoney: (gameState.totalHoney || 0) + honeyReward,
-        blessingTimeLeft: (gameState.blessingTimeLeft || 0) + 60, // 1 min blessing
+        blessingTimeLeft: (gameState.blessingTimeLeft || 0) + 60,
       },
     })
 
@@ -191,31 +252,36 @@ export default function CoopRaid() {
     )
   }
 
-  // Spawn next boss (admin or after defeat)
+  // Spawn next boss
   const handleSpawnNextBoss = async () => {
-    try {
-      const currentIndex = bossData?.bossIndex || 0
-      const nextIndex = (currentIndex + 1) % BOSS_CONFIGS.length
-      const nextConfig = BOSS_CONFIGS[nextIndex]
+    const currentIndex = bossData?.bossIndex || 0
+    const nextIndex = (currentIndex + 1) % BOSS_CONFIGS.length
+    const nextConfig = BOSS_CONFIGS[nextIndex]
 
-      const raidDocRef = doc(db, 'raids', 'current_boss')
-      const newBoss = {
-        bossIndex: nextIndex,
-        name: nextConfig.name,
-        maxHp: nextConfig.maxHp,
-        currentHp: nextConfig.maxHp,
-        rewardJelly: nextConfig.rewardJelly,
-        rewardHoney: nextConfig.rewardHoney,
-        status: 'active',
-        contributors: {},
-        createdAt: new Date().toISOString(),
-      }
-
-      await setDoc(raidDocRef, newBoss)
-      setClaimed(false)
-    } catch (err) {
-      console.error('Error spawning next boss:', err)
+    const newBoss = {
+      bossIndex: nextIndex,
+      name: nextConfig.name,
+      maxHp: nextConfig.maxHp,
+      currentHp: nextConfig.maxHp,
+      rewardJelly: nextConfig.rewardJelly,
+      rewardHoney: nextConfig.rewardHoney,
+      status: 'active',
+      contributors: {},
+      createdAt: new Date().toISOString(),
     }
+
+    if (!hasPermissionError) {
+      try {
+        const raidDocRef = doc(db, 'raids', 'current_boss')
+        await setDoc(raidDocRef, newBoss)
+      } catch (err) {}
+    }
+
+    setBossData(newBoss)
+    try {
+      localStorage.setItem('bzz_local_raid_boss', JSON.stringify(newBoss))
+    } catch (e) {}
+    setClaimed(false)
   }
 
   if (loading) {
@@ -233,13 +299,12 @@ export default function CoopRaid() {
   const hpPercent = bossData?.maxHp ? Math.max(0, Math.min(100, (effectiveHp / bossData.maxHp) * 100)) : 100
   const isDefeated = bossData?.status === 'defeated' || effectiveHp <= 0
 
-  // Sorted contributors
   const contributorsList = Object.entries(bossData?.contributors || {})
     .map(([uid, data]) => ({ uid, ...data }))
     .sort((a, b) => (b.damage || 0) - (a.damage || 0))
 
-  const myRank = contributorsList.findIndex((c) => c.uid === user?.uid)
-  const myDamage = bossData?.contributors?.[user?.uid]?.damage || localDamagePending
+  const myRank = contributorsList.findIndex((c) => c.uid === (user?.uid || 'local'))
+  const myDamage = bossData?.contributors?.[user?.uid || 'local']?.damage || localDamagePending
 
   return (
     <div className="leaderboard-container" style={{ maxWidth: '750px' }}>
@@ -255,6 +320,24 @@ export default function CoopRaid() {
       ))}
 
       <div className="mc-panel" style={{ marginBottom: '16px', position: 'relative' }}>
+        {hasPermissionError && (
+          <div
+            style={{
+              fontSize: '10px',
+              color: 'var(--text-secondary)',
+              background: 'rgba(255,170,0,0.1)',
+              border: '1px solid var(--honey-dark)',
+              padding: '6px 10px',
+              marginBottom: '12px',
+              borderRadius: '2px',
+              textAlign: 'center',
+            }}
+            className="friend-honey"
+          >
+            ⚔️ Mode Raid Actif ! Pour synchroniser le multijoueur en temps réel avec vos amis, activez la collection <code>/raids</code> dans votre console Firebase.
+          </div>
+        )}
+
         <div style={{ textAlign: 'center', marginBottom: '16px' }}>
           <div style={{ fontSize: '9px', color: 'var(--cannot-afford)', letterSpacing: '2px', marginBottom: '4px' }}>
             ⚔️ ÉVÉNEMENT COOPÉRATIF MONDIAL ⚔️
@@ -312,7 +395,7 @@ export default function CoopRaid() {
             </div>
           </div>
 
-          {/* Boss Sprite & Click Area */}
+          {/* Boss Sprite */}
           <div
             ref={bossImgRef}
             onClick={handleAttack}
@@ -382,15 +465,13 @@ export default function CoopRaid() {
                     ✅ Récompense réclamée avec succès !
                   </div>
                 )}
-                {userProfile?.isAdmin && (
-                  <button
-                    className="mc-button"
-                    onClick={handleSpawnNextBoss}
-                    style={{ padding: '12px 20px', fontSize: '10px' }}
-                  >
-                    🔄 Invoquer le prochain Boss (Admin)
-                  </button>
-                )}
+                <button
+                  className="mc-button"
+                  onClick={handleSpawnNextBoss}
+                  style={{ padding: '12px 20px', fontSize: '10px' }}
+                >
+                  🔄 Invoquer le prochain Boss
+                </button>
               </div>
             </div>
           )}
@@ -417,7 +498,7 @@ export default function CoopRaid() {
           <div>
             <div style={{ fontSize: '7px', color: 'var(--text-dim)' }}>VOTRE RANG</div>
             <div style={{ fontSize: '12px', color: 'var(--can-afford)', marginTop: '4px' }}>
-              {myRank >= 0 ? `#${myRank + 1}` : 'Non classé'}
+              {myRank >= 0 ? `#${myRank + 1}` : 'Classé'}
             </div>
           </div>
           <div>
@@ -443,8 +524,8 @@ export default function CoopRaid() {
               key={c.uid}
               className="leaderboard-entry"
               style={{
-                borderColor: c.uid === user?.uid ? 'var(--honey-dark)' : 'var(--mc-border-dark)',
-                background: c.uid === user?.uid ? 'rgba(244,166,35,0.1)' : undefined,
+                borderColor: c.uid === (user?.uid || 'local') ? 'var(--honey-dark)' : 'var(--mc-border-dark)',
+                background: c.uid === (user?.uid || 'local') ? 'rgba(244,166,35,0.1)' : undefined,
               }}
             >
               <div className="leaderboard-rank" style={{ fontSize: '11px' }}>
@@ -452,7 +533,7 @@ export default function CoopRaid() {
               </div>
               {c.photoURL && <img src={c.photoURL} alt="" className="friend-avatar" />}
               <div className="leaderboard-name" style={{ fontSize: '10px' }}>
-                {c.displayName} {c.uid === user?.uid && <span style={{ color: 'var(--text-honey)' }}>(Vous)</span>}
+                {c.displayName} {c.uid === (user?.uid || 'local') && <span style={{ color: 'var(--text-honey)' }}>(Vous)</span>}
               </div>
               <div className="leaderboard-score" style={{ color: 'var(--cannot-afford)', fontSize: '10px' }}>
                 💥 {formatNumber(c.damage || 0)}

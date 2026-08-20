@@ -48,8 +48,11 @@ export default function Intermission() {
             }
           }
         }
+      },
+      (error) => {
+        // Silently catch permission or network error
       }
-    });
+    );
 
     return () => unsubscribe();
   }, []);
