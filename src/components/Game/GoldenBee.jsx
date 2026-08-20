@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
-import { useGame } from '../../contexts/GameContext'
+import { useGame, getEffectiveHPS } from '../../contexts/GameContext'
+import { formatNumber } from '../../data/upgrades'
 import placeholderImg from '../../../assets/no texture.png'
 
 // Base spawn time (in ms) — balanced between 1 min and 3 mins
@@ -7,10 +8,12 @@ const BASE_MIN_SPAWN = 60 * 1000  // 60 seconds (1 min)
 const BASE_MAX_SPAWN = 180 * 1000 // 180 seconds (3 mins)
 
 export default function GoldenBee() {
-  const { dispatch, prestigeTalents } = useGame()
+  const gameState = useGame()
+  const { dispatch, prestigeTalents } = gameState
   const [active, setActive] = useState(false)
   const [position, setPosition] = useState({ top: 0, left: 0 })
   const [beeType, setBeeType] = useState('golden') // golden, diamond, storm, royal
+  const [floatingBonus, setFloatingBonus] = useState(null)
 
   // Calculate spawn speed from prestige talent (up to 50% faster with max talent)
   const goldenSpeedLevel = prestigeTalents?.['goldenSpeed'] || 0
@@ -30,7 +33,6 @@ export default function GoldenBee() {
     }
 
     const spawnGoldenBee = () => {
-      // Random bee type for visual variety
       const typeRand = Math.random()
       if (typeRand < 0.40) setBeeType('golden')
       else if (typeRand < 0.65) setBeeType('storm')
@@ -60,29 +62,39 @@ export default function GoldenBee() {
     e.stopPropagation()
     setActive(false)
 
+    const rect = e.currentTarget.getBoundingClientRect()
+    const clickX = e.clientX || rect.left + rect.width / 2
+    const clickY = e.clientY || rect.top + rect.height / 2
+
     // 4 possible buffs — all positive, weighted randomly
     const rand = Math.random()
 
     if (rand < 0.35) {
       // ⚡ Frenzy x7 pendant 25s (base)
       dispatch({ type: 'GOLDEN_BEE_EFFECT', effectType: 'frenzy' })
-      showToast('⚡ Production x7 !', 'Frenzy activée pendant 25s !', '⚡')
+      showToast('⚡ Production x7 !', 'Frenzy activée pendant 25 secondes !', 'success')
     } else if (rand < 0.60) {
       // 🌧️ Pluie de Miel (+15 min de production instantanément)
-      dispatch({ type: 'GOLDEN_BEE_EFFECT', effectType: 'honey_rain' })
-      showToast('🌧️ Pluie de Miel !', '15 minutes de production instantanées !', '🌧️')
+      const effectiveHps = getEffectiveHPS(gameState)
+      const bonus = Math.max(50000, Math.floor(effectiveHps * 900))
+      
+      dispatch({ type: 'GOLDEN_BEE_EFFECT', effectType: 'honey_rain', bonus })
+      
+      // Floating number effect
+      setFloatingBonus({ x: clickX, y: clickY, text: `+${formatNumber(bonus)} 🍯` })
+      setTimeout(() => setFloatingBonus(null), 1500)
+
+      showToast('🌧️ Pluie de Miel !', `+${formatNumber(bonus)} Miel récolté instantanément (15 min de production) !`, 'success')
     } else if (rand < 0.85) {
       // 💥 Clic Tempête x77 pendant 12s
       dispatch({ type: 'GOLDEN_BEE_EFFECT', effectType: 'click_storm' })
-      showToast('💥 Clic Tempête x77 !', 'Vos clics sont surpuissants pendant 12s !', '💥')
+      showToast('💥 Clic Tempête x77 !', 'Vos clics sont surpuissants pendant 12 secondes !', 'success')
     } else {
       // 👑 Bénédiction Royale x10 pendant 30s
       dispatch({ type: 'GOLDEN_BEE_EFFECT', effectType: 'blessing' })
-      showToast('👑 Bénédiction Royale !', 'Production x10 pendant 30 secondes !', '👑')
+      showToast('👑 Bénédiction Royale !', 'Production x10 pendant 30 secondes !', 'success')
     }
   }
-
-  if (!active) return null
 
   // Different glow colors per bee type
   const glowColors = {
@@ -94,39 +106,60 @@ export default function GoldenBee() {
   const glowColor = glowColors[beeType] || '#ffd700'
 
   return (
-    <div
-      className="golden-bee"
-      style={{
-        position: 'fixed',
-        top: `${position.top}%`,
-        left: '-100px',
-        width: '60px',
-        height: '60px',
-        cursor: 'pointer',
-        zIndex: 9999,
-        animation: 'goldenBeeFly 6.5s linear forwards',
-      }}
-      onClick={handleClick}
-    >
-      <img
-        src={placeholderImg}
-        alt="Golden Bee"
-        style={{
-          width: '100%',
-          height: '100%',
-          objectFit: 'contain',
-          imageRendering: 'pixelated',
-          animation: 'goldenGlow 1.5s ease-in-out infinite',
-          filter: `drop-shadow(0 0 15px ${glowColor}) drop-shadow(0 0 30px ${glowColor})`,
-        }}
-      />
-    </div>
+    <>
+      {/* Floating text on click */}
+      {floatingBonus && (
+        <div
+          className="raid-damage-particle"
+          style={{
+            position: 'fixed',
+            left: floatingBonus.x,
+            top: floatingBonus.y,
+            color: 'var(--honey-light)',
+            fontSize: '14px',
+            zIndex: 10000,
+          }}
+        >
+          {floatingBonus.text}
+        </div>
+      )}
+
+      {active && (
+        <div
+          className="golden-bee"
+          style={{
+            position: 'fixed',
+            top: `${position.top}%`,
+            left: '-100px',
+            width: '60px',
+            height: '60px',
+            cursor: 'pointer',
+            zIndex: 9999,
+            animation: 'goldenBeeFly 6.5s linear forwards',
+          }}
+          onClick={handleClick}
+        >
+          <img
+            src={placeholderImg}
+            alt="Golden Bee"
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'contain',
+              imageRendering: 'pixelated',
+              animation: 'goldenGlow 1.5s ease-in-out infinite',
+              filter: `drop-shadow(0 0 15px ${glowColor}) drop-shadow(0 0 30px ${glowColor})`,
+            }}
+          />
+        </div>
+      )}
+    </>
   )
 }
 
-function showToast(name, description, icon) {
-  const event = new CustomEvent('achievement_unlocked', {
-    detail: { name, description, icon }
+function showToast(title, message, type = 'success') {
+  const event = new CustomEvent('system_toast', {
+    detail: { title, message, type }
   })
   window.dispatchEvent(event)
 }

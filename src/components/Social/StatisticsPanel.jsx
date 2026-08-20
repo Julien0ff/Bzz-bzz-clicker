@@ -99,6 +99,10 @@ export default function StatisticsPanel() {
                 <span style={{ color: 'var(--honey-light)' }}>{totalClicks?.toLocaleString('fr-FR') || 0}</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px', fontSize: '8px', lineHeight: '1.4' }}>
+                <span style={{ color: 'var(--text-secondary)' }}>Abeilles Dorées :</span>
+                <span style={{ color: 'var(--honey-light)' }}>{gameState.goldenBeesClicked || 0}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px', fontSize: '8px', lineHeight: '1.4' }}>
                 <span style={{ color: 'var(--text-secondary)' }}>Bâtiments possédés :</span>
                 <span style={{ color: 'var(--honey-light)' }}>{totalBuildings}</span>
               </div>
@@ -133,7 +137,7 @@ export default function StatisticsPanel() {
           <div style={{ background: 'var(--mc-button-bg)', padding: '15px', border: '4px solid var(--mc-border-light)', borderRadius: '2px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
               <h3 style={{ color: 'var(--text-honey)', fontSize: '10px' }}>🏆 SUCCÈS ({unlockedAchCount}/{ACHIEVEMENTS.length})</h3>
-              <span style={{ fontSize: '8px', color: 'var(--can-afford)' }}>+{unlockedAchCount}% Prod</span>
+              <span style={{ fontSize: '8px', color: 'var(--can-afford)' }}>+{unlockedAchCount}% Prod Globale</span>
             </div>
             
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
@@ -147,22 +151,24 @@ export default function StatisticsPanel() {
                       display: 'flex', 
                       alignItems: 'center', 
                       gap: '8px', 
-                      background: isUnlocked ? 'var(--bg-panel-inner)' : 'rgba(0,0,0,0.3)',
-                      padding: '8px',
-                      border: `2px solid ${isUnlocked ? 'var(--honey-dark)' : 'var(--mc-border-dark)'}`,
-                      opacity: isUnlocked ? 1 : 0.4,
-                      borderRadius: '2px',
+                      background: isUnlocked ? 'rgba(93, 186, 59, 0.12)' : 'rgba(0,0,0,0.3)',
+                      padding: '10px',
+                      border: `2px solid ${isUnlocked ? 'var(--can-afford)' : 'var(--mc-border-dark)'}`,
+                      opacity: isUnlocked ? 1 : 0.45,
+                      borderRadius: '3px',
                       width: 'calc(50% - 5px)',
-                      cursor: 'help'
                     }}
                   >
-                    <span style={{ fontSize: '16px' }}>{isUnlocked ? ach.icon : '🔒'}</span>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                      <span style={{ fontSize: '8px', color: isUnlocked ? 'var(--text-primary)' : 'var(--text-dim)' }}>
-                        {isUnlocked ? ach.name : '???'}
-                      </span>
-                      <span style={{ fontSize: '6px', color: 'var(--text-secondary)' }}>
-                        {isUnlocked ? ach.description : 'Succès verrouillé'}
+                    <span style={{ fontSize: '18px', flexShrink: 0 }}>{isUnlocked ? ach.icon : '🔒'}</span>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', flex: 1, minWidth: 0 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <span style={{ fontSize: '8px', color: isUnlocked ? 'var(--text-primary)' : 'var(--text-dim)', fontWeight: 'bold' }}>
+                          {ach.name}
+                        </span>
+                        {isUnlocked && <span style={{ fontSize: '8px', color: 'var(--can-afford)' }}>✅</span>}
+                      </div>
+                      <span className="changelog-desc" style={{ fontSize: '10px', color: isUnlocked ? 'var(--text-secondary)' : '#666', lineHeight: '1.3' }}>
+                        {ach.description}
                       </span>
                     </div>
                   </div>

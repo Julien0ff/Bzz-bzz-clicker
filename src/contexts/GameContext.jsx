@@ -22,10 +22,12 @@ const initialState = {
   clickUpgrades: {},     // { upgradeId: count }
   synergyUpgrades: {},   // { synergyId: count }
   totalClicks: 0,        // lifetime clicks
+  goldenBeesClicked: 0,  // lifetime golden bees captured
   playTime: 0,           // total play time in seconds
   achievements: [],      // array of unlocked achievement ids
   royalJelly: 0,         // prestige currency
   prestigeTalents: {},   // { talentId: count }
+  prestigeCount: 0,      // total ascensions performed
   frenzyTimeLeft: 0,     // seconds left for x7 frenzy
   clickStormTimeLeft: 0, // seconds left for x77 click storm
   blessingTimeLeft: 0,   // seconds left for x10 blessing
@@ -36,6 +38,17 @@ const initialState = {
   lastSaved: null,
   // Gift system
   pendingGifts: [],      // array of { fromUid, fromName, type, amount, sentAt }
+}
+
+// --- Effective HPS helper ---
+export function getEffectiveHPS(state) {
+  if (!state) return 0
+  const achievementMulti = 1 + (state.achievements?.length || 0) * 0.01
+  const jellyMulti = 1 + (state.royalJelly || 0) * 0.10
+  const frenzyMulti = state.frenzyTimeLeft > 0 ? 7 : 1
+  const blessingMulti = state.blessingTimeLeft > 0 ? 10 : 1
+  const prestigeProdMulti = getPrestigeProductionMultiplier(state.prestigeTalents)
+  return (state.honeyPerSecond || 0) * achievementMulti * jellyMulti * frenzyMulti * blessingMulti * prestigeProdMulti
 }
 
 // --- Combo Tiers ---
@@ -222,30 +235,34 @@ function gameReducer(state, action) {
 
     case 'GOLDEN_BEE_EFFECT': {
       const frenzyDuration = getFrenzyBaseDuration(state.prestigeTalents)
+      const nextBeeCount = (state.goldenBeesClicked || 0) + 1
       
       if (action.effectType === 'frenzy') {
-        return { ...state, frenzyTimeLeft: frenzyDuration }
+        return { ...state, frenzyTimeLeft: frenzyDuration, goldenBeesClicked: nextBeeCount }
       } else if (action.effectType === 'click_storm') {
-        return { ...state, clickStormTimeLeft: 12 }
+        return { ...state, clickStormTimeLeft: 12, goldenBeesClicked: nextBeeCount }
       } else if (action.effectType === 'honey_rain') {
-        // 15 minutes of passive production as instant bonus
-        const bonus = (state.honeyPerSecond * 900) + 10000
+        const effectiveHps = getEffectiveHPS(state)
+        const bonus = action.bonus || Math.max(50000, Math.floor(effectiveHps * 900))
         return {
           ...state,
           honey: state.honey + bonus,
           totalHoney: state.totalHoney + bonus,
+          goldenBeesClicked: nextBeeCount,
         }
       } else if (action.effectType === 'blessing') {
-        return { ...state, blessingTimeLeft: 30 }
+        return { ...state, blessingTimeLeft: 30, goldenBeesClicked: nextBeeCount }
       } else if (action.effectType === 'lucky_drop') {
-        const bonus = (state.honeyPerSecond * 300) + 5000
+        const effectiveHps = getEffectiveHPS(state)
+        const bonus = action.bonus || Math.max(25000, Math.floor(effectiveHps * 300))
         return {
           ...state,
           honey: state.honey + bonus,
           totalHoney: state.totalHoney + bonus,
+          goldenBeesClicked: nextBeeCount,
         }
       }
-      return state
+      return { ...state, goldenBeesClicked: nextBeeCount }
     }
 
     case 'PRESTIGE': {
@@ -265,6 +282,8 @@ function gameReducer(state, action) {
         honey: startingHoney,
         totalHoney: state.totalHoney,
         totalClicks: state.totalClicks,
+        goldenBeesClicked: state.goldenBeesClicked,
+        prestigeCount: (state.prestigeCount || 0) + 1,
         playTime: state.playTime,
         achievements: state.achievements,
         royalJelly: (state.royalJelly || 0) + jellyEarned,
