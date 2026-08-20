@@ -159,7 +159,7 @@ export default function CoopRaid() {
         const data = docSnap.data()
         setRoomData(data)
 
-        if (data.status === 'cooldown' && data.cooldownUntil) {
+        if ((data.status === 'cooldown' || data.status === 'defeated') && data.cooldownUntil) {
           const diff = Math.max(0, Math.floor((new Date(data.cooldownUntil).getTime() - Date.now()) / 1000))
           setTimeRemaining(diff)
         }
@@ -174,7 +174,8 @@ export default function CoopRaid() {
 
   // Live timer interval for cooldown
   useEffect(() => {
-    if (!roomData || roomData.status !== 'cooldown' || !roomData.cooldownUntil) return
+    const isCooling = roomData && (roomData.status === 'cooldown' || roomData.status === 'defeated')
+    if (!isCooling || !roomData?.cooldownUntil) return
 
     const interval = setInterval(() => {
       const diff = Math.max(0, Math.floor((new Date(roomData.cooldownUntil).getTime() - Date.now()) / 1000))
@@ -853,7 +854,16 @@ export default function CoopRaid() {
   // =========================================================================
   // VIEW 3: COOLDOWN & VICTORY COUNTDOWN (Between Boss Fights)
   // =========================================================================
-  if (roomData.status === 'cooldown') {
+  if (roomData.status === 'cooldown' || roomData.status === 'defeated' || effectiveHp <= 0) {
+    // If cooldownUntil was not saved yet, auto-initialize it
+    if (!roomData.cooldownUntil && roomData.hostUid === user?.uid) {
+      const cooldownUntil = new Date(Date.now() + currentConfig.cooldownMs).toISOString()
+      updateDoc(doc(db, 'raids', activeRoomId), {
+        status: 'cooldown',
+        cooldownUntil,
+      }).catch(() => {})
+    }
+
     return (
       <div className="leaderboard-container" style={{ maxWidth: '700px' }}>
         <div className="mc-panel" style={{ textAlign: 'center', padding: '24px 18px' }}>
@@ -898,7 +908,7 @@ export default function CoopRaid() {
               </div>
             ) : (
               <div style={{ fontSize: '11px', color: 'var(--can-afford)', fontWeight: 'bold' }}>
-                ✅ Vous avez récupéré votre récompense (+{roomData.rewardJelly} 👑 & +{formatNumber(roomData.rewardHoney)} 🍯)
+                ✅ Récompense réclamée (+{roomData.rewardJelly} 👑 & +{formatNumber(roomData.rewardHoney)} 🍯) !
               </div>
             )}
           </div>
@@ -924,31 +934,43 @@ export default function CoopRaid() {
             {formatCountdown(timeRemaining)}
           </div>
 
-          {/* Speed up cooldown button */}
-          <div
-            style={{
-              margin: '16px 0',
-              padding: '14px',
-              background: 'var(--bg-panel-inner)',
-              border: '2px solid var(--mc-border-dark)',
-              borderRadius: '4px',
-            }}
-          >
-            <div style={{ fontSize: '10px', color: 'var(--text-primary)', marginBottom: '8px' }}>
-              ⚡ Réduire le temps d'attente
+          {/* Next boss ready or Speed up button */}
+          {timeRemaining <= 0 ? (
+            <div style={{ margin: '16px 0' }}>
+              <button
+                className="mc-button primary"
+                onClick={handleResetForNextBoss}
+                style={{ padding: '14px 28px', fontSize: '11px', animation: 'buttonPulse 1.5s infinite' }}
+              >
+                🔄 Invoquer le Boss Suivant (Niveau {((roomData.bossIndex || 0) % 3) + 2}) !
+              </button>
             </div>
-            <button
-              className="mc-button primary"
-              onClick={handleSpeedUpCooldown}
-              disabled={gameState.honey < speedUpCost}
-              style={{ padding: '12px 20px', fontSize: '9px' }}
+          ) : (
+            <div
+              style={{
+                margin: '16px 0',
+                padding: '14px',
+                background: 'var(--bg-panel-inner)',
+                border: '2px solid var(--mc-border-dark)',
+                borderRadius: '4px',
+              }}
             >
-              ⏩ Accélérer (-1 min) — 🍯 {formatNumber(speedUpCost)} Miel
-            </button>
-            <div className="friend-honey" style={{ fontSize: '9px', color: 'var(--text-dim)', marginTop: '6px' }}>
-              Coût actuel : {formatNumber(speedUpCost)} miel (augmente à chaque accélération).
+              <div style={{ fontSize: '10px', color: 'var(--text-primary)', marginBottom: '8px' }}>
+                ⚡ Réduire le temps d'attente
+              </div>
+              <button
+                className="mc-button primary"
+                onClick={handleSpeedUpCooldown}
+                disabled={gameState.honey < speedUpCost}
+                style={{ padding: '12px 20px', fontSize: '9px' }}
+              >
+                ⏩ Accélérer (-1 min) — 🍯 {formatNumber(speedUpCost)} Miel
+              </button>
+              <div className="friend-honey" style={{ fontSize: '9px', color: 'var(--text-dim)', marginTop: '6px' }}>
+                Coût actuel : {formatNumber(speedUpCost)} miel (augmente à chaque accélération).
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Team damage report during cooldown */}
           <h4 style={{ fontSize: '10px', color: 'var(--text-honey)', marginTop: '20px', marginBottom: '10px' }}>
