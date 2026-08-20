@@ -146,7 +146,7 @@ export default function StatisticsPanel() {
                 return (
                   <div 
                     key={ach.id} 
-                    title={ach.description}
+                    title={isUnlocked ? ach.description : 'Succès mystère'}
                     style={{ 
                       display: 'flex', 
                       alignItems: 'center', 
@@ -154,7 +154,7 @@ export default function StatisticsPanel() {
                       background: isUnlocked ? 'rgba(93, 186, 59, 0.12)' : 'rgba(0,0,0,0.3)',
                       padding: '10px',
                       border: `2px solid ${isUnlocked ? 'var(--can-afford)' : 'var(--mc-border-dark)'}`,
-                      opacity: isUnlocked ? 1 : 0.45,
+                      opacity: isUnlocked ? 1 : 0.35,
                       borderRadius: '3px',
                       width: 'calc(50% - 5px)',
                     }}
@@ -163,12 +163,12 @@ export default function StatisticsPanel() {
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', flex: 1, minWidth: 0 }}>
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                         <span style={{ fontSize: '8px', color: isUnlocked ? 'var(--text-primary)' : 'var(--text-dim)', fontWeight: 'bold' }}>
-                          {ach.name}
+                          {isUnlocked ? ach.name : '???'}
                         </span>
                         {isUnlocked && <span style={{ fontSize: '8px', color: 'var(--can-afford)' }}>✅</span>}
                       </div>
-                      <span className="changelog-desc" style={{ fontSize: '10px', color: isUnlocked ? 'var(--text-secondary)' : '#666', lineHeight: '1.3' }}>
-                        {ach.description}
+                      <span className="changelog-desc" style={{ fontSize: '10px', color: isUnlocked ? 'var(--text-secondary)' : 'var(--text-dim)', lineHeight: '1.3' }}>
+                        {isUnlocked ? ach.description : 'Succès secret verrouillé'}
                       </span>
                     </div>
                   </div>
