@@ -1,5 +1,5 @@
 // ===================================================
-// CoopRaid — Co-op Boss Raid with Lobby, Invitations & Cooldowns
+// CoopRaid — Co-op Boss Raid with Lobby, Invitations, Cooldowns & Speed-Up
 // ===================================================
 
 import React, { useState, useEffect, useRef, useCallback } from 'react'
@@ -60,8 +60,10 @@ export default function CoopRaid() {
   const { user, userProfile } = useAuth()
   const gameState = useGame()
 
-  // Lobby state: roomId can be a host UID or a shared room
-  const [activeRoomId, setActiveRoomId] = useState(null)
+  // Remember active room across navigation
+  const [activeRoomId, setActiveRoomId] = useState(() => {
+    return localStorage.getItem('bzz_active_raid_room') || null
+  })
   const [roomData, setRoomData] = useState(null)
   const [loading, setLoading] = useState(false)
   const [availableRooms, setAvailableRooms] = useState([])
@@ -73,7 +75,6 @@ export default function CoopRaid() {
   const [localDamagePending, setLocalDamagePending] = useState(0)
   const [damageParticles, setDamageParticles] = useState([])
   const [showSlash, setShowSlash] = useState(false)
-  const [claimed, setClaimed] = useState(false)
   const [timeRemaining, setTimeRemaining] = useState(0)
 
   const bossImgRef = useRef(null)
@@ -102,7 +103,7 @@ export default function CoopRaid() {
     loadFriends()
   }, [user])
 
-  // Discover open lobbies in real-time
+  // Discover open lobbies & auto-reconnect if user is already part of an active room
   useEffect(() => {
     if (!user) return
     const lobbiesRef = collection(db, 'raids')
@@ -110,13 +111,27 @@ export default function CoopRaid() {
       lobbiesRef,
       (snapshot) => {
         const rooms = []
+        let userRoomId = null
+
         snapshot.forEach((docSnap) => {
           const data = docSnap.data()
           if (data && (data.status === 'lobby' || data.status === 'fighting' || data.status === 'cooldown' || data.status === 'defeated')) {
             rooms.push({ id: docSnap.id, ...data })
+
+            // Check if current user is part of this room
+            if (data.players && data.players[user.uid]) {
+              userRoomId = docSnap.id
+            }
           }
         })
+
         setAvailableRooms(rooms)
+
+        // Auto-reconnect if user was in a room
+        if (userRoomId && activeRoomId !== userRoomId) {
+          setActiveRoomId(userRoomId)
+          localStorage.setItem('bzz_active_raid_room', userRoomId)
+        }
       },
       (err) => {
         console.warn('Firestore raid discovery notice:', err.message)
@@ -124,9 +139,9 @@ export default function CoopRaid() {
     )
 
     return () => unsubscribe()
-  }, [user])
+  }, [user, activeRoomId])
 
-  // Subscribe to the active room
+  // Subscribe to the active room in real time
   useEffect(() => {
     if (!activeRoomId || !user) return
 
@@ -135,15 +150,17 @@ export default function CoopRaid() {
       roomRef,
       (docSnap) => {
         if (!docSnap.exists()) {
+          // Room was deleted or closed
           setActiveRoomId(null)
           setRoomData(null)
+          localStorage.removeItem('bzz_active_raid_room')
           return
         }
 
         const data = docSnap.data()
         setRoomData(data)
 
-        // Check cooldown timer
+        // Update countdown if in cooldown
         if (data.status === 'cooldown' && data.cooldownUntil) {
           const diff = Math.max(0, Math.floor((new Date(data.cooldownUntil).getTime() - Date.now()) / 1000))
           setTimeRemaining(diff)
@@ -157,13 +174,14 @@ export default function CoopRaid() {
     return () => unsubscribe()
   }, [activeRoomId, user])
 
-  // Cooldown timer interval
+  // Live timer interval for cooldown
   useEffect(() => {
     if (!roomData || roomData.status !== 'cooldown' || !roomData.cooldownUntil) return
 
     const interval = setInterval(() => {
       const diff = Math.max(0, Math.floor((new Date(roomData.cooldownUntil).getTime() - Date.now()) / 1000))
       setTimeRemaining(diff)
+
       if (diff <= 0 && roomData.hostUid === user?.uid) {
         handleResetForNextBoss()
       }
@@ -172,10 +190,10 @@ export default function CoopRaid() {
     return () => clearInterval(interval)
   }, [roomData, user])
 
-  // Flush damage during fight
+  // Flush accumulated combat damage
   const flushDamage = useCallback(async () => {
     const dmg = damageAccumulatorRef.current
-    if (dmg <= 0 || !activeRoomId || !user || !roomData || roomData.status !== 'fighting') return
+    if (dmg <= 0 || !activeRoomId || !user || !roomData || roomData.status !== 'fighting' || roomData.bossHp <= 0) return
 
     damageAccumulatorRef.current = 0
     setLocalDamagePending(0)
@@ -186,7 +204,7 @@ export default function CoopRaid() {
       if (!snap.exists()) return
 
       const current = snap.data()
-      if (current.status !== 'fighting') return
+      if (current.status !== 'fighting' || current.bossHp <= 0) return
 
       const newHp = Math.max(0, current.bossHp - dmg)
       const userKey = `players.${user.uid}`
@@ -239,6 +257,8 @@ export default function CoopRaid() {
       rewardJelly: initialConfig.rewardJelly,
       rewardHoney: initialConfig.rewardHoney,
       status: 'lobby',
+      speedUpCount: 0,
+      claimedBy: {},
       players: {
         [user.uid]: {
           displayName: userProfile?.displayName || 'Chef',
@@ -257,6 +277,7 @@ export default function CoopRaid() {
       await setDoc(doc(db, 'raids', roomId), newRoom)
       setActiveRoomId(roomId)
       setRoomData(newRoom)
+      localStorage.setItem('bzz_active_raid_room', roomId)
     } catch (err) {
       console.error('Error creating raid room:', err)
     }
@@ -283,6 +304,7 @@ export default function CoopRaid() {
       }
       await updateDoc(roomRef, playerPayload)
       setActiveRoomId(room.id)
+      localStorage.setItem('bzz_active_raid_room', room.id)
     } catch (err) {
       console.error('Error joining room:', err)
     }
@@ -323,7 +345,7 @@ export default function CoopRaid() {
 
     setActiveRoomId(null)
     setRoomData(null)
-    setClaimed(false)
+    localStorage.removeItem('bzz_active_raid_room')
   }
 
   // --- Invite a Friend to Lobby ---
@@ -383,11 +405,10 @@ export default function CoopRaid() {
     }
   }
 
-  // --- Attack Boss ---
+  // --- Attack Boss (Guarded against dead boss clicks) ---
   const handleAttack = (e) => {
-    if (!roomData || roomData.status !== 'fighting' || roomData.bossHp <= 0) return
+    if (!roomData || roomData.status !== 'fighting' || roomData.bossHp <= 0 || effectiveHp <= 0) return
 
-    // Calculate attack damage based on Click Power + % of HPS
     const damage = Math.max(
       100,
       Math.floor(gameState.clickPower * 2 + gameState.honeyPerSecond * 0.25)
@@ -427,13 +448,15 @@ export default function CoopRaid() {
     }, 800)
   }
 
-  // --- Claim Reward ---
-  const handleClaimReward = async () => {
-    if (claimed || !roomData || roomData.status !== 'defeated') return
+  // --- Claim Reward (Individual tracking per player) ---
+  const hasClaimed = roomData?.claimedBy?.[user?.uid] || false
+  const myDamage = roomData?.players?.[user?.uid]?.damage || 0
 
-    const myContribution = roomData.players?.[user?.uid]?.damage || 0
-    if (myContribution <= 0) {
-      alert("Vous devez avoir participé et infligé des dégâts pour récolter le butin !")
+  const handleClaimReward = async () => {
+    if (hasClaimed || !roomData || myDamage <= 0) {
+      if (myDamage <= 0) {
+        alert("Vous devez avoir participé et infligé des dégâts pour récolter le butin !")
+      }
       return
     }
 
@@ -451,17 +474,12 @@ export default function CoopRaid() {
       },
     })
 
-    setClaimed(true)
-
-    // Trigger cooldown status
-    if (roomData.hostUid === user?.uid) {
-      const currentConfig = BOSS_CONFIGS[roomData.bossIndex || 0]
-      const cooldownUntil = new Date(Date.now() + currentConfig.cooldownMs).toISOString()
+    // Mark as claimed for this user in Firestore
+    try {
       await updateDoc(doc(db, 'raids', activeRoomId), {
-        status: 'cooldown',
-        cooldownUntil,
-      }).catch(() => {})
-    }
+        [`claimedBy.${user.uid}`]: true,
+      })
+    } catch (e) {}
 
     window.dispatchEvent(
       new CustomEvent('system_toast', {
@@ -472,6 +490,50 @@ export default function CoopRaid() {
         },
       })
     )
+  }
+
+  // --- Speed Up Cooldown with Honey (-1 min) ---
+  const speedUpCount = roomData?.speedUpCount || 0
+  const speedUpCost = Math.min(50000000, Math.floor(500 * Math.pow(1.85, speedUpCount)))
+
+  const handleSpeedUpCooldown = async () => {
+    if (!activeRoomId || !roomData || roomData.status !== 'cooldown' || !roomData.cooldownUntil) return
+    if (gameState.honey < speedUpCost) {
+      alert(`Vous n'avez pas assez de miel ! Requis : ${formatNumber(speedUpCost)} 🍯`)
+      return
+    }
+
+    // Deduct honey
+    gameState.dispatch({
+      type: 'LOAD_SAVE',
+      savedState: {
+        ...gameState,
+        honey: Math.max(0, gameState.honey - speedUpCost),
+      },
+    })
+
+    // Reduce cooldown by 60 seconds
+    const currentCooldown = new Date(roomData.cooldownUntil).getTime()
+    const newCooldownTime = Math.max(Date.now() + 1000, currentCooldown - 60000)
+
+    try {
+      await updateDoc(doc(db, 'raids', activeRoomId), {
+        cooldownUntil: new Date(newCooldownTime).toISOString(),
+        speedUpCount: increment(1),
+      })
+
+      window.dispatchEvent(
+        new CustomEvent('system_toast', {
+          detail: {
+            type: 'success',
+            title: '⏩ Temps Réduit !',
+            message: `Le temps d'attente du boss a été réduit de 1 minute (-60s) !`,
+          },
+        })
+      )
+    } catch (err) {
+      console.error('Error speeding up cooldown:', err)
+    }
   }
 
   // --- Reset for Next Boss after Cooldown ---
@@ -498,15 +560,16 @@ export default function CoopRaid() {
       rewardJelly: nextConfig.rewardJelly,
       rewardHoney: nextConfig.rewardHoney,
       status: 'lobby',
+      speedUpCount: 0,
+      claimedBy: {},
       cooldownUntil: null,
       players: resetPlayers,
     }
 
     await updateDoc(doc(db, 'raids', activeRoomId), payload).catch(() => {})
-    setClaimed(false)
   }
 
-  // Countdown timer formatter
+  // Helper formatting for countdown timer (HH:MM:SS or MM:SS)
   const formatCountdown = (totalSec) => {
     if (totalSec <= 0) return '00:00'
     const h = Math.floor(totalSec / 3600)
@@ -546,6 +609,7 @@ export default function CoopRaid() {
             </p>
           </div>
 
+          {/* Action to create room */}
           <div style={{ display: 'flex', gap: '10px', marginBottom: '24px' }}>
             <button
               className="mc-button primary"
@@ -557,6 +621,7 @@ export default function CoopRaid() {
             </button>
           </div>
 
+          {/* Available Rooms List */}
           <h3 style={{ fontSize: '10px', color: 'var(--text-honey)', marginBottom: '12px' }}>
             🏰 Salons Actifs Disponibles ({availableRooms.length})
           </h3>
@@ -586,9 +651,21 @@ export default function CoopRaid() {
 
                   <div>
                     {isCoolingDown ? (
-                      <span className="ready-badge not-ready">En Récupération</span>
+                      <button
+                        className="mc-button"
+                        style={{ padding: '8px 14px', fontSize: '9px' }}
+                        onClick={() => handleJoinRoom(room)}
+                      >
+                        Voir Timer ({count}/4)
+                      </button>
                     ) : isFullOrFighting ? (
-                      <span className="ready-badge is-ready">Combat en cours</span>
+                      <button
+                        className="mc-button danger"
+                        style={{ padding: '8px 14px', fontSize: '9px' }}
+                        onClick={() => handleJoinRoom(room)}
+                      >
+                        Rejoindre Combat ({count}/4)
+                      </button>
                     ) : (
                       <button
                         className="mc-button primary"
@@ -630,6 +707,7 @@ export default function CoopRaid() {
             </div>
           </div>
 
+          {/* Player requirement notice */}
           <div
             style={{
               padding: '8px 12px',
@@ -648,6 +726,7 @@ export default function CoopRaid() {
               : `⚠️ Au moins 2 joueurs requis pour démarrer (Actuel : ${playersList.length}/2)`}
           </div>
 
+          {/* Participants list */}
           <h3 style={{ fontSize: '10px', color: 'var(--text-honey)', marginBottom: '8px' }}>
             👥 Joueurs dans le Salon ({playersList.length})
           </h3>
@@ -672,6 +751,7 @@ export default function CoopRaid() {
             ))}
           </div>
 
+          {/* Lobby Actions */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
             <div style={{ display: 'flex', gap: '8px' }}>
               <button
@@ -779,33 +859,74 @@ export default function CoopRaid() {
   }
 
   // =========================================================================
-  // VIEW 3: COOLDOWN COUNTDOWN (Between Boss Fights)
+  // VIEW 3: COOLDOWN COUNTDOWN & SPEED-UP (Between Boss Fights)
   // =========================================================================
   if (roomData.status === 'cooldown') {
     return (
       <div className="leaderboard-container" style={{ maxWidth: '680px' }}>
-        <div className="mc-panel" style={{ textAlign: 'center', padding: '30px 20px' }}>
-          <div style={{ fontSize: '32px', marginBottom: '12px' }}>⏳</div>
+        <div className="mc-panel" style={{ textAlign: 'center', padding: '24px 20px' }}>
+          {/* Claim Reward Banner if not claimed yet */}
+          {!hasClaimed && myDamage > 0 && (
+            <div
+              style={{
+                background: 'rgba(93,186,59,0.15)',
+                border: '2px solid var(--can-afford)',
+                padding: '12px',
+                borderRadius: '4px',
+                marginBottom: '20px',
+                animation: 'buttonPulse 2s infinite',
+              }}
+            >
+              <div style={{ fontSize: '10px', color: 'var(--honey-light)', marginBottom: '8px' }}>
+                🎁 Vous n'avez pas encore récupéré votre récompense !
+              </div>
+              <button
+                className="mc-button primary"
+                onClick={handleClaimReward}
+                style={{ padding: '10px 20px', fontSize: '10px' }}
+              >
+                👑 Récolter Mon Butin (+{roomData.rewardJelly} 👑 & +{formatNumber(roomData.rewardHoney)} 🍯)
+              </button>
+            </div>
+          )}
+
+          <div style={{ fontSize: '32px', marginBottom: '8px' }}>⏳</div>
           <div style={{ fontSize: '9px', color: 'var(--text-honey)', letterSpacing: '2px', marginBottom: '6px' }}>
             PÉRIODE DE RÉGÉNÉRATION DU BOSS
           </div>
-          <h2 style={{ fontSize: '15px', color: 'var(--text-primary)', marginBottom: '12px' }}>
+          <h2 style={{ fontSize: '14px', color: 'var(--text-primary)', marginBottom: '10px' }}>
             Le prochain Boss prépare son assaut...
           </h2>
+
           <div
             style={{
               fontSize: '24px',
               fontFamily: 'Press Start 2P',
               color: 'var(--honey-light)',
-              margin: '20px 0',
+              margin: '16px 0',
               textShadow: '2px 2px 0 #000, 0 0 20px rgba(255,215,0,0.5)',
             }}
           >
             {formatCountdown(timeRemaining)}
           </div>
-          <p className="friend-honey" style={{ fontSize: '11px', color: 'var(--text-secondary)', maxWidth: '420px', margin: '0 auto 20px' }}>
-            Un temps d'attente est requis entre chaque Boss pour reconstituer les forces de l'essaim.
-          </p>
+
+          {/* Speed up cooldown button */}
+          <div style={{ margin: '20px 0', padding: '14px', background: 'var(--bg-panel-inner)', border: '2px solid var(--mc-border-dark)', borderRadius: '4px' }}>
+            <div style={{ fontSize: '10px', color: 'var(--text-primary)', marginBottom: '8px' }}>
+              ⚡ Réduire le temps d'attente
+            </div>
+            <button
+              className="mc-button primary"
+              onClick={handleSpeedUpCooldown}
+              disabled={gameState.honey < speedUpCost}
+              style={{ padding: '12px 20px', fontSize: '9px' }}
+            >
+              ⏩ Accélérer (-1 min) — 🍯 {formatNumber(speedUpCost)} Miel
+            </button>
+            <div className="friend-honey" style={{ fontSize: '9px', color: 'var(--text-dim)', marginTop: '6px' }}>
+              Le coût augmente exponentiellement à chaque accélération.
+            </div>
+          </div>
 
           <button className="mc-button danger" onClick={handleLeaveRoom} style={{ padding: '10px 20px', fontSize: '9px' }}>
             🚪 Quitter le Salon
@@ -914,7 +1035,7 @@ export default function CoopRaid() {
           {/* Animated Boss Sprite */}
           <div
             ref={bossImgRef}
-            onClick={handleAttack}
+            onClick={!isDefeated ? handleAttack : undefined}
             style={{
               width: '180px',
               height: '180px',
@@ -980,7 +1101,7 @@ export default function CoopRaid() {
               </p>
 
               <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', flexWrap: 'wrap' }}>
-                {!claimed ? (
+                {!hasClaimed ? (
                   <button
                     className="mc-button primary"
                     onClick={handleClaimReward}
@@ -990,7 +1111,7 @@ export default function CoopRaid() {
                   </button>
                 ) : (
                   <div style={{ fontSize: '11px', color: 'var(--can-afford)', padding: '10px' }}>
-                    ✅ Récompense réclamée ! Prochain boss en préparation.
+                    ✅ Récompense réclamée ! Le compte à rebours est lancé.
                   </div>
                 )}
               </div>
