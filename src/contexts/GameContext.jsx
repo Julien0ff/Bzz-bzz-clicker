@@ -26,6 +26,7 @@ const initialState = {
   playTime: 0,           // total play time in seconds
   achievements: [],      // array of unlocked achievement ids
   royalJelly: 0,         // prestige currency
+  totalJellyClaimed: 0,  // lifetime royal jelly claimed through ascensions
   prestigeTalents: {},   // { talentId: count }
   prestigeCount: 0,      // total ascensions performed
   frenzyTimeLeft: 0,     // seconds left for x7 frenzy
@@ -266,10 +267,10 @@ function gameReducer(state, action) {
     }
 
     case 'PRESTIGE': {
-      // Prestige based on total honey produced SINCE last prestige (approximated by totalHoney)
       const jellyBonusLevel = getTalentLevel(state.prestigeTalents, 'jellyHarvest')
       const jellyBonusMulti = 1 + (jellyBonusLevel * 0.10)
-      const jellyEarned = Math.floor(Math.cbrt(state.totalHoney / 100000000) * jellyBonusMulti)
+      const lifetimePotentialJelly = Math.floor(Math.cbrt(state.totalHoney / 100000000) * jellyBonusMulti)
+      const jellyEarned = Math.max(0, lifetimePotentialJelly - (state.totalJellyClaimed || 0))
       
       if (jellyEarned <= 0) return state
 
@@ -282,11 +283,12 @@ function gameReducer(state, action) {
         honey: startingHoney,
         totalHoney: state.totalHoney,
         totalClicks: state.totalClicks,
-        goldenBeesClicked: state.goldenBeesClicked,
+        goldenBeesClicked: state.goldenBeesClicked || 0,
         prestigeCount: (state.prestigeCount || 0) + 1,
         playTime: state.playTime,
         achievements: state.achievements,
         royalJelly: (state.royalJelly || 0) + jellyEarned,
+        totalJellyClaimed: (state.totalJellyClaimed || 0) + jellyEarned,
         prestigeTalents: state.prestigeTalents, // keep prestige talents!
       }
     }

@@ -36,10 +36,11 @@ export default function StatisticsPanel() {
 
   const unlockedAchCount = achievements?.length || 0
 
-  // Prestige calculation (based on totalHoney now!)
+  // Prestige calculation (lifetime totalHoney minus already claimed jelly)
   const jellyBonusLevel = prestigeTalents?.['jellyHarvest'] || 0
   const jellyBonusMulti = 1 + (jellyBonusLevel * 0.10)
-  const jellyEarned = Math.floor(Math.cbrt(totalHoney / 100000000) * jellyBonusMulti)
+  const lifetimePotentialJelly = Math.floor(Math.cbrt((totalHoney || 0) / 100000000) * jellyBonusMulti)
+  const jellyEarned = Math.max(0, lifetimePotentialJelly - (gameState.totalJellyClaimed || 0))
 
   return (
     <div className="mc-panel stats-container">
@@ -199,24 +200,31 @@ export default function StatisticsPanel() {
             </p>
 
             {(() => {
-              const nextJellyTarget = Math.pow(jellyEarned + 1, 3) * 100000000
+              const currentTotalClaimed = (gameState.totalJellyClaimed || 0) + jellyEarned
+              const targetCount = currentTotalClaimed + 1
+              const honeyForNextJelly = Math.pow(targetCount / jellyBonusMulti, 3) * 100000000
 
               if (jellyEarned > 0) {
                 return (
-                  <button 
-                    className="mc-button primary" 
-                    style={{ width: '100%', padding: '15px', fontSize: '10px', animation: 'buttonPulse 2s infinite' }}
-                    onClick={() => setModalOpen(true)}
-                  >
-                    Faire une Ascension (+{jellyEarned} 👑)
-                  </button>
+                  <div>
+                    <button 
+                      className="mc-button primary" 
+                      style={{ width: '100%', padding: '15px', fontSize: '10px', animation: 'buttonPulse 2s infinite' }}
+                      onClick={() => setModalOpen(true)}
+                    >
+                      Faire une Ascension (+{jellyEarned} 👑)
+                    </button>
+                    <div style={{ fontSize: '7px', color: 'var(--text-dim)', marginTop: '8px' }}>
+                      Prochaine Gelée à : {formatNumber(honeyForNextJelly)} Miel Total
+                    </div>
+                  </div>
                 )
               } else {
                 return (
-                  <button className="mc-button" disabled style={{ width: '100%' }}>
+                  <button className="mc-button" disabled style={{ width: '100%', padding: '12px' }}>
                     Nécessite plus de Miel Total<br/>
-                    <span style={{ fontSize: '8px', opacity: 0.8 }}>
-                      (Actuel: {formatNumber(Math.floor(totalHoney))})
+                    <span style={{ fontSize: '7px', opacity: 0.85, marginTop: '4px', display: 'block' }}>
+                      Prochaine Gelée Royale à : {formatNumber(honeyForNextJelly)} Miel Total (Actuel : {formatNumber(Math.floor(totalHoney))})
                     </span>
                   </button>
                 )

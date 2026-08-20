@@ -60,6 +60,7 @@ export function useSaveGame() {
           totalClicks: state.totalClicks || 0,
           goldenBeesClicked: state.goldenBeesClicked || 0,
           prestigeCount: state.prestigeCount || 0,
+          totalJellyClaimed: state.totalJellyClaimed || 0,
           playTime: state.playTime || 0,
           achievements: state.achievements || [],
           royalJelly: state.royalJelly || 0,
