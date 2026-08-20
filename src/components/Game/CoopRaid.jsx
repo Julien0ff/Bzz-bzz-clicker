@@ -115,7 +115,7 @@ export default function CoopRaid() {
 
         snapshot.forEach((docSnap) => {
           const data = docSnap.data()
-          if (data && (data.status === 'lobby' || data.status === 'fighting' || data.status === 'cooldown' || data.status === 'defeated')) {
+          if (data && (data.status === 'lobby' || data.status === 'fighting' || data.status === 'cooldown')) {
             rooms.push({ id: docSnap.id, ...data })
 
             // Check if current user is part of this room
@@ -211,7 +211,8 @@ export default function CoopRaid() {
       let cooldownTimestamp = null
 
       if (newHp <= 0) {
-        nextStatus = 'defeated'
+        // Boss defeated -> Immediately switch to cooldown status so timer shows!
+        nextStatus = 'cooldown'
         const currentConfig = BOSS_CONFIGS[current.bossIndex || 0]
         cooldownTimestamp = new Date(Date.now() + currentConfig.cooldownMs).toISOString()
       }
@@ -403,7 +404,7 @@ export default function CoopRaid() {
     }
   }
 
-  // --- Attack Boss (Guarded against dead boss clicks) ---
+  // --- Attack Boss ---
   const handleAttack = (e) => {
     if (!roomData || roomData.status !== 'fighting' || roomData.bossHp <= 0 || effectiveHp <= 0) return
 
@@ -472,7 +473,6 @@ export default function CoopRaid() {
       },
     })
 
-    // Mark as claimed for this user in Firestore
     try {
       await updateDoc(doc(db, 'raids', activeRoomId), {
         [`claimedBy.${user.uid}`]: true,
@@ -582,7 +582,6 @@ export default function CoopRaid() {
   const currentConfig = BOSS_CONFIGS[roomData?.bossIndex || 0] || BOSS_CONFIGS[0]
   const effectiveHp = Math.max(0, (roomData?.bossHp || 0) - localDamagePending)
   const hpPercent = roomData?.maxHp ? Math.max(0, Math.min(100, (effectiveHp / roomData.maxHp) * 100)) : 100
-  const isDefeated = roomData?.status === 'defeated' || (roomData?.status === 'fighting' && effectiveHp <= 0)
 
   const playersList = Object.entries(roomData?.players || {}).map(([uid, p]) => ({ uid, ...p }))
   const readyCount = playersList.filter((p) => p.isReady).length
@@ -852,57 +851,89 @@ export default function CoopRaid() {
   }
 
   // =========================================================================
-  // VIEW 3: COOLDOWN COUNTDOWN & SPEED-UP (Between Boss Fights)
+  // VIEW 3: COOLDOWN & VICTORY COUNTDOWN (Between Boss Fights)
   // =========================================================================
   if (roomData.status === 'cooldown') {
     return (
-      <div className="leaderboard-container" style={{ maxWidth: '680px' }}>
-        <div className="mc-panel" style={{ textAlign: 'center', padding: '24px 20px' }}>
-          {!hasClaimed && myDamage > 0 && (
-            <div
-              style={{
-                background: 'rgba(93,186,59,0.15)',
-                border: '2px solid var(--can-afford)',
-                padding: '12px',
-                borderRadius: '4px',
-                marginBottom: '20px',
-                animation: 'buttonPulse 2s infinite',
-              }}
-            >
-              <div style={{ fontSize: '10px', color: 'var(--honey-light)', marginBottom: '8px' }}>
-                🎁 Vous n'avez pas encore récupéré votre récompense !
-              </div>
-              <button
-                className="mc-button primary"
-                onClick={handleClaimReward}
-                style={{ padding: '10px 20px', fontSize: '10px' }}
-              >
-                👑 Récolter Mon Butin (+{roomData.rewardJelly} 👑 & +{formatNumber(roomData.rewardHoney)} 🍯)
-              </button>
-            </div>
-          )}
-
-          <div style={{ fontSize: '32px', marginBottom: '8px' }}>⏳</div>
-          <div style={{ fontSize: '9px', color: 'var(--text-honey)', letterSpacing: '2px', marginBottom: '6px' }}>
-            PÉRIODE DE RÉGÉNÉRATION DU BOSS
+      <div className="leaderboard-container" style={{ maxWidth: '700px' }}>
+        <div className="mc-panel" style={{ textAlign: 'center', padding: '24px 18px' }}>
+          {/* Victory Header */}
+          <div
+            style={{
+              fontSize: '15px',
+              color: 'var(--honey-light)',
+              marginBottom: '10px',
+              animation: 'comboFlash 1.2s infinite',
+              textShadow: '2px 2px 0 #000',
+            }}
+          >
+            🎉 VICTOIRE DE L'ESSAIM ! 🎉
           </div>
-          <h2 style={{ fontSize: '14px', color: 'var(--text-primary)', marginBottom: '10px' }}>
-            Le prochain Boss prépare son assaut...
-          </h2>
+          <p className="friend-honey" style={{ fontSize: '11px', color: 'var(--text-secondary)', marginBottom: '16px' }}>
+            Le <strong>{currentConfig.name}</strong> a succombé sous vos coups coordonnés !
+          </p>
+
+          {/* Reward claim section for each player */}
+          <div
+            style={{
+              background: hasClaimed ? 'rgba(93,186,59,0.1)' : 'rgba(255,215,0,0.15)',
+              border: `2px solid ${hasClaimed ? 'var(--can-afford)' : 'var(--honey-light)'}`,
+              padding: '14px',
+              borderRadius: '4px',
+              marginBottom: '20px',
+            }}
+          >
+            {!hasClaimed ? (
+              <div>
+                <div style={{ fontSize: '10px', color: 'var(--honey-light)', marginBottom: '8px' }}>
+                  🎁 Votre butin vous attend !
+                </div>
+                <button
+                  className="mc-button primary"
+                  onClick={handleClaimReward}
+                  style={{ padding: '12px 24px', fontSize: '11px', animation: 'buttonPulse 1.5s infinite' }}
+                >
+                  👑 Récolter Mon Butin (+{roomData.rewardJelly} 👑 & +{formatNumber(roomData.rewardHoney)} 🍯)
+                </button>
+              </div>
+            ) : (
+              <div style={{ fontSize: '11px', color: 'var(--can-afford)', fontWeight: 'bold' }}>
+                ✅ Vous avez récupéré votre récompense (+{roomData.rewardJelly} 👑 & +{formatNumber(roomData.rewardHoney)} 🍯)
+              </div>
+            )}
+          </div>
+
+          {/* Countdown timer */}
+          <div style={{ fontSize: '28px', marginBottom: '6px' }}>⏳</div>
+          <div style={{ fontSize: '8px', color: 'var(--text-honey)', letterSpacing: '2px', marginBottom: '6px' }}>
+            PÉRIODE DE RÉGÉNÉRATION DU PROCHAIN BOSS
+          </div>
+          <h3 style={{ fontSize: '12px', color: 'var(--text-primary)', marginBottom: '10px' }}>
+            Le Boss de niveau supérieur prépare son assaut...
+          </h3>
 
           <div
             style={{
-              fontSize: '24px',
+              fontSize: '26px',
               fontFamily: 'Press Start 2P',
               color: 'var(--honey-light)',
               margin: '16px 0',
-              textShadow: '2px 2px 0 #000, 0 0 20px rgba(255,215,0,0.5)',
+              textShadow: '2px 2px 0 #000, 0 0 20px rgba(255,215,0,0.6)',
             }}
           >
             {formatCountdown(timeRemaining)}
           </div>
 
-          <div style={{ margin: '20px 0', padding: '14px', background: 'var(--bg-panel-inner)', border: '2px solid var(--mc-border-dark)', borderRadius: '4px' }}>
+          {/* Speed up cooldown button */}
+          <div
+            style={{
+              margin: '16px 0',
+              padding: '14px',
+              background: 'var(--bg-panel-inner)',
+              border: '2px solid var(--mc-border-dark)',
+              borderRadius: '4px',
+            }}
+          >
             <div style={{ fontSize: '10px', color: 'var(--text-primary)', marginBottom: '8px' }}>
               ⚡ Réduire le temps d'attente
             </div>
@@ -915,8 +946,38 @@ export default function CoopRaid() {
               ⏩ Accélérer (-1 min) — 🍯 {formatNumber(speedUpCost)} Miel
             </button>
             <div className="friend-honey" style={{ fontSize: '9px', color: 'var(--text-dim)', marginTop: '6px' }}>
-              Le coût augmente exponentiellement à chaque accélération.
+              Coût actuel : {formatNumber(speedUpCost)} miel (augmente à chaque accélération).
             </div>
+          </div>
+
+          {/* Team damage report during cooldown */}
+          <h4 style={{ fontSize: '10px', color: 'var(--text-honey)', marginTop: '20px', marginBottom: '10px' }}>
+            🏆 DÉGÂTS TOTAUX INFLIGÉS AU BOSS
+          </h4>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '16px' }}>
+            {playersList
+              .sort((a, b) => (b.damage || 0) - (a.damage || 0))
+              .map((p, index) => (
+                <div
+                  key={p.uid}
+                  className="leaderboard-entry"
+                  style={{
+                    borderColor: p.uid === user?.uid ? 'var(--honey-dark)' : 'var(--mc-border-dark)',
+                    background: p.uid === user?.uid ? 'rgba(244,166,35,0.1)' : undefined,
+                  }}
+                >
+                  <div className="leaderboard-rank" style={{ fontSize: '10px' }}>
+                    {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `#${index + 1}`}
+                  </div>
+                  {p.photoURL && <img src={p.photoURL} alt="" className="friend-avatar" />}
+                  <div className="leaderboard-name" style={{ fontSize: '9px' }}>
+                    {p.displayName} {p.uid === user?.uid && <span style={{ color: 'var(--text-honey)' }}>(Vous)</span>}
+                  </div>
+                  <div className="leaderboard-score" style={{ color: 'var(--cannot-afford)', fontSize: '9px' }}>
+                    💥 {formatNumber(p.damage || 0)}
+                  </div>
+                </div>
+              ))}
           </div>
 
           <button className="mc-button danger" onClick={handleLeaveRoom} style={{ padding: '10px 20px', fontSize: '9px' }}>
@@ -928,7 +989,7 @@ export default function CoopRaid() {
   }
 
   // =========================================================================
-  // VIEW 4: COMBAT ARENA (Fighting or Defeated)
+  // VIEW 4: COMBAT ARENA (Fighting)
   // =========================================================================
   return (
     <div className="leaderboard-container" style={{ maxWidth: '750px' }}>
@@ -1026,22 +1087,20 @@ export default function CoopRaid() {
           {/* Animated Boss Sprite */}
           <div
             ref={bossImgRef}
-            onClick={!isDefeated ? handleAttack : undefined}
+            onClick={handleAttack}
             style={{
               width: '180px',
               height: '180px',
-              cursor: isDefeated ? 'default' : 'crosshair',
+              cursor: 'crosshair',
               transition: 'transform 0.08s ease-out',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               userSelect: 'none',
-              animation: isDefeated ? 'none' : 'bossFloat 2.5s ease-in-out infinite',
-              filter: isDefeated
-                ? 'grayscale(100%) opacity(40%)'
-                : `drop-shadow(0 0 25px ${currentConfig.color})`,
+              animation: 'bossFloat 2.5s ease-in-out infinite',
+              filter: `drop-shadow(0 0 25px ${currentConfig.color})`,
             }}
-            title={isDefeated ? 'Boss vaincu !' : 'Cliquez pour attaquer !'}
+            title="Cliquez pour attaquer !"
           >
             <img
               src={hornetImg}
@@ -1056,58 +1115,20 @@ export default function CoopRaid() {
           </div>
 
           {/* Action Attack Button */}
-          {!isDefeated && (
-            <button
-              className="mc-button danger"
-              onClick={handleAttack}
-              style={{
-                marginTop: '18px',
-                padding: '14px 28px',
-                fontSize: '11px',
-                animation: 'buttonPulse 1.4s infinite',
-                boxShadow: '0 0 20px rgba(255, 68, 68, 0.5)',
-              }}
-            >
-              ⚔️ FRAPPER LE BOSS (
-              {formatNumber(Math.floor(gameState.clickPower * 2 + gameState.honeyPerSecond * 0.25))} DMG)
-            </button>
-          )}
-
-          {/* Victory & Claim Section */}
-          {isDefeated && (
-            <div style={{ marginTop: '18px', textAlign: 'center' }}>
-              <div
-                style={{
-                  fontSize: '15px',
-                  color: 'var(--honey-light)',
-                  marginBottom: '10px',
-                  animation: 'comboFlash 1s infinite',
-                  textShadow: '2px 2px 0 #000',
-                }}
-              >
-                🎉 VICTOIRE DE L'ESSAIM ! 🎉
-              </div>
-              <p className="friend-honey" style={{ fontSize: '11px', color: 'var(--text-secondary)', marginBottom: '14px' }}>
-                Le boss a succombé sous vos coups coordonnés !
-              </p>
-
-              <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', flexWrap: 'wrap' }}>
-                {!hasClaimed ? (
-                  <button
-                    className="mc-button primary"
-                    onClick={handleClaimReward}
-                    style={{ padding: '14px 28px', fontSize: '11px', animation: 'buttonPulse 1.5s infinite' }}
-                  >
-                    👑 Récolter Récompense (+{roomData.rewardJelly} 👑 & +{formatNumber(roomData.rewardHoney)} 🍯)
-                  </button>
-                ) : (
-                  <div style={{ fontSize: '11px', color: 'var(--can-afford)', padding: '10px' }}>
-                    ✅ Récompense réclamée ! Le compte à rebours est lancé.
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
+          <button
+            className="mc-button danger"
+            onClick={handleAttack}
+            style={{
+              marginTop: '18px',
+              padding: '14px 28px',
+              fontSize: '11px',
+              animation: 'buttonPulse 1.4s infinite',
+              boxShadow: '0 0 20px rgba(255, 68, 68, 0.5)',
+            }}
+          >
+            ⚔️ FRAPPER LE BOSS (
+            {formatNumber(Math.floor(gameState.clickPower * 2 + gameState.honeyPerSecond * 0.25))} DMG)
+          </button>
         </div>
 
         {/* Real-Time Combat Leaderboard */}
