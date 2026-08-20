@@ -150,7 +150,6 @@ export default function CoopRaid() {
       roomRef,
       (docSnap) => {
         if (!docSnap.exists()) {
-          // Room was deleted or closed
           setActiveRoomId(null)
           setRoomData(null)
           localStorage.removeItem('bzz_active_raid_room')
@@ -160,7 +159,6 @@ export default function CoopRaid() {
         const data = docSnap.data()
         setRoomData(data)
 
-        // Update countdown if in cooldown
         if (data.status === 'cooldown' && data.cooldownUntil) {
           const diff = Math.max(0, Math.floor((new Date(data.cooldownUntil).getTime() - Date.now()) / 1000))
           setTimeRemaining(diff)
@@ -609,7 +607,6 @@ export default function CoopRaid() {
             </p>
           </div>
 
-          {/* Action to create room */}
           <div style={{ display: 'flex', gap: '10px', marginBottom: '24px' }}>
             <button
               className="mc-button primary"
@@ -621,7 +618,6 @@ export default function CoopRaid() {
             </button>
           </div>
 
-          {/* Available Rooms List */}
           <h3 style={{ fontSize: '10px', color: 'var(--text-honey)', marginBottom: '12px' }}>
             🏰 Salons Actifs Disponibles ({availableRooms.length})
           </h3>
@@ -707,7 +703,6 @@ export default function CoopRaid() {
             </div>
           </div>
 
-          {/* Player requirement notice */}
           <div
             style={{
               padding: '8px 12px',
@@ -726,7 +721,6 @@ export default function CoopRaid() {
               : `⚠️ Au moins 2 joueurs requis pour démarrer (Actuel : ${playersList.length}/2)`}
           </div>
 
-          {/* Participants list */}
           <h3 style={{ fontSize: '10px', color: 'var(--text-honey)', marginBottom: '8px' }}>
             👥 Joueurs dans le Salon ({playersList.length})
           </h3>
@@ -751,7 +745,6 @@ export default function CoopRaid() {
             ))}
           </div>
 
-          {/* Lobby Actions */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
             <div style={{ display: 'flex', gap: '8px' }}>
               <button
@@ -865,7 +858,6 @@ export default function CoopRaid() {
     return (
       <div className="leaderboard-container" style={{ maxWidth: '680px' }}>
         <div className="mc-panel" style={{ textAlign: 'center', padding: '24px 20px' }}>
-          {/* Claim Reward Banner if not claimed yet */}
           {!hasClaimed && myDamage > 0 && (
             <div
               style={{
@@ -910,7 +902,6 @@ export default function CoopRaid() {
             {formatCountdown(timeRemaining)}
           </div>
 
-          {/* Speed up cooldown button */}
           <div style={{ margin: '20px 0', padding: '14px', background: 'var(--bg-panel-inner)', border: '2px solid var(--mc-border-dark)', borderRadius: '4px' }}>
             <div style={{ fontSize: '10px', color: 'var(--text-primary)', marginBottom: '8px' }}>
               ⚡ Réduire le temps d'attente
