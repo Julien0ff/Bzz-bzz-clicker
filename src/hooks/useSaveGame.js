@@ -1,5 +1,5 @@
 // ===================================================
-// useSaveGame — Auto-save to Firestore
+// useSaveGame — Auto-save to Firestore (v2)
 // ===================================================
 
 import { useEffect, useRef } from 'react'
@@ -56,10 +56,13 @@ export function useSaveGame() {
           honeyPerSecond: state.honeyPerSecond,
           upgrades: state.upgrades,
           clickUpgrades: state.clickUpgrades,
+          synergyUpgrades: state.synergyUpgrades || {},
           totalClicks: state.totalClicks || 0,
           playTime: state.playTime || 0,
           achievements: state.achievements || [],
           royalJelly: state.royalJelly || 0,
+          prestigeTalents: state.prestigeTalents || {},
+          pendingGifts: state.pendingGifts || [],
           intermissionEnabled: state.intermissionEnabled || false,
           lastSaved: new Date().toISOString(),
         }
