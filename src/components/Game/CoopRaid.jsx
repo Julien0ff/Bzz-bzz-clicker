@@ -18,7 +18,9 @@ import { useAuth } from '../../contexts/AuthContext'
 import { useGame, getBossDamageMultiplier } from '../../contexts/GameContext'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { formatNumber } from '../../data/upgrades'
+import { createAntiCheatTracker } from '../../utils/antiCheat'
 import hornetImg from '../../../assets/Bee_(Dungeons).png'
+
 
 // Boss Configs with progressive scaling and cooldowns
 export const BOSS_CONFIGS = [
@@ -116,14 +118,27 @@ export const BOSS_CONFIGS = [
 ]
 
 export default function CoopRaid() {
-  const { user, userProfile } = useAuth()
+  const { user, userProfile, banUser } = useAuth()
   const gameState = useGame()
   const { t, getLocalized } = useLanguage()
+
+  // Anti-Cheat Tracker for Raid Boss
+  const antiCheatRef = useRef(null)
+  if (!antiCheatRef.current) {
+    antiCheatRef.current = createAntiCheatTracker({
+      onCheatDetected: (reason) => {
+        console.error('[Anti-Cheat Raid Triggered]', reason)
+        if (banUser) banUser(reason)
+      },
+      maxAllowedCPS: 20,
+    })
+  }
 
   // Remember active room across navigation
   const [activeRoomId, setActiveRoomId] = useState(() => {
     return localStorage.getItem('bzz_active_raid_room') || null
   })
+
   const [roomData, setRoomData] = useState(null)
   const [loading, setLoading] = useState(false)
   const [availableRooms, setAvailableRooms] = useState([])
@@ -459,11 +474,18 @@ export default function CoopRaid() {
   const handleAttack = (e) => {
     if (!roomData || roomData.status !== 'fighting' || roomData.bossHp <= 0 || effectiveHp <= 0) return
 
+    // Anti-Cheat validation
+    const clientX = e?.clientX || null
+    const clientY = e?.clientY || null
+    const isValid = antiCheatRef.current?.validateClick(e, clientX, clientY)
+    if (!isValid) return
+
     const bossMulti = getBossDamageMultiplier(gameState.prestigeTalents)
     const damage = Math.max(
       100,
       Math.floor((gameState.clickPower * 2 + gameState.honeyPerSecond * 0.25) * bossMulti)
     )
+
 
     damageAccumulatorRef.current += damage
     setLocalDamagePending((prev) => prev + damage)

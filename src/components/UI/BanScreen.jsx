@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 
 export default function BanScreen() {
-  const { logout } = useAuth()
+  const { userProfile, logout } = useAuth()
   const [variant, setVariant] = useState(null)
 
   useEffect(() => {
@@ -11,6 +11,8 @@ export default function BanScreen() {
   }, [])
 
   if (!variant) return null
+
+  const banReason = userProfile?.banReason || "Utilisation d'un Auto-Clicker ou logiciel tiers détectée."
 
   if (variant === 'video') {
     return (
@@ -24,7 +26,10 @@ export default function BanScreen() {
           allow="autoplay; fullscreen; picture-in-picture" 
           allowFullScreen
         ></iframe>
-        <div style={{ position: 'absolute', top: '20px', right: '20px' }}>
+        <div style={{ position: 'absolute', top: '20px', right: '20px', display: 'flex', alignItems: 'center', gap: '15px' }}>
+          <span style={{ color: '#ff4444', fontSize: '9px', fontFamily: "'Press Start 2P', monospace", background: 'rgba(0,0,0,0.8)', padding: '6px 12px', border: '2px solid #ff4444' }}>
+            🚫 {banReason}
+          </span>
           <button className="mc-button danger" onClick={logout}>Déconnexion</button>
         </div>
       </div>
@@ -41,13 +46,29 @@ export default function BanScreen() {
       textAlign: 'center',
       padding: '20px'
     }}>
-      <h1 style={{ color: '#ffea00', fontSize: '3rem', textShadow: '4px 4px 0 #000', marginBottom: '20px' }}>
+      <h1 style={{ color: '#ffea00', fontSize: '2.5rem', textShadow: '4px 4px 0 #000', marginBottom: '16px' }}>
         BZZZ BZZZ TRICHEUR !
       </h1>
-      <h2 style={{ color: 'white', fontSize: '1.5rem', textShadow: '2px 2px 0 #000', marginBottom: '40px' }}>
+      <h2 style={{ color: 'white', fontSize: '1.2rem', textShadow: '2px 2px 0 #000', marginBottom: '20px' }}>
         L'ESSAIM T'A BANNI DÉFINITIVEMENT. BZZZZZZZ !!
       </h2>
-      <button className="mc-button" onClick={logout} style={{ fontSize: '1.2rem', padding: '15px 30px' }}>
+
+      <div style={{
+        maxWidth: '600px',
+        padding: '14px 20px',
+        background: 'rgba(0,0,0,0.6)',
+        border: '3px solid #ffea00',
+        borderRadius: '4px',
+        color: '#ffdd77',
+        fontSize: '9px',
+        lineHeight: '1.6',
+        marginBottom: '35px',
+      }}>
+        🛡️ <strong>MOTIF DU BANNISSEMENT :</strong><br/>
+        {banReason}
+      </div>
+
+      <button className="mc-button" onClick={logout} style={{ fontSize: '1.1rem', padding: '15px 30px' }}>
         Fuir l'essaim (Déconnexion)
       </button>
 

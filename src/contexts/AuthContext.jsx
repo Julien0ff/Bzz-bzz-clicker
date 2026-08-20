@@ -362,16 +362,21 @@ export function AuthProvider({ children }) {
   }
 
   // --- Ban System ---
-  const banUser = async () => {
+  const banUser = async (reason = "Utilisation d'un Auto-Clicker ou logiciel tiers détectée.") => {
     if (!user) return
     try {
       const profileRef = doc(db, 'users', user.uid)
-      await updateDoc(profileRef, { isBanned: true })
-      setUserProfile(prev => ({ ...prev, isBanned: true }))
+      await updateDoc(profileRef, {
+        isBanned: true,
+        banReason: reason,
+        bannedAt: new Date().toISOString(),
+      })
+      setUserProfile(prev => ({ ...prev, isBanned: true, banReason: reason }))
     } catch (err) {
       console.error('Ban error:', err)
     }
   }
+
 
   const unbanUserByEmail = async (targetEmail) => {
     try {

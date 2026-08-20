@@ -63,8 +63,19 @@ export const CHANGELOGS = [
         desc_fr: 'Pollen Divin, Singularité Cosmique, Boucle d\'Infinité et Bénédiction du Panthéon.',
         desc_en: 'Godly Pollen, Cosmic Singularity, Infinity Loop, and Pantheon Blessing.',
       },
+      {
+        type: 'fix',
+        icon: '🛡️',
+        label: 'Anti-Cheat Auto-Clicker Haute Sécurité',
+        label_fr: 'Anti-Cheat Auto-Clicker Haute Sécurité',
+        label_en: 'High-Security Anti-Cheat & Macro Guard',
+        desc: 'Détection multi-critères des vitesses CPS surhumaines, rafales anormales, intervalles artificiels parfaits (écart-type), clics synthétiques (isTrusted) et verrouillage de coordonnées.',
+        desc_fr: 'Détection multi-critères des vitesses CPS surhumaines, rafales anormales, intervalles artificiels parfaits (écart-type), clics synthétiques (isTrusted) et verrouillage de coordonnées.',
+        desc_en: 'Multi-layered detection for superhuman CPS, burst spikes, zero-jitter timing (std dev), synthetic events (isTrusted), and static coordinate locks.',
+      },
     ],
   },
+
   {
     version: '4.5.0',
     title: '⚔️ Mise à Jour : Salons de Raid, Animations & Cooldowns',
