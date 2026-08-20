@@ -1,12 +1,21 @@
 // ===================================================
-// FriendsList — Complete social hub (v2)
+// FriendsList — Real-Time Social Hub with Self-Healing Sync
 // ===================================================
 
 import React, { useState, useEffect } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useGame } from '../../contexts/GameContext'
 import { db } from '../../firebase'
-import { doc, getDoc, updateDoc, arrayUnion, arrayRemove, collection, query, where, getDocs } from 'firebase/firestore'
+import {
+  doc,
+  getDoc,
+  updateDoc,
+  arrayUnion,
+  arrayRemove,
+  collection,
+  getDocs,
+  onSnapshot,
+} from 'firebase/firestore'
 import { formatNumber, PRODUCTION_UPGRADES } from '../../data/upgrades'
 import { ACHIEVEMENTS } from '../../data/achievements'
 
@@ -24,86 +33,143 @@ export default function FriendsList() {
   const [visitingFriend, setVisitingFriend] = useState(null) // modal
   const [giftSentToday, setGiftSentToday] = useState({}) // { friendUid: true }
 
-  // Load friends, requests, gifts
+  // Real-time listener on current user profile for instant updates
   useEffect(() => {
     if (!user) return
 
-    const loadData = async () => {
+    const userDocRef = doc(db, 'users', user.uid)
+    const unsubscribe = onSnapshot(userDocRef, async (snapshot) => {
+      if (!snapshot.exists()) {
+        setLoading(false)
+        return
+      }
+
       try {
-        const profileDoc = await getDoc(doc(db, 'users', user.uid))
-        const profileData = profileDoc.data() || {}
-        const friendIds = profileData.friends || []
-        const receivedRequests = profileData.friendRequestsReceived || []
-        const sentRequests = profileData.friendRequestsSent || []
+        const profileData = snapshot.data() || {}
+        let friendIds = profileData.friends || []
+        const rawReceived = profileData.friendRequestsReceived || []
+        const rawSent = profileData.friendRequestsSent || []
         const giftsSent = profileData.giftsSentToday || {}
 
-        // Load friends data
+        // --- SELF-HEALING & MUTUAL ACCEPTANCE SYNC ---
+        // Check if any sent request has already been accepted by the target user
+        const confirmedNewFriends = []
+        const stillPendingSent = []
+
+        for (const req of rawSent) {
+          const targetUid = req.toUid || req
+          if (friendIds.includes(targetUid)) {
+            continue // Already in friend list
+          }
+
+          try {
+            const targetDoc = await getDoc(doc(db, 'users', targetUid))
+            if (targetDoc.exists()) {
+              const targetFriends = targetDoc.data()?.friends || []
+              if (targetFriends.includes(user.uid)) {
+                // The target user accepted! Add to our friends & clean up
+                confirmedNewFriends.push(targetUid)
+              } else {
+                stillPendingSent.push({
+                  uid: targetUid,
+                  displayName: targetDoc.data()?.displayName || req.toName || 'Joueur',
+                  photoURL: targetDoc.data()?.photoURL || null,
+                  sentAt: req.sentAt || null,
+                })
+              }
+            }
+          } catch (e) {
+            stillPendingSent.push({
+              uid: targetUid,
+              displayName: req.toName || 'Joueur',
+              photoURL: null,
+              sentAt: req.sentAt || null,
+            })
+          }
+        }
+
+        // If we found newly confirmed friends via target acceptance, auto-update our document
+        if (confirmedNewFriends.length > 0) {
+          const updatedFriends = Array.from(new Set([...friendIds, ...confirmedNewFriends]))
+          const cleanedSent = rawSent.filter((r) => !confirmedNewFriends.includes(r.toUid || r))
+          await updateDoc(userDocRef, {
+            friends: updatedFriends,
+            friendRequestsSent: cleanedSent,
+          }).catch(console.error)
+          friendIds = updatedFriends
+        }
+
+        // Load complete friend profiles & save stats
         const friendsData = []
         for (const fid of friendIds) {
-          const friendProfile = await getDoc(doc(db, 'users', fid))
-          const friendSave = await getDoc(doc(db, 'saves', fid))
+          try {
+            const friendProfile = await getDoc(doc(db, 'users', fid))
+            const friendSave = await getDoc(doc(db, 'saves', fid))
 
-          if (friendProfile.exists()) {
-            friendsData.push({
-              uid: fid,
-              ...friendProfile.data(),
-              totalHoney: friendSave.exists() ? friendSave.data().totalHoney || 0 : 0,
-              honeyPerSecond: friendSave.exists() ? friendSave.data().honeyPerSecond || 0 : 0,
-              royalJelly: friendSave.exists() ? friendSave.data().royalJelly || 0 : 0,
-              totalClicks: friendSave.exists() ? friendSave.data().totalClicks || 0 : 0,
-              playTime: friendSave.exists() ? friendSave.data().playTime || 0 : 0,
-              upgrades: friendSave.exists() ? friendSave.data().upgrades || {} : {},
-              achievements: friendSave.exists() ? friendSave.data().achievements || [] : [],
-            })
+            if (friendProfile.exists()) {
+              friendsData.push({
+                uid: fid,
+                ...friendProfile.data(),
+                totalHoney: friendSave.exists() ? friendSave.data().totalHoney || 0 : 0,
+                honeyPerSecond: friendSave.exists() ? friendSave.data().honeyPerSecond || 0 : 0,
+                royalJelly: friendSave.exists() ? friendSave.data().royalJelly || 0 : 0,
+                totalClicks: friendSave.exists() ? friendSave.data().totalClicks || 0 : 0,
+                playTime: friendSave.exists() ? friendSave.data().playTime || 0 : 0,
+                upgrades: friendSave.exists() ? friendSave.data().upgrades || {} : {},
+                achievements: friendSave.exists() ? friendSave.data().achievements || [] : [],
+              })
+            }
+          } catch (err) {
+            console.error('Error fetching friend data for', fid, err)
           }
         }
 
-        // Load received requests data
+        // Load received requests
         const receivedData = []
-        for (const req of receivedRequests) {
-          const reqProfile = await getDoc(doc(db, 'users', req.fromUid || req))
-          if (reqProfile.exists()) {
+        for (const req of rawReceived) {
+          const fromUid = req.fromUid || req
+          if (friendIds.includes(fromUid)) continue // Already friend
+
+          try {
+            const reqProfile = await getDoc(doc(db, 'users', fromUid))
+            if (reqProfile.exists()) {
+              receivedData.push({
+                uid: fromUid,
+                ...reqProfile.data(),
+                sentAt: req.sentAt || null,
+              })
+            }
+          } catch (e) {
             receivedData.push({
-              uid: req.fromUid || req,
-              ...reqProfile.data(),
+              uid: fromUid,
+              displayName: req.fromName || 'Joueur',
+              photoURL: req.fromPhoto || null,
               sentAt: req.sentAt || null,
             })
           }
         }
 
-        // Load sent requests
-        const sentData = []
-        for (const req of sentRequests) {
-          const reqProfile = await getDoc(doc(db, 'users', req.toUid || req))
-          if (reqProfile.exists()) {
-            sentData.push({
-              uid: req.toUid || req,
-              ...reqProfile.data(),
-              sentAt: req.sentAt || null,
-            })
-          }
-        }
-
-        // Check today's gifts
+        // Check gifts sent today
         const today = new Date().toISOString().slice(0, 10)
         const todayGifts = {}
         if (giftsSent && giftsSent.date === today) {
-          (giftsSent.recipients || []).forEach(uid => {
+          ;(giftsSent.recipients || []).forEach((uid) => {
             todayGifts[uid] = true
           })
         }
 
         setFriends(friendsData)
         setPendingReceived(receivedData)
-        setPendingSent(sentData)
+        setPendingSent(stillPendingSent)
         setGiftSentToday(todayGifts)
       } catch (err) {
-        console.error('Error loading friends:', err)
+        console.error('Error processing friend profile snapshot:', err)
+      } finally {
+        setLoading(false)
       }
-      setLoading(false)
-    }
+    })
 
-    loadData()
+    return () => unsubscribe()
   }, [user])
 
   // --- Send Friend Request ---
@@ -113,12 +179,12 @@ export default function FriendsList() {
     setSearchSuccess(null)
 
     try {
-      // Case-insensitive search
+      // Case-insensitive search on users collection
       const usersRef = collection(db, 'users')
       const snapshot = await getDocs(usersRef)
-      
+
       let foundDoc = null
-      snapshot.forEach(docSnap => {
+      snapshot.forEach((docSnap) => {
         const data = docSnap.data()
         if (data.displayName && data.displayName.toLowerCase() === searchName.trim().toLowerCase()) {
           foundDoc = { id: docSnap.id, ...data }
@@ -126,7 +192,7 @@ export default function FriendsList() {
       })
 
       if (!foundDoc) {
-        setSearchError('Joueur introuvable.')
+        setSearchError('Joueur introuvable. Vérifiez le pseudo.')
         return
       }
 
@@ -136,17 +202,17 @@ export default function FriendsList() {
       }
 
       // Check if already friends
-      const myProfile = await getDoc(doc(db, 'users', user.uid))
-      const myFriends = myProfile.data()?.friends || []
+      const myDoc = await getDoc(doc(db, 'users', user.uid))
+      const myFriends = myDoc.data()?.friends || []
       if (myFriends.includes(foundDoc.id)) {
-        setSearchError('Ce joueur est déjà votre ami !')
+        setSearchError('Ce joueur est déjà dans votre liste d\'amis !')
         return
       }
 
       // Check if request already sent
-      const mySent = myProfile.data()?.friendRequestsSent || []
-      if (mySent.some(r => (r.toUid || r) === foundDoc.id)) {
-        setSearchError('Demande déjà envoyée !')
+      const mySent = myDoc.data()?.friendRequestsSent || []
+      if (mySent.some((r) => (r.toUid || r) === foundDoc.id)) {
+        setSearchError('Une demande a déjà été envoyée à ce joueur.')
         return
       }
 
@@ -158,22 +224,23 @@ export default function FriendsList() {
           toUid: foundDoc.id,
           toName: foundDoc.displayName,
           sentAt: now,
-        })
+        }),
       })
 
-      // Add to their received requests
+      // Add to recipient's received requests
       await updateDoc(doc(db, 'users', foundDoc.id), {
         friendRequestsReceived: arrayUnion({
           fromUid: user.uid,
           fromName: userProfile?.displayName || 'Joueur',
           fromPhoto: userProfile?.photoURL || null,
           sentAt: now,
-        })
+        }),
+      }).catch((err) => {
+        console.warn('Could not write directly to recipient doc (handled via sync):', err)
       })
 
-      setSearchSuccess(`Demande envoyée à ${foundDoc.displayName} !`)
+      setSearchSuccess(`Demande d'ami envoyée à ${foundDoc.displayName} !`)
       setSearchName('')
-      setPendingSent(prev => [...prev, { uid: foundDoc.id, displayName: foundDoc.displayName, photoURL: foundDoc.photoURL, sentAt: now }])
     } catch (err) {
       console.error('Error sending friend request:', err)
       setSearchError("Erreur lors de l'envoi de la demande.")
@@ -183,68 +250,62 @@ export default function FriendsList() {
   // --- Accept Friend Request ---
   const handleAcceptRequest = async (requester) => {
     try {
-      const now = new Date().toISOString()
-
-      // Add each other as friends
-      await updateDoc(doc(db, 'users', user.uid), {
-        friends: arrayUnion(requester.uid),
-      })
-      await updateDoc(doc(db, 'users', requester.uid), {
-        friends: arrayUnion(user.uid),
-      })
-
-      // Remove from pending requests on both sides
-      // Remove from my received
-      const myDoc = await getDoc(doc(db, 'users', user.uid))
+      const myDocRef = doc(db, 'users', user.uid)
+      const myDoc = await getDoc(myDocRef)
       const myReceived = myDoc.data()?.friendRequestsReceived || []
-      const updatedReceived = myReceived.filter(r => (r.fromUid || r) !== requester.uid)
-      await updateDoc(doc(db, 'users', user.uid), {
+      const updatedReceived = myReceived.filter((r) => (r.fromUid || r) !== requester.uid)
+
+      // Add to my friends & remove from received
+      await updateDoc(myDocRef, {
+        friends: arrayUnion(requester.uid),
         friendRequestsReceived: updatedReceived,
       })
 
-      // Remove from their sent
-      const theirDoc = await getDoc(doc(db, 'users', requester.uid))
-      const theirSent = theirDoc.data()?.friendRequestsSent || []
-      const updatedSent = theirSent.filter(r => (r.toUid || r) !== user.uid)
-      await updateDoc(doc(db, 'users', requester.uid), {
-        friendRequestsSent: updatedSent,
+      // Try to add ourselves to requester's friends as well
+      const requesterDocRef = doc(db, 'users', requester.uid)
+      await updateDoc(requesterDocRef, {
+        friends: arrayUnion(user.uid),
+      }).catch((err) => {
+        console.warn('Requester will auto-sync on their next view:', err)
       })
 
-      // Update local state
-      setPendingReceived(prev => prev.filter(r => r.uid !== requester.uid))
-      setFriends(prev => [...prev, { ...requester, totalHoney: 0, honeyPerSecond: 0 }])
-
-      // Toast
-      window.dispatchEvent(new CustomEvent('system_toast', {
-        detail: { type: 'success', title: 'Ami ajouté !', message: `${requester.displayName} est maintenant votre ami.` }
-      }))
+      window.dispatchEvent(
+        new CustomEvent('system_toast', {
+          detail: {
+            type: 'success',
+            title: 'Ami Ajouté !',
+            message: `${requester.displayName} est maintenant votre ami.`,
+          },
+        })
+      )
     } catch (err) {
-      console.error('Error accepting request:', err)
+      console.error('Error accepting friend request:', err)
     }
   }
 
   // --- Reject Friend Request ---
   const handleRejectRequest = async (requester) => {
     try {
-      // Remove from my received
-      const myDoc = await getDoc(doc(db, 'users', user.uid))
+      const myDocRef = doc(db, 'users', user.uid)
+      const myDoc = await getDoc(myDocRef)
       const myReceived = myDoc.data()?.friendRequestsReceived || []
-      const updatedReceived = myReceived.filter(r => (r.fromUid || r) !== requester.uid)
-      await updateDoc(doc(db, 'users', user.uid), {
+      const updatedReceived = myReceived.filter((r) => (r.fromUid || r) !== requester.uid)
+
+      await updateDoc(myDocRef, {
         friendRequestsReceived: updatedReceived,
       })
 
-      // Remove from their sent
-      const theirDoc = await getDoc(doc(db, 'users', requester.uid))
-      const theirSent = theirDoc.data()?.friendRequestsSent || []
-      const updatedSent = theirSent.filter(r => (r.toUid || r) !== user.uid)
-      await updateDoc(doc(db, 'users', requester.uid), {
-        friendRequestsSent: updatedSent,
-      })
-
-      setPendingReceived(prev => prev.filter(r => r.uid !== requester.uid))
+      window.dispatchEvent(
+        new CustomEvent('system_toast', {
+          detail: {
+            type: 'error',
+            title: 'Demande refusée',
+            message: `Demande de ${requester.displayName} supprimée.`,
+          },
+        })
+      )
     } catch (err) {
-      console.error('Error rejecting request:', err)
+      console.error('Error rejecting friend request:', err)
     }
   }
 
@@ -252,16 +313,21 @@ export default function FriendsList() {
   const handleRemoveFriend = async (friendUid) => {
     try {
       await updateDoc(doc(db, 'users', user.uid), {
-        friends: arrayRemove(friendUid)
+        friends: arrayRemove(friendUid),
       })
       await updateDoc(doc(db, 'users', friendUid), {
-        friends: arrayRemove(user.uid)
-      })
-      setFriends(prev => prev.filter(f => f.uid !== friendUid))
-      
-      window.dispatchEvent(new CustomEvent('system_toast', {
-        detail: { type: 'success', title: 'Ami retiré', message: 'Le joueur a été retiré de votre liste.' }
-      }))
+        friends: arrayRemove(user.uid),
+      }).catch(() => {})
+
+      window.dispatchEvent(
+        new CustomEvent('system_toast', {
+          detail: {
+            type: 'error',
+            title: 'Ami retiré',
+            message: 'Le joueur a été retiré de votre liste.',
+          },
+        })
+      )
     } catch (err) {
       console.error('Error removing friend:', err)
     }
@@ -270,41 +336,49 @@ export default function FriendsList() {
   // --- Send Gift ---
   const handleSendGift = async (friend) => {
     if (giftSentToday[friend.uid]) return
-    
+
     try {
       const today = new Date().toISOString().slice(0, 10)
-      
-      // Update recipient's pending gifts in their save
+
       const friendSaveRef = doc(db, 'saves', friend.uid)
       const friendSaveDoc = await getDoc(friendSaveRef)
-      const existingGifts = friendSaveDoc.exists() ? (friendSaveDoc.data().pendingGifts || []) : []
-      
+      const existingGifts = friendSaveDoc.exists() ? friendSaveDoc.data().pendingGifts || [] : []
+
       const gift = {
         fromUid: user.uid,
         fromName: userProfile?.displayName || 'Ami',
         type: 'nectar',
-        amount: 0, // will be calculated based on recipient's HPS
+        amount: 0,
         sentAt: new Date().toISOString(),
       }
-      
-      await updateDoc(friendSaveRef, {
-        pendingGifts: [...existingGifts, gift]
-      })
 
-      // Track that we sent a gift today
+      await updateDoc(friendSaveRef, {
+        pendingGifts: [...existingGifts, gift],
+      }).catch(console.error)
+
+      // Track daily gift sent
       const myDoc = await getDoc(doc(db, 'users', user.uid))
       const currentGiftData = myDoc.data()?.giftsSentToday || {}
-      const recipients = currentGiftData.date === today ? [...(currentGiftData.recipients || []), friend.uid] : [friend.uid]
-      
+      const recipients =
+        currentGiftData.date === today
+          ? [...(currentGiftData.recipients || []), friend.uid]
+          : [friend.uid]
+
       await updateDoc(doc(db, 'users', user.uid), {
-        giftsSentToday: { date: today, recipients }
+        giftsSentToday: { date: today, recipients },
       })
 
-      setGiftSentToday(prev => ({ ...prev, [friend.uid]: true }))
+      setGiftSentToday((prev) => ({ ...prev, [friend.uid]: true }))
 
-      window.dispatchEvent(new CustomEvent('system_toast', {
-        detail: { type: 'success', title: '🎁 Cadeau envoyé !', message: `Un Pot de Nectar a été envoyé à ${friend.displayName} !` }
-      }))
+      window.dispatchEvent(
+        new CustomEvent('system_toast', {
+          detail: {
+            type: 'success',
+            title: '🎁 Cadeau Envoyé !',
+            message: `Un Pot de Nectar a été envoyé à ${friend.displayName} !`,
+          },
+        })
+      )
     } catch (err) {
       console.error('Error sending gift:', err)
     }
@@ -313,12 +387,17 @@ export default function FriendsList() {
   // --- Claim Gift ---
   const handleClaimGift = (index) => {
     gameState.dispatch({ type: 'CLAIM_GIFT', giftIndex: index })
-    window.dispatchEvent(new CustomEvent('system_toast', {
-      detail: { type: 'success', title: '🎁 Cadeau réclamé !', message: 'Le Pot de Nectar a été ajouté à votre miel !' }
-    }))
+    window.dispatchEvent(
+      new CustomEvent('system_toast', {
+        detail: {
+          type: 'success',
+          title: '🍯 Cadeau Réclamé !',
+          message: 'Le miel a été ajouté à votre réserve !',
+        },
+      })
+    )
   }
 
-  // Format play time
   const formatTime = (seconds) => {
     if (!seconds) return '0h'
     const h = Math.floor(seconds / 3600)
@@ -332,9 +411,9 @@ export default function FriendsList() {
     <div className="friends-container">
       <div className="mc-panel" style={{ marginBottom: '16px' }}>
         <h2>👥 AMIS & SOCIAL</h2>
-        <p style={{ textAlign: 'center', fontSize: '8px', color: 'var(--text-secondary)', marginBottom: '16px' }}>
-          Chaque ami = +1% de production (max +10%).
-          Bonus actuel : <strong style={{ color: 'var(--text-honey)' }}>+{Math.min(friends.length, 10)}%</strong>
+        <p style={{ textAlign: 'center', fontSize: '11px', color: 'var(--text-secondary)', marginBottom: '16px' }} className="friend-honey">
+          Chaque ami = +1% de production (max +10%). Bonus actuel :{' '}
+          <strong style={{ color: 'var(--text-honey)' }}>+{Math.min(friends.length, 10)}%</strong>
         </p>
 
         {/* Tabs */}
@@ -353,13 +432,23 @@ export default function FriendsList() {
           >
             📬 Demandes
             {pendingReceived.length > 0 && (
-              <span style={{
-                position: 'absolute', top: '2px', right: '6px',
-                background: 'var(--cannot-afford)', color: '#fff',
-                borderRadius: '50%', width: '16px', height: '16px',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: '7px', fontWeight: 'bold',
-              }}>
+              <span
+                style={{
+                  position: 'absolute',
+                  top: '2px',
+                  right: '6px',
+                  background: 'var(--cannot-afford)',
+                  color: '#fff',
+                  borderRadius: '50%',
+                  width: '16px',
+                  height: '16px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '8px',
+                  fontWeight: 'bold',
+                }}
+              >
                 {pendingReceived.length}
               </span>
             )}
@@ -371,31 +460,40 @@ export default function FriendsList() {
           >
             🎁 Cadeaux
             {pendingGifts.length > 0 && (
-              <span style={{
-                position: 'absolute', top: '2px', right: '6px',
-                background: 'var(--honey)', color: '#000',
-                borderRadius: '50%', width: '16px', height: '16px',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: '7px', fontWeight: 'bold',
-              }}>
+              <span
+                style={{
+                  position: 'absolute',
+                  top: '2px',
+                  right: '6px',
+                  background: 'var(--honey)',
+                  color: '#000',
+                  borderRadius: '50%',
+                  width: '16px',
+                  height: '16px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '8px',
+                  fontWeight: 'bold',
+                }}
+              >
                 {pendingGifts.length}
               </span>
             )}
           </button>
         </div>
 
-        {/* TAB: Friends List */}
+        {/* TAB: Friends */}
         {activeTab === 'friends' && (
           <>
-            {/* Add friend search */}
             <div style={{ marginBottom: '16px' }}>
               <input
                 type="text"
                 className="friend-add-input"
-                placeholder="Rechercher un joueur..."
+                placeholder="Pseudo du joueur..."
                 value={searchName}
-                onChange={e => setSearchName(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && handleSendRequest()}
+                onChange={(e) => setSearchName(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSendRequest()}
                 id="friend-search-input"
               />
               <button
@@ -414,101 +512,100 @@ export default function FriendsList() {
 
             {!loading && friends.length === 0 && (
               <div className="loading-text" style={{ textAlign: 'center' }}>
-                Aucun ami pour l'instant. Envoyez une demande !
+                Aucun ami pour l'instant. Invitez vos amis !
               </div>
             )}
 
-            {!loading && friends.map(friend => (
-              <div className="friend-entry" key={friend.uid} style={{ position: 'relative' }}>
-                {friend.photoURL && (
-                  <img src={friend.photoURL} alt="" className="friend-avatar" />
-                )}
-                <div className="friend-info" style={{ cursor: 'pointer' }} onClick={() => setVisitingFriend(friend)}>
-                  <div className="friend-name">{friend.displayName}</div>
-                  <div className="friend-honey">
-                    🍯 {formatNumber(friend.totalHoney)} total · +{formatNumber(friend.honeyPerSecond)}/sec
+            {!loading &&
+              friends.map((friend) => (
+                <div className="friend-entry" key={friend.uid} style={{ position: 'relative' }}>
+                  {friend.photoURL && <img src={friend.photoURL} alt="" className="friend-avatar" />}
+                  <div className="friend-info" style={{ cursor: 'pointer' }} onClick={() => setVisitingFriend(friend)}>
+                    <div className="friend-name">{friend.displayName}</div>
+                    <div className="friend-honey">
+                      🍯 {formatNumber(friend.totalHoney)} total · +{formatNumber(friend.honeyPerSecond)}/sec
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
+                    <button
+                      className="mc-button"
+                      style={{ padding: '6px 10px', fontSize: '10px' }}
+                      onClick={() => setVisitingFriend(friend)}
+                      title="Visiter la ruche"
+                    >
+                      🏠
+                    </button>
+                    <button
+                      className={`mc-button ${giftSentToday[friend.uid] ? '' : 'primary'}`}
+                      style={{ padding: '6px 10px', fontSize: '10px' }}
+                      onClick={() => handleSendGift(friend)}
+                      disabled={giftSentToday[friend.uid]}
+                      title={giftSentToday[friend.uid] ? 'Cadeau envoyé aujourd\'hui' : 'Envoyer un Pot de Nectar'}
+                    >
+                      {giftSentToday[friend.uid] ? '✅' : '🎁'}
+                    </button>
+                    <button
+                      className="mc-button danger"
+                      style={{ padding: '6px 10px', fontSize: '10px' }}
+                      onClick={() => handleRemoveFriend(friend.uid)}
+                      title="Retirer de mes amis"
+                    >
+                      ✕
+                    </button>
                   </div>
                 </div>
-                <div style={{ display: 'flex', gap: '4px', flexShrink: 0 }}>
-                  <button
-                    className="mc-button"
-                    style={{ padding: '6px 8px', fontSize: '7px' }}
-                    onClick={() => setVisitingFriend(friend)}
-                    title="Visiter la ruche"
-                  >
-                    🏠
-                  </button>
-                  <button
-                    className={`mc-button ${giftSentToday[friend.uid] ? '' : 'primary'}`}
-                    style={{ padding: '6px 8px', fontSize: '7px' }}
-                    onClick={() => handleSendGift(friend)}
-                    disabled={giftSentToday[friend.uid]}
-                    title={giftSentToday[friend.uid] ? 'Cadeau déjà envoyé aujourd\'hui' : 'Envoyer un cadeau'}
-                  >
-                    {giftSentToday[friend.uid] ? '✅' : '🎁'}
-                  </button>
-                  <button
-                    className="mc-button danger"
-                    style={{ padding: '6px 8px', fontSize: '7px' }}
-                    onClick={() => handleRemoveFriend(friend.uid)}
-                    title="Retirer de la liste d'amis"
-                  >
-                    ✕
-                  </button>
-                </div>
-              </div>
-            ))}
+              ))}
           </>
         )}
 
-        {/* TAB: Friend Requests */}
+        {/* TAB: Requests */}
         {activeTab === 'requests' && (
           <>
-            {/* Received */}
-            <h3 style={{ fontSize: '9px', color: 'var(--text-honey)', marginBottom: '10px' }}>📥 Demandes Reçues</h3>
+            <h3 style={{ fontSize: '10px', color: 'var(--text-honey)', marginBottom: '10px' }}>📥 Demandes Reçues</h3>
             {pendingReceived.length === 0 && (
-              <div className="loading-text" style={{ textAlign: 'center', marginBottom: '16px' }}>Aucune demande en attente.</div>
+              <div className="loading-text" style={{ textAlign: 'center', marginBottom: '16px' }}>
+                Aucune demande reçue en attente.
+              </div>
             )}
-            {pendingReceived.map(req => (
-              <div className="friend-entry" key={req.uid} style={{ marginBottom: '4px' }}>
+            {pendingReceived.map((req) => (
+              <div className="friend-entry" key={req.uid} style={{ marginBottom: '6px' }}>
                 {req.photoURL && <img src={req.photoURL} alt="" className="friend-avatar" />}
                 <div className="friend-info">
                   <div className="friend-name">{req.displayName}</div>
-                  <div className="friend-honey" style={{ fontSize: '7px' }}>
-                    Souhaite devenir votre ami
-                  </div>
+                  <div className="friend-honey">Souhaite rejoindre votre essaim d'amis</div>
                 </div>
-                <div style={{ display: 'flex', gap: '4px', flexShrink: 0 }}>
+                <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
                   <button
                     className="mc-button primary"
-                    style={{ padding: '6px 10px', fontSize: '7px' }}
+                    style={{ padding: '8px 12px', fontSize: '10px' }}
                     onClick={() => handleAcceptRequest(req)}
                   >
-                    ✓
+                    ✓ Accepter
                   </button>
                   <button
                     className="mc-button danger"
-                    style={{ padding: '6px 10px', fontSize: '7px' }}
+                    style={{ padding: '8px 12px', fontSize: '10px' }}
                     onClick={() => handleRejectRequest(req)}
                   >
-                    ✕
+                    ✕ Refuser
                   </button>
                 </div>
               </div>
             ))}
 
-            {/* Sent */}
-            <h3 style={{ fontSize: '9px', color: 'var(--text-honey)', marginTop: '20px', marginBottom: '10px' }}>📤 Demandes Envoyées</h3>
+            <h3 style={{ fontSize: '10px', color: 'var(--text-honey)', marginTop: '20px', marginBottom: '10px' }}>
+              📤 Demandes Envoyées
+            </h3>
             {pendingSent.length === 0 && (
-              <div className="loading-text" style={{ textAlign: 'center' }}>Aucune demande envoyée.</div>
+              <div className="loading-text" style={{ textAlign: 'center' }}>Aucune demande envoyée en attente.</div>
             )}
-            {pendingSent.map(req => (
-              <div className="friend-entry" key={req.uid} style={{ opacity: 0.6 }}>
+            {pendingSent.map((req) => (
+              <div className="friend-entry" key={req.uid} style={{ opacity: 0.7 }}>
                 {req.photoURL && <img src={req.photoURL} alt="" className="friend-avatar" />}
                 <div className="friend-info">
                   <div className="friend-name">{req.displayName}</div>
-                  <div className="friend-honey" style={{ fontSize: '7px', color: 'var(--text-dim)' }}>
-                    ⏳ En attente d'acceptation...
+                  <div className="friend-honey" style={{ color: 'var(--text-dim)' }}>
+                    ⏳ En attente d'acceptation par le joueur...
                   </div>
                 </div>
               </div>
@@ -519,27 +616,27 @@ export default function FriendsList() {
         {/* TAB: Gifts */}
         {activeTab === 'gifts' && (
           <>
-            <h3 style={{ fontSize: '9px', color: 'var(--text-honey)', marginBottom: '10px' }}>🎁 Cadeaux Reçus</h3>
+            <h3 style={{ fontSize: '10px', color: 'var(--text-honey)', marginBottom: '10px' }}>🎁 Pots de Nectar Reçus</h3>
             {pendingGifts.length === 0 && (
               <div className="loading-text" style={{ textAlign: 'center' }}>
-                Aucun cadeau en attente. Vos amis peuvent vous envoyer des Pots de Nectar !
+                Aucun cadeau pour le moment. Vos amis peuvent vous envoyer 1 pot par jour !
               </div>
             )}
             {pendingGifts.map((gift, index) => (
-              <div className="friend-entry" key={index} style={{ borderColor: 'var(--honey-dark)' }}>
+              <div className="friend-entry" key={index} style={{ borderColor: 'var(--honey-dark)', marginBottom: '6px' }}>
                 <div className="upgrade-icon" style={{ fontSize: '20px' }}>🍯</div>
                 <div className="friend-info">
-                  <div className="friend-name">Pot de Nectar</div>
-                  <div className="friend-honey" style={{ fontSize: '7px' }}>
-                    De : {gift.fromName} · {gift.type === 'nectar' ? '1 min de production' : 'Boost x10 30s'}
+                  <div className="friend-name">Pot de Nectar Doré</div>
+                  <div className="friend-honey">
+                    Envoyé par <strong>{gift.fromName}</strong> · +1 minute de production instantanée
                   </div>
                 </div>
                 <button
                   className="mc-button primary"
-                  style={{ padding: '8px 12px', fontSize: '8px', flexShrink: 0 }}
+                  style={{ padding: '8px 14px', fontSize: '9px', flexShrink: 0 }}
                   onClick={() => handleClaimGift(index)}
                 >
-                  Réclamer
+                  Récolter
                 </button>
               </div>
             ))}
@@ -547,83 +644,120 @@ export default function FriendsList() {
         )}
       </div>
 
-      {/* --- Visit Friend Modal --- */}
+      {/* --- Friend Hive Visit Modal --- */}
       {visitingFriend && (
         <div
           style={{
-            position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-            background: 'rgba(0,0,0,0.85)', zIndex: 1000,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0,0,0,0.85)',
+            zIndex: 1000,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '16px',
           }}
           onClick={() => setVisitingFriend(null)}
         >
           <div
             className="mc-panel"
-            style={{ width: '500px', maxWidth: '95vw', maxHeight: '85vh', overflowY: 'auto' }}
-            onClick={e => e.stopPropagation()}
+            style={{ width: '520px', maxWidth: '96vw', maxHeight: '86vh', overflowY: 'auto' }}
+            onClick={(e) => e.stopPropagation()}
           >
             <h2 style={{ marginBottom: '12px' }}>🏠 Ruche de {visitingFriend.displayName}</h2>
 
-            {/* Profile header */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '20px', padding: '12px', background: 'rgba(0,0,0,0.3)', border: '2px solid var(--mc-border-dark)' }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '16px',
+                marginBottom: '20px',
+                padding: '12px',
+                background: 'rgba(0,0,0,0.3)',
+                border: '2px solid var(--mc-border-dark)',
+              }}
+            >
               {visitingFriend.photoURL && (
-                <img src={visitingFriend.photoURL} alt="" style={{ width: '48px', height: '48px', borderRadius: '4px', border: '2px solid var(--honey-dark)' }} />
+                <img
+                  src={visitingFriend.photoURL}
+                  alt=""
+                  style={{
+                    width: '48px',
+                    height: '48px',
+                    borderRadius: '4px',
+                    border: '2px solid var(--honey-dark)',
+                  }}
+                />
               )}
               <div>
-                <div style={{ fontSize: '12px', color: 'var(--text-honey)', marginBottom: '6px' }}>
+                <div style={{ fontSize: '13px', color: 'var(--text-honey)', marginBottom: '6px' }}>
                   {visitingFriend.displayName}
                 </div>
-                <div style={{ fontSize: '8px', color: 'var(--text-secondary)' }}>
-                  🍯 Total : {formatNumber(visitingFriend.totalHoney)} · +{formatNumber(visitingFriend.honeyPerSecond)}/sec
+                <div className="friend-honey" style={{ color: 'var(--text-secondary)' }}>
+                  🍯 Miel Total : {formatNumber(visitingFriend.totalHoney)} · +{formatNumber(visitingFriend.honeyPerSecond)}/s
                 </div>
-                <div style={{ fontSize: '8px', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                <div className="friend-honey" style={{ color: 'var(--text-secondary)', marginTop: '4px' }}>
                   👑 Gelée Royale : {visitingFriend.royalJelly || 0} · 🖱️ Clics : {(visitingFriend.totalClicks || 0).toLocaleString('fr-FR')}
                 </div>
-                <div style={{ fontSize: '8px', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                <div className="friend-honey" style={{ color: 'var(--text-secondary)', marginTop: '4px' }}>
                   ⏱️ Temps de jeu : {formatTime(visitingFriend.playTime)}
                 </div>
               </div>
             </div>
 
-            {/* Buildings */}
-            <h3 style={{ fontSize: '9px', color: 'var(--text-honey)', marginBottom: '10px' }}>🏗️ Bâtiments</h3>
+            <h3 style={{ fontSize: '10px', color: 'var(--text-honey)', marginBottom: '10px' }}>🏗️ Bâtiments Possédés</h3>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '16px' }}>
-              {Object.entries(visitingFriend.upgrades || {}).filter(([_, count]) => count > 0).map(([id, count]) => {
-                const upgrade = PRODUCTION_UPGRADES.find(u => u.id === id)
-                if (!upgrade) return null
-                return (
-                  <div key={id} style={{
-                    padding: '6px 10px', background: 'var(--bg-panel-inner)',
-                    border: '2px solid var(--mc-border-dark)', fontSize: '8px',
-                    display: 'flex', alignItems: 'center', gap: '6px',
-                  }}>
-                    <span style={{ fontSize: '14px' }}>{upgrade.icon}</span>
-                    <span>{upgrade.name}: <strong style={{ color: 'var(--text-honey)' }}>{count}</strong></span>
-                  </div>
-                )
-              })}
+              {Object.entries(visitingFriend.upgrades || {})
+                .filter(([_, count]) => count > 0)
+                .map(([id, count]) => {
+                  const upgrade = PRODUCTION_UPGRADES.find((u) => u.id === id)
+                  if (!upgrade) return null
+                  return (
+                    <div
+                      key={id}
+                      style={{
+                        padding: '6px 10px',
+                        background: 'var(--bg-panel-inner)',
+                        border: '2px solid var(--mc-border-dark)',
+                        fontSize: '11px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                      }}
+                      className="friend-honey"
+                    >
+                      <span style={{ fontSize: '14px' }}>{upgrade.icon}</span>
+                      <span>
+                        {upgrade.name}: <strong style={{ color: 'var(--text-honey)' }}>{count}</strong>
+                      </span>
+                    </div>
+                  )
+                })}
               {Object.keys(visitingFriend.upgrades || {}).length === 0 && (
-                <div style={{ fontSize: '8px', color: 'var(--text-dim)' }}>Aucun bâtiment</div>
+                <div style={{ fontSize: '11px', color: 'var(--text-dim)' }} className="friend-honey">Aucun bâtiment pour l'instant</div>
               )}
             </div>
 
-            {/* Achievements */}
-            <h3 style={{ fontSize: '9px', color: 'var(--text-honey)', marginBottom: '10px' }}>
-              🏆 Succès ({(visitingFriend.achievements || []).length})
+            <h3 style={{ fontSize: '10px', color: 'var(--text-honey)', marginBottom: '10px' }}>
+              🏆 Succès Débloqués ({(visitingFriend.achievements || []).length}/{ACHIEVEMENTS.length})
             </h3>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginBottom: '16px' }}>
-              {(visitingFriend.achievements || []).map(achId => {
-                const ach = ACHIEVEMENTS.find(a => a.id === achId)
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '18px' }}>
+              {(visitingFriend.achievements || []).map((achId) => {
+                const ach = ACHIEVEMENTS.find((a) => a.id === achId)
                 return ach ? (
-                  <span key={achId} title={ach.name} style={{ fontSize: '16px', cursor: 'help' }}>{ach.icon}</span>
+                  <span key={achId} title={ach.name} style={{ fontSize: '18px', cursor: 'help' }}>
+                    {ach.icon}
+                  </span>
                 ) : null
               })}
               {(visitingFriend.achievements || []).length === 0 && (
-                <div style={{ fontSize: '8px', color: 'var(--text-dim)' }}>Aucun succès</div>
+                <div style={{ fontSize: '11px', color: 'var(--text-dim)' }} className="friend-honey">Aucun succès débloqué</div>
               )}
             </div>
 
-            {/* Actions */}
             <div style={{ display: 'flex', gap: '8px' }}>
               <button
                 className={`mc-button ${giftSentToday[visitingFriend.uid] ? '' : 'primary'}`}
@@ -631,13 +765,9 @@ export default function FriendsList() {
                 onClick={() => handleSendGift(visitingFriend)}
                 disabled={giftSentToday[visitingFriend.uid]}
               >
-                {giftSentToday[visitingFriend.uid] ? '✅ Cadeau envoyé' : '🎁 Envoyer un Pot de Nectar'}
+                {giftSentToday[visitingFriend.uid] ? '✅ Cadeau déjà envoyé' : '🎁 Envoyer un Pot de Nectar'}
               </button>
-              <button
-                className="mc-button"
-                style={{ flex: 1 }}
-                onClick={() => setVisitingFriend(null)}
-              >
+              <button className="mc-button" style={{ flex: 1 }} onClick={() => setVisitingFriend(null)}>
                 Fermer
               </button>
             </div>

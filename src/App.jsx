@@ -2,7 +2,7 @@
 // App.jsx — Root component with routing and layout
 // ===================================================
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 import { GameProvider, useGame } from './contexts/GameContext'
@@ -12,17 +12,20 @@ import Leaderboard from './components/Social/Leaderboard'
 import FriendsList from './components/Social/FriendsList'
 import StatisticsPanel from './components/Social/StatisticsPanel'
 import AdminPanel from './components/Admin/AdminPanel'
+import CoopRaid from './components/Game/CoopRaid'
 import ConfirmModal from './components/UI/ConfirmModal'
 import FeedbackModal from './components/UI/FeedbackModal'
+import ChangelogModal from './components/UI/ChangelogModal'
 import BanScreen from './components/UI/BanScreen'
 import { useGameLoop } from './hooks/useGameLoop'
 import { useSaveGame } from './hooks/useSaveGame'
 import beeSrc from '/assets/Bee_(Dungeons).png'
 import MusicPlayer from './components/UI/MusicPlayer'
 import Intermission from './components/UI/Intermission'
+import { APP_VERSION } from './data/changelog'
 
 // --- Settings Modal ---
-function SettingsModal({ onClose }) {
+function SettingsModal({ onClose, onOpenChangelog }) {
   const { user, userProfile, validateLicenseKey, updateUserProfilePicture, resetPassword, linkGoogleAccount, logout } = useAuth()
   const gameState = useGame()
   const [newKey, setNewKey] = useState('')
@@ -236,6 +239,16 @@ function SettingsModal({ onClose }) {
         {msg && <div style={{ fontSize: '8px', margin: '10px 0', color: 'var(--text-honey)', textAlign: 'center' }}>{msg}</div>}
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '20px' }}>
+          <button
+            className="mc-button"
+            onClick={() => {
+              onClose()
+              if (onOpenChangelog) onOpenChangelog()
+            }}
+          >
+            📜 Journal des Mises à Jour (v{APP_VERSION})
+          </button>
+
           <button className="mc-button" onClick={() => setFeedbackOpen(true)} disabled={loading}>
             💡 Faire un retour (Bug/Idée)
           </button>
@@ -243,7 +256,7 @@ function SettingsModal({ onClose }) {
           <div style={{ display: 'flex', gap: '10px' }}>
             {!isGoogleLinked && (
               <button className="mc-button" onClick={handleLinkGoogle} disabled={loading} style={{ flex: 1 }}>
-                🔗 Lier Compte Google
+                🔗 Lier Google
               </button>
             )}
             <button className="mc-button" onClick={handleResetPassword} disabled={loading} style={{ flex: 1 }}>
@@ -280,7 +293,7 @@ function SettingsModal({ onClose }) {
 }
 
 // --- Top Navigation Bar ---
-function TopBar() {
+function TopBar({ onOpenChangelog }) {
   const { user, userProfile, logout } = useAuth()
   const gameState = useGame()
   const navigate = useNavigate()
@@ -290,8 +303,7 @@ function TopBar() {
   const isActive = (path) => location.pathname === path ? 'active' : ''
 
   const handleLogout = async (e) => {
-    e.stopPropagation() // Prevent opening settings when clicking logout
-    // Save state before logging out
+    e.stopPropagation()
     try {
       if (user && gameState) {
         const { doc, setDoc } = await import('firebase/firestore')
@@ -318,14 +330,12 @@ function TopBar() {
     } catch (err) {
       console.error('Error saving before logout:', err)
     }
-
-    // Proceed to logout
     logout()
   }
 
   return (
     <>
-      {showSettings && <SettingsModal onClose={() => setShowSettings(false)} />}
+      {showSettings && <SettingsModal onClose={() => setShowSettings(false)} onOpenChangelog={onOpenChangelog} />}
       <div className="top-bar" id="top-bar">
         <div className="top-bar-title" onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>
           <img src={beeSrc} alt="Bee" />
@@ -342,9 +352,16 @@ function TopBar() {
             <span>Jeu</span>
           </button>
           <button
+            className={`top-bar-btn ${isActive('/raid')}`}
+            onClick={() => navigate('/raid')}
+            id="nav-raid"
+          >
+            <span style={{ fontSize: '11px', transform: 'translateY(-1px)' }}>⚔️</span>
+            <span>Raid Coop</span>
+          </button>
+          <button
             className={`top-bar-btn ${isActive('/leaderboard')}`}
             onClick={async () => {
-              // Force a save to ensure the leaderboard is up-to-date
               if (user && gameState) {
                 try {
                   const { doc, setDoc } = await import('firebase/firestore')
@@ -443,7 +460,7 @@ function AchievementToast() {
   React.useEffect(() => {
     const handleUnlock = (e) => {
       setToast(e.detail)
-      setTimeout(() => setToast(null), 5000) // Hide after 5s
+      setTimeout(() => setToast(null), 5000)
     }
     window.addEventListener('achievement_unlocked', handleUnlock)
     return () => window.removeEventListener('achievement_unlocked', handleUnlock)
@@ -469,7 +486,7 @@ function SystemToast() {
   React.useEffect(() => {
     const handleToast = (e) => {
       setToast(e.detail)
-      setTimeout(() => setToast(null), 5000) // Hide after 5s
+      setTimeout(() => setToast(null), 5000)
     }
     window.addEventListener('system_toast', handleToast)
     return () => window.removeEventListener('system_toast', handleToast)
@@ -503,16 +520,33 @@ function GameEngine() {
 }
 
 function AuthenticatedApp() {
+  const [showChangelog, setShowChangelog] = useState(false)
+
+  // Automatic first-time update pop-up check on refresh/mount
+  useEffect(() => {
+    const lastSeen = localStorage.getItem('bzz_last_seen_version')
+    if (lastSeen !== APP_VERSION) {
+      setShowChangelog(true)
+    }
+  }, [])
+
+  const handleCloseChangelog = () => {
+    localStorage.setItem('bzz_last_seen_version', APP_VERSION)
+    setShowChangelog(false)
+  }
+
   return (
     <GameProvider>
       <GameEngine />
       <AchievementToast />
       <SystemToast />
       <Intermission />
-      <TopBar />
+      <ChangelogModal isOpen={showChangelog} onClose={handleCloseChangelog} />
+      <TopBar onOpenChangelog={() => setShowChangelog(true)} />
       <div style={{ paddingTop: '48px', height: '100vh', boxSizing: 'border-box', overflowY: 'auto' }}>
         <Routes>
           <Route path="/" element={<GamePage />} />
+          <Route path="/raid" element={<CoopRaid />} />
           <Route path="/leaderboard" element={<Leaderboard />} />
           <Route path="/friends" element={<FriendsList />} />
           <Route path="/stats" element={<StatisticsPanel />} />

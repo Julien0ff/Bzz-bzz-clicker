@@ -6,7 +6,7 @@ import React from 'react'
 import { useGame } from '../../contexts/GameContext'
 import { formatNumber } from '../../data/upgrades'
 
-export default function UpgradeItem({ upgrade, cost, count, type }) {
+export default function UpgradeItem({ upgrade, cost, count, type, milestone = 1, nextMilestone = null }) {
   const { honey, buyProductionUpgrade, buyClickUpgrade } = useGame()
 
   const canAfford = honey >= cost
@@ -30,12 +30,24 @@ export default function UpgradeItem({ upgrade, cost, count, type }) {
     >
       <div className="upgrade-icon">{upgrade.icon}</div>
       <div className="upgrade-info">
-        <div className="upgrade-name">{upgrade.name}</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
+          <span className="upgrade-name">{upgrade.name}</span>
+          {milestone > 1 && (
+            <span className="milestone-badge" title={`Multiplicateur de palier : x${milestone}`}>
+              x{milestone}
+            </span>
+          )}
+        </div>
         <div className="upgrade-effect">
           {type === 'production'
-            ? `+${formatNumber(upgrade.baseProduction)}/sec`
+            ? `+${formatNumber(upgrade.baseProduction * milestone)}/s`
             : `+${formatNumber(upgrade.clickBonus)}/clic`
           }
+          {nextMilestone && count > 0 && (
+            <span style={{ opacity: 0.65, fontSize: '10px', marginLeft: '6px' }}>
+              ({count}/{nextMilestone} → x{milestone * 2})
+            </span>
+          )}
         </div>
         <div className="upgrade-cost">
           {maxedOut ? 'MAX' : `🍯 ${formatNumber(cost)}`}

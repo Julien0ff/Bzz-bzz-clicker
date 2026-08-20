@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react'
 import { useGame } from '../../contexts/GameContext'
 import placeholderImg from '../../../assets/no texture.png'
 
-// Base spawn time — can be reduced by prestige talent 'goldenSpeed'
-const BASE_MIN_SPAWN = 25 * 1000  // 25 seconds
-const BASE_MAX_SPAWN = 90 * 1000  // 90 seconds
+// Base spawn time (in ms) — balanced between 1 min and 3 mins
+const BASE_MIN_SPAWN = 60 * 1000  // 60 seconds (1 min)
+const BASE_MAX_SPAWN = 180 * 1000 // 180 seconds (3 mins)
 
 export default function GoldenBee() {
   const { dispatch, prestigeTalents } = useGame()
@@ -12,9 +12,9 @@ export default function GoldenBee() {
   const [position, setPosition] = useState({ top: 0, left: 0 })
   const [beeType, setBeeType] = useState('golden') // golden, diamond, storm, royal
 
-  // Calculate spawn speed from prestige talent
+  // Calculate spawn speed from prestige talent (up to 50% faster with max talent)
   const goldenSpeedLevel = prestigeTalents?.['goldenSpeed'] || 0
-  const spawnReduction = 1 - Math.min(0.75, goldenSpeedLevel * 0.25) // cap at 75% faster
+  const spawnReduction = 1 - Math.min(0.50, goldenSpeedLevel * 0.125)
 
   useEffect(() => {
     let timeoutId
@@ -41,11 +41,11 @@ export default function GoldenBee() {
       setPosition({ top: randomTop, left: -100 })
       setActive(true)
 
-      // Despawn after 6 seconds if not clicked
+      // Despawn after 6.5 seconds if not clicked
       despawnTimeout = setTimeout(() => {
         setActive(false)
         scheduleNextSpawn()
-      }, 6000)
+      }, 6500)
     }
 
     scheduleNextSpawn()
@@ -63,18 +63,18 @@ export default function GoldenBee() {
     // 4 possible buffs — all positive, weighted randomly
     const rand = Math.random()
 
-    if (rand < 0.30) {
+    if (rand < 0.35) {
       // ⚡ Frenzy x7 pendant 25s (base)
       dispatch({ type: 'GOLDEN_BEE_EFFECT', effectType: 'frenzy' })
-      showToast('⚡ Production x7 !', 'Frenzy activée !', '⚡')
-    } else if (rand < 0.55) {
+      showToast('⚡ Production x7 !', 'Frenzy activée pendant 25s !', '⚡')
+    } else if (rand < 0.60) {
       // 🌧️ Pluie de Miel (+15 min de production instantanément)
       dispatch({ type: 'GOLDEN_BEE_EFFECT', effectType: 'honey_rain' })
       showToast('🌧️ Pluie de Miel !', '15 minutes de production instantanées !', '🌧️')
-    } else if (rand < 0.80) {
-      // ⚡ Clic Tempête x77 pendant 12s
+    } else if (rand < 0.85) {
+      // 💥 Clic Tempête x77 pendant 12s
       dispatch({ type: 'GOLDEN_BEE_EFFECT', effectType: 'click_storm' })
-      showToast('⚡ Clic Tempête x77 !', 'Vos clics sont surpuissants pendant 12s !', '💥')
+      showToast('💥 Clic Tempête x77 !', 'Vos clics sont surpuissants pendant 12s !', '💥')
     } else {
       // 👑 Bénédiction Royale x10 pendant 30s
       dispatch({ type: 'GOLDEN_BEE_EFFECT', effectType: 'blessing' })
@@ -104,7 +104,7 @@ export default function GoldenBee() {
         height: '60px',
         cursor: 'pointer',
         zIndex: 9999,
-        animation: 'goldenBeeFly 6s linear forwards',
+        animation: 'goldenBeeFly 6.5s linear forwards',
       }}
       onClick={handleClick}
     >
