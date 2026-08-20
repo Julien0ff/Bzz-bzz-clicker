@@ -6,7 +6,7 @@
  * Creates an AntiCheat detector instance to monitor click behavior.
  * Evaluates:
  * 1. Event authenticity (e.isTrusted check)
- * 2. Rolling window CPS and burst velocity
+ * 2. Rolling window CPS and burst velocity from OS / physical events
  * 3. Timing regularity & standard deviation (fixed-interval macros)
  * 4. Coordinate stagnation (zero-jitter auto-clickers)
  * 5. Keyboard repeat spam
@@ -20,28 +20,36 @@ export function createAntiCheatTracker({ onCheatDetected, maxAllowedCPS = 20 }) 
 
   /**
    * Process a click event.
-   * Returns true if click is valid, false if blocked/banned.
+   * @param {Event|null} e - The DOM event if available
+   * @param {number|null} clientX - Pointer X coordinate
+   * @param {number|null} clientY - Pointer Y coordinate
+   * @param {boolean} isInternalHold - Set to true when called from the game engine's internal hold-interval
+   * @returns {boolean} true if valid, false if blocked/banned
    */
-  function validateClick(e, clientX = null, clientY = null) {
+  function validateClick(e = null, clientX = null, clientY = null, isInternalHold = false) {
+    // If it's the game engine's internal hold interval ticking at safe rate, allow it
+    if (isInternalHold) {
+      return true
+    }
+
     const now = performance.now()
 
-    // 1. Synthetic Event Check (Dispatched by script)
+    // 1. Synthetic Event Check (Dispatched by script / bots)
     if (e && e.isTrusted === false) {
       console.warn('[Anti-Cheat] Synthetic event detected (isTrusted: false)')
       onCheatDetected('Événement de clic synthétique / non authentique détecté (isTrusted=false).')
       return false
     }
 
-    // 2. Keyboard repeat rate limit
+    // 2. Keyboard repeat rate limit (holding spacebar)
     if (e && e.type === 'keydown' && e.repeat) {
-      // Check interval between repeats
       const lastTime = clickTimestamps[clickTimestamps.length - 1] || 0
-      if (now - lastTime < 90) { // Max ~11 CPS via held spacebar
+      if (now - lastTime < 85) { // Max ~11.7 CPS via held spacebar
         return false
       }
     }
 
-    // Record timestamp
+    // Record timestamp of external physical / macro event
     clickTimestamps.push(now)
     // Keep last 1.5 seconds of timestamps
     while (clickTimestamps.length > 0 && now - clickTimestamps[0] > 1500) {
@@ -73,7 +81,7 @@ export function createAntiCheatTracker({ onCheatDetected, maxAllowedCPS = 20 }) 
       console.warn(`[Anti-Cheat] CPS limit exceeded: ${recentOneSecClicks} CPS (Strike ${strikes}/3)`)
       
       if (recentOneSecClicks > maxAllowedCPS + 8 || strikes >= 3) {
-        onCheatDetected(`Vitesse de clic surhumaine détectée (${recentOneSecClicks} CPS).`)
+        onCheatDetected(`Vitesse de clic physique/macro surhumaine détectée (${recentOneSecClicks} CPS).`)
         return false
       }
       return false
@@ -85,14 +93,14 @@ export function createAntiCheatTracker({ onCheatDetected, maxAllowedCPS = 20 }) 
       strikes++
       console.warn(`[Anti-Cheat] Instant burst spike: ${recentBurstClicks} clicks in 250ms (Strike ${strikes}/3)`)
       if (recentBurstClicks >= 10 || strikes >= 3) {
-        onCheatDetected('Rafale de clics anormale / macro détectée (>35 CPS en rafale).')
+        onCheatDetected('Rafale de clics anormale / macro détectée (>32 CPS en rafale).')
         return false
       }
       return false
     }
 
     // --- DETECTION 3: Mathematical Timing Regularity (Standard Deviation) ---
-    // Machine auto-clickers have near 0ms standard deviation over consecutive clicks.
+    // Machine auto-clickers send distinct mousedown events with ~0ms variance
     if (clickIntervals.length >= 14) {
       const fastIntervals = clickIntervals.slice(-14)
       const allFast = fastIntervals.every(dt => dt < 140) // only evaluate during rapid clicking
@@ -107,7 +115,7 @@ export function createAntiCheatTracker({ onCheatDetected, maxAllowedCPS = 20 }) 
           strikes += 2
           console.warn(`[Anti-Cheat] Unnatural click timing regularity: stdDev=${stdDev.toFixed(2)}ms (Strike ${strikes}/3)`)
           if (strikes >= 3) {
-            onCheatDetected(`Intervalles de clic artificiellement parfaits détectés (Écart-type: ${stdDev.toFixed(2)}ms).`)
+            onCheatDetected(`Intervalles de clic artificiellement constants (Écart-type: ${stdDev.toFixed(2)}ms).`)
             return false
           }
           return false

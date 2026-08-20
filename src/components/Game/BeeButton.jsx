@@ -28,12 +28,8 @@ export default function BeeButton() {
     })
   }
 
-  const triggerClick = useCallback((e, clientX, clientY) => {
-    // --- Advanced Multi-Layer Anti-Cheat Check ---
-    const isValid = antiCheatRef.current.validateClick(e, clientX, clientY)
-    if (!isValid) return
-    // ---------------------------------------------
-
+  // Performs particle animation & state increment
+  const executeClick = useCallback((clientX, clientY) => {
     click()
 
     // Animate bounce
@@ -69,14 +65,18 @@ export default function BeeButton() {
     const clientX = e.clientX || null
     const clientY = e.clientY || null
 
-    // Trigger first click immediately with original event
-    triggerClick(e, clientX, clientY)
+    // Validate the incoming physical event through Anti-Cheat
+    const isValid = antiCheatRef.current.validateClick(e, clientX, clientY, false)
+    if (!isValid) return
 
-    // Interval for holding click
+    // Trigger initial click
+    executeClick(clientX, clientY)
+
+    // Game engine in-game hold-to-click interval (11.7 CPS max)
     clickIntervalRef.current = setInterval(() => {
-      triggerClick(e, clientX, clientY)
+      executeClick(clientX, clientY)
     }, 85)
-  }, [triggerClick])
+  }, [executeClick])
 
   const stopClicking = useCallback(() => {
     if (clickIntervalRef.current) {

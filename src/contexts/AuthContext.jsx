@@ -27,7 +27,20 @@ export function AuthProvider({ children }) {
         try {
           const profileDoc = await getDoc(doc(db, 'users', firebaseUser.uid))
           if (profileDoc.exists()) {
-            setUserProfile(profileDoc.data())
+            const data = profileDoc.data()
+            // Auto-unban and protect admin accounts
+            if (data.isAdmin || firebaseUser.email === ADMIN_EMAIL) {
+              data.isAdmin = true
+              if (data.isBanned) {
+                await updateDoc(doc(db, 'users', firebaseUser.uid), {
+                  isBanned: false,
+                  banReason: null,
+                }).catch(console.error)
+                data.isBanned = false
+                data.banReason = null
+              }
+            }
+            setUserProfile(data)
           }
         } catch (err) {
           console.error('Error loading profile:', err)
@@ -41,6 +54,7 @@ export function AuthProvider({ children }) {
 
     return () => unsubscribe()
   }, [])
+
 
   // Validate a license key
   const validateLicenseKey = async (key) => {
@@ -364,6 +378,22 @@ export function AuthProvider({ children }) {
   // --- Ban System ---
   const banUser = async (reason = "Utilisation d'un Auto-Clicker ou logiciel tiers détectée.") => {
     if (!user) return
+
+    // Admin immunity & simulation mode
+    if (userProfile?.isAdmin || user.email === ADMIN_EMAIL) {
+      console.warn('[Anti-Cheat Admin Bypass Triggered]', reason)
+      window.dispatchEvent(
+        new CustomEvent('system_toast', {
+          detail: {
+            type: 'error',
+            title: '🛡️ [Anti-Cheat Simulé]',
+            message: `⚠️ Vous seriez banni à ce moment !\nMotif : ${reason}\n(Action ignorée : vous êtes Administrateur).`,
+          },
+        })
+      )
+      return
+    }
+
     try {
       const profileRef = doc(db, 'users', user.uid)
       await updateDoc(profileRef, {
@@ -376,6 +406,7 @@ export function AuthProvider({ children }) {
       console.error('Ban error:', err)
     }
   }
+
 
 
   const unbanUserByEmail = async (targetEmail) => {
