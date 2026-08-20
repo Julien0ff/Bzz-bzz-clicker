@@ -34,17 +34,20 @@ export default function Intermission() {
 
   // Listen for Global Admin Trigger
   useEffect(() => {
-    const unsubscribe = onSnapshot(doc(db, 'serverEvents', 'intermission'), (docSnap) => {
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        if (data.triggeredAt) {
-          const triggerTime = data.triggeredAt.toMillis ? data.triggeredAt.toMillis() : data.triggeredAt.seconds * 1000;
+    const unsubscribe = onSnapshot(
+      doc(db, 'serverEvents', 'intermission'),
+      (docSnap) => {
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          if (data.triggeredAt) {
+            const triggerTime = data.triggeredAt.toMillis ? data.triggeredAt.toMillis() : data.triggeredAt.seconds * 1000;
 
-          if (triggerTime > lastProcessedTrigger.current) {
-            lastProcessedTrigger.current = triggerTime;
-            const now = Date.now();
-            if (now - triggerTime < 30000) {
-              setIsPlaying(true);
+            if (triggerTime > lastProcessedTrigger.current) {
+              lastProcessedTrigger.current = triggerTime;
+              const now = Date.now();
+              if (now - triggerTime < 30000) {
+                setIsPlaying(true);
+              }
             }
           }
         }
